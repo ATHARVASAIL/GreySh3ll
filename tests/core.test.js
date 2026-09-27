@@ -13,9 +13,9 @@ async function app(){
 }
 
 /* ---------- lazy loading ---------- */
-S.test('loadAllData populates all 577 cases from index.json', async () => {
+S.test('loadAllData populates all 817 cases from index.json', async () => {
   const w = await app();
-  eq(w.$('allData').length, 577, 'case count');
+  eq(w.$('allData').length, 817, 'case count');
 });
 
 S.test('startup fetches only index.json — no detail file is pulled eagerly', async () => {
@@ -64,7 +64,7 @@ S.test('toolkit bundle covers every case and carries payloads', async () => {
   const w = await app();
   const data = await w.$fn('ensureToolkitData')();
   const list = Array.isArray(data) ? data : (data.items || Object.values(data));
-  eq(list.length, 577, 'toolkit item count');
+  eq(list.length, 817, 'toolkit item count');
   ok(list.some(i => i.examplePayloads && i.examplePayloads.length), 'payloads present');
 });
 
@@ -179,7 +179,7 @@ S.test('ensureAllDetail still works with no progress callback', async () => {
 S.test('every global sequence number is unique and contiguous', async () => {
   const w = await app();
   const seqs = w.$('allData.map(d=>d.sequence)').slice().sort((a, b) => a - b);
-  eq(seqs.length, 577, 'one per case');
+  eq(seqs.length, 817, 'one per case');
   eq(new Set(seqs).size, seqs.length, 'no duplicate "#" badges');
   eq(seqs[0], 1, 'starts at 1');
   eq(seqs[seqs.length - 1], seqs.length, 'and runs unbroken to the end');
@@ -303,16 +303,21 @@ S.test('the taxonomy counts reconcile with the cases', async () => {
   });
 });
 
-S.test('the OWASP lists are complete, empty categories included', async () => {
+S.test('the OWASP lists are complete, every category listed', async () => {
   const w = await app();
   const idx = w.$('categoryIndex');
-  // A reader glancing at the web chooser should see that OWASP has a Supply
-  // Chain category even when this corpus has nothing filed under it.
+  // The chooser must show the full published taxonomy for each domain, so a
+  // reader always sees every OWASP category — whether or not this corpus has
+  // cases filed under it. (The corpus now covers all of them; the guarantee is
+  // that the list is driven by the taxonomy, not by which categories happen to
+  // be populated, so an unpopulated category would still appear.)
   eq(idx.WEB.categories.length, 10, 'OWASP Top 10:2025 has ten categories');
   eq(idx.API.categories.length, 10, 'OWASP API Top 10:2023 has ten');
   eq(idx.MOBILE.categories.length, 10, 'OWASP Mobile Top 10:2024 has ten');
   eq(idx.LLM.categories.length, 10, 'OWASP LLM Top 10:2025 has ten');
-  ok(idx.WEB.categories.some(c => c.count === 0), 'an empty category is still listed');
+  // Every listed category carries a count field (so a zero-count category is
+  // rendered rather than dropped) — the mechanism that keeps empty categories visible.
+  ok(idx.WEB.categories.every(c => typeof c.count === 'number'), 'every category carries a count');
 });
 
 S.test('standards are named by their published edition', async () => {

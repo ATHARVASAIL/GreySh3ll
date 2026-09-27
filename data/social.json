@@ -3114,6 +3114,3821 @@
      "name": "Social engineering"
     }
    ]
+  },
+  {
+   "id": "SOCIAL-029",
+   "domain": "SOCIAL",
+   "title": "No Logging or Review of Physical Badge Access",
+   "sequence": 583,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to review the badge/physical-access system and its logs (or evidence of their absence), and authorization for the review. Coordination with facilities.",
+   "whatItIs": "Badge systems record who entered which door and when — invaluable for detecting tailgating, after-hours access, and misuse. If those logs are not kept, or are kept but never reviewed, physical access goes unaccountable. This assessment checks whether physical access events are logged and reviewed.",
+   "rootCause": "Badge logs are treated as an operational feature, not a security record, so review is nobody's job. Some systems retain little history, and no one correlates access with expected patterns.",
+   "impact": "Without reviewed access logs, an intruder's tailgating, a terminated employee's continued access, or after-hours misuse goes unnoticed, and investigations lack a record of who was physically present.",
+   "realWorldContext": "After physical security incidents, organizations frequently discover their badge logs either weren't retained or were never reviewed — so no one noticed the after-hours access or the shared badge until it was far too late. Reviewing physical access is basic accountability that is routinely skipped.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review whether the badge/access system logs entry events with identity and timestamp.",
+    "Check log retention and whether logs are centralized.",
+    "Assess whether anyone reviews access logs or receives alerts.",
+    "Look for detection of tailgating, after-hours, or anomalous access.",
+    "Check whether terminated staff badges are promptly revoked and would show in logs.",
+    "Document the logging and review gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the physical-access system with facilities.",
+    "Examine badge logs for completeness (identity, door, timestamp) and retention.",
+    "Assess whether reviews or alerts occur for anomalous access.",
+    "Test (in scope) whether an after-hours or unusual access would be noticed.",
+    "Check revocation of a departed-staff badge against the logs.",
+    "Document the accountability gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review access-log completeness",
+     "command": "# examine sample badge events for identity, door, and timestamp fields"
+    },
+    {
+     "label": "Check retention window",
+     "command": "# how far back does the badge system retain access events?"
+    },
+    {
+     "label": "Test after-hours access visibility (in scope)",
+     "command": "# with authorization, perform a benign after-hours badge-in and check for any review/alert"
+    },
+    {
+     "label": "Verify revocation shows in logs",
+     "command": "# confirm a revoked badge is denied and the denial is logged"
+    }
+   ],
+   "variants": [
+    "No badge logging at all (open or mechanical access).",
+    "Logs retained but never reviewed.",
+    "No alerting on after-hours or anomalous access.",
+    "Terminated staff badges still active and unreviewed."
+   ],
+   "mitigation": [
+    "Log all physical access events with identity and timestamp, centrally retained.",
+    "Review access logs regularly and alert on anomalies (after-hours, tailgating patterns).",
+    "Promptly revoke access for departed staff and audit revocations.",
+    "Correlate physical access with other security events.",
+    "Retain logs long enough to support investigations.",
+    "Assign clear ownership for access-log review."
+   ],
+   "mitigationClientFacing": "Your badge system can record who came in which door and when, which helps catch intruders, after-hours misuse, or ex-employees still getting in — but only if those records are kept and someone reviews them. The fix is to log all door access with identity and time, review it regularly with alerts for unusual access, and promptly cancel badges when people leave.",
+   "reference": {
+    "standard": "AU-6 (Audit Record Review, Analysis, and Reporting)",
+    "cwe": "CWE-778",
+    "tools": [
+     "access-control system review",
+     "facilities coordination"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-6 Audit Review",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-030",
+   "domain": "SOCIAL",
+   "title": "Visitor Logs Not Kept or Reviewed",
+   "sequence": 584,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-778",
+   "prerequisites": "Ability to observe the visitor sign-in process and review visitor records (or their absence), and authorization to do so. A visit as a pretext, if in scope.",
+   "whatItIs": "A visitor log records who came in, who they visited, and when — a basic accountability control and a deterrent. If visitors are not signed in, or the log is never reviewed, there is no record of who was on the premises, aiding intruders and undermining investigations. This assessment checks visitor-logging practice.",
+   "rootCause": "Reception is busy and visitor logging feels like a formality, so it is skipped or done inconsistently, and no one reviews it. There is no accountability for who entered as a 'visitor'.",
+   "impact": "Without visitor logs, an intruder using a visitor pretext leaves no record, tailgating is unaccountable, and investigators cannot establish who was present. It also removes a deterrent to casual intrusion.",
+   "realWorldContext": "Social-engineering assessors routinely walk in as 'visitors' and are never properly signed in, leaving no trace of their presence. A missing or unreviewed visitor log is both an open door and an evidence gap that real intruders exploit.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Observe the visitor sign-in process (or its absence).",
+    "Check whether visitors are consistently logged with host, time, and purpose.",
+    "Assess whether visitor badges are issued and returned.",
+    "Determine whether visitor logs are retained and reviewed.",
+    "Where in scope, attempt entry as a visitor and see whether it is properly recorded.",
+    "Document the visitor-accountability gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization for any pretext visit and record review.",
+    "Observe or test the visitor sign-in process.",
+    "Assess consistency, badge issuance/return, and record retention.",
+    "If in scope, enter as a visitor and check whether the entry is logged accurately.",
+    "Determine whether anyone reviews visitor records.",
+    "Document the logging and review gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Observe sign-in practice",
+     "command": "# note whether every visitor is logged with host, purpose, and time"
+    },
+    {
+     "label": "Test visitor entry (in scope)",
+     "command": "# with authorization, sign in (or attempt to bypass) and verify the record created"
+    },
+    {
+     "label": "Check badge issuance/return",
+     "command": "# is a visitor badge issued, worn, and collected on exit?"
+    },
+    {
+     "label": "Review retention",
+     "command": "# are visitor records kept and ever reviewed?"
+    }
+   ],
+   "variants": [
+    "No visitor sign-in at all.",
+    "Inconsistent logging (some visitors unrecorded).",
+    "Visitor badges not returned/tracked.",
+    "Logs kept but never reviewed."
+   ],
+   "mitigation": [
+    "Require consistent visitor sign-in with host, purpose, and time.",
+    "Issue, track, and collect visitor badges.",
+    "Retain and periodically review visitor records.",
+    "Escort visitors in sensitive areas.",
+    "Reconcile visitor logs with badge/access events.",
+    "Train reception on the security purpose of visitor logging."
+   ],
+   "mitigationClientFacing": "A visitor log records who came in, who they were visiting, and when — it's a basic accountability measure and a deterrent. If visitors aren't signed in or the log is never checked, there's no record of who was in the building. The fix is to consistently sign in visitors with their host and purpose, issue and collect visitor badges, and keep and review the records.",
+   "reference": {
+    "standard": "AU-2 (Event Logging)",
+    "cwe": "CWE-778",
+    "tools": [
+     "visitor-log review",
+     "reception observation"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-2 Event Logging",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-031",
+   "domain": "SOCIAL",
+   "title": "Help-Desk Password-Reset Actions Not Logged or Attributable",
+   "sequence": 585,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-778",
+   "prerequisites": "Ability to review help-desk processes and logs (or their absence), and authorization to do so. A vishing pretext, if in scope.",
+   "whatItIs": "The help desk can reset passwords and grant access — a powerful capability and a prime social-engineering target. If reset actions are not logged with who requested, who approved, and how identity was verified, malicious resets (via vishing) cannot be detected or attributed. This assessment checks accountability for help-desk identity actions.",
+   "rootCause": "Help-desk tooling logs the technical action but rarely the verification performed or the requester's proven identity, and vishing exploits the pressure to be helpful. Without accountable logging, a socially-engineered reset looks like a normal one.",
+   "impact": "An attacker who vishes the help desk into a password reset gains account access, and without accountable logging the malicious reset blends in — no record of weak verification, no way to detect or trace it.",
+   "realWorldContext": "Help-desk vishing has driven major breaches: an attacker calls posing as an employee, pressures the agent into a reset or MFA re-enrollment, and walks into the account. When reset actions aren't logged with the verification performed, these attacks are invisible after the fact — which is exactly what makes the help desk such a favoured target.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review the help-desk password-reset and access-grant process.",
+    "Check whether identity-verification steps are required and logged.",
+    "Assess whether reset actions record requester, approver, and verification method.",
+    "Determine whether resets are reviewed or alerted on (especially privileged accounts).",
+    "Where in scope, test the process with a vishing pretext (coordinated).",
+    "Document the accountability and verification gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization (and coordination) for any vishing test.",
+    "Review the reset process and its logging.",
+    "Assess what identity verification is required and whether it is recorded.",
+    "If in scope, attempt a socially-engineered reset and observe verification and logging.",
+    "Check whether resets on sensitive accounts trigger review/alerts.",
+    "Document the gaps and their exploitability."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review reset-log fields",
+     "command": "# do reset records include requester, approver, and verification method?"
+    },
+    {
+     "label": "Assess verification requirements",
+     "command": "# what identity proof is required before a reset? is it enforced and logged?"
+    },
+    {
+     "label": "Coordinated vishing test (in scope)",
+     "command": "# with authorization, call the help desk with a pretext and record verification/logging outcome"
+    },
+    {
+     "label": "Check sensitive-account handling",
+     "command": "# are resets on admin/exec accounts reviewed or alerted?"
+    }
+   ],
+   "variants": [
+    "Resets logged without the verification performed.",
+    "No requester identity proof recorded.",
+    "Privileged-account resets not reviewed.",
+    "MFA re-enrollment via help desk unlogged."
+   ],
+   "mitigation": [
+    "Log help-desk identity actions with requester, approver, and verification method.",
+    "Require and record strong identity verification before resets.",
+    "Apply stricter verification and review for privileged accounts.",
+    "Alert on and review sensitive resets and MFA re-enrollments.",
+    "Train help-desk staff to resist social-engineering pressure.",
+    "Provide callback/verification procedures for high-risk requests."
+   ],
+   "mitigationClientFacing": "Your help desk can reset passwords and grant access, which makes it a favourite target for attackers who call pretending to be staff. If resets aren't logged with how the person's identity was checked, a fraudulent reset looks just like a real one. The fix is to require and record strong identity checks before any reset, log who requested and approved it, apply extra scrutiny to important accounts, and train staff to resist pressure.",
+   "reference": {
+    "standard": "AU-2 (Event Logging)",
+    "cwe": "CWE-778",
+    "tools": [
+     "process review",
+     "coordinated vishing",
+     "gophish (email pretext)"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-2 Event Logging",
+     "MITRE ATT&CK T1556 (Modify Authentication Process)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-032",
+   "domain": "SOCIAL",
+   "title": "No Audit Trail of Who Granted Physical or System Access",
+   "sequence": 586,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to review access-provisioning records (badge grants, account grants) or their absence, and authorization to do so.",
+   "whatItIs": "Granting access — issuing a badge, creating an account, adding someone to a privileged group — should be recorded with who requested, who approved, and why. If those grants are not logged, inappropriate or malicious access cannot be detected or traced back. This assessment checks accountability for access-granting decisions.",
+   "rootCause": "Provisioning is often handled informally (a verbal request, a quick ticket) without capturing approver and justification. Without an audit trail, over-granting and unauthorized grants are invisible.",
+   "impact": "Unlogged grants let an attacker (or insider) obtain access without accountability — a badge for an area they shouldn't reach, membership in a privileged group — with no record to detect or reverse it.",
+   "realWorldContext": "Insider-threat and social-engineering investigations frequently stall on the question 'who granted this access and why?' — because no one recorded it. An access grant without an approver and justification is an accountability black hole that both attackers and negligent insiders exploit.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review how physical and system access is granted and whether grants are logged.",
+    "Check whether records capture requester, approver, justification, and date.",
+    "Assess whether grants require documented approval.",
+    "Determine whether access grants are periodically reviewed/recertified.",
+    "Look for access that cannot be traced to an authorized grant.",
+    "Document the provisioning-accountability gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review provisioning records.",
+    "Examine sample access grants for approver, justification, and date.",
+    "Identify grants with no documented approval.",
+    "Assess whether periodic access reviews/recertification occur.",
+    "Show that an untraceable grant could not be detected or reversed.",
+    "Document the accountability gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review grant records",
+     "command": "# do provisioning records capture requester, approver, justification, date?"
+    },
+    {
+     "label": "Sample privileged-group additions",
+     "command": "# for a sample, trace each to an approved request"
+    },
+    {
+     "label": "Check recertification",
+     "command": "# is access periodically reviewed and re-approved?"
+    },
+    {
+     "label": "Find untraceable access",
+     "command": "# identify any access with no corresponding approved grant"
+    }
+   ],
+   "variants": [
+    "Access granted verbally with no record.",
+    "Privileged-group additions without documented approval.",
+    "Badge grants with no approver captured.",
+    "No periodic access recertification."
+   ],
+   "mitigation": [
+    "Require and log documented approval for all access grants (requester, approver, justification).",
+    "Maintain an auditable provisioning trail for physical and system access.",
+    "Perform periodic access reviews/recertification.",
+    "Alert on privileged-access grants.",
+    "Reconcile actual access against approved grants.",
+    "Assign ownership for provisioning accountability."
+   ],
+   "mitigationClientFacing": "Whenever someone is given access — a badge, an account, a spot in an admin group — it should be recorded with who asked, who approved, and why. If that isn't logged, inappropriate access can't be spotted or traced. The fix is to require documented approval for every access grant, keep an auditable record, and periodically review who has access and re-confirm they still need it.",
+   "reference": {
+    "standard": "AU-2 (Event Logging)",
+    "cwe": "CWE-778",
+    "tools": [
+     "provisioning review",
+     "access recertification"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-2 / AC-2",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "MITRE ATT&CK T1098 (Account Manipulation)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-033",
+   "domain": "SOCIAL",
+   "title": "Security Guard Rounds and Incidents Not Recorded",
+   "sequence": 587,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-778",
+   "prerequisites": "Ability to review guard-tour and incident-recording practices (or their absence), and authorization to do so. Observation over time.",
+   "whatItIs": "Where physical security relies on guards, their patrol rounds and incident observations should be recorded — proving coverage and creating a trail of what was seen. If rounds and incidents are not logged, there is no assurance patrols happen or record of anomalies, weakening physical accountability. This assessment checks guard-activity recording.",
+   "rootCause": "Guard logging is often paper-based, inconsistent, or absent, and incidents are handled verbally. Without recorded rounds and incidents, coverage is unverifiable and observations are lost.",
+   "impact": "Unrecorded patrols mean gaps in coverage go unnoticed and an intruder timing patrols faces less risk; unlogged incidents mean anomalies (a propped door, an unfamiliar person) are never escalated or investigated.",
+   "realWorldContext": "Assessors observing a site often find guard patrols are irregular and unrecorded, and 'incidents' like a propped fire door are noticed but never logged or escalated. Without a record of rounds and observations, physical coverage is a matter of trust rather than evidence — a gap intruders time their entry around.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether guard patrol rounds are scheduled and recorded (guard-tour system or log).",
+    "Check whether incidents/observations are recorded and escalated.",
+    "Assess coverage: are rounds consistent, or predictable/skippable?",
+    "Determine whether records are reviewed by management.",
+    "Observe (in scope) whether an anomaly you introduce is noticed and logged.",
+    "Document the guard-accountability gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to observe and review guard practices.",
+    "Review round scheduling and recording mechanisms.",
+    "Assess incident-recording and escalation practice.",
+    "Introduce a benign, safe anomaly (e.g. a noticeable but harmless item) and see whether it is observed and logged.",
+    "Check whether records are reviewed and gaps addressed.",
+    "Document the coverage and recording gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review round records",
+     "command": "# are patrol rounds logged (guard-tour checkpoints/timestamps)?"
+    },
+    {
+     "label": "Assess predictability",
+     "command": "# are rounds at fixed, predictable times an intruder could avoid?"
+    },
+    {
+     "label": "Test anomaly detection (in scope)",
+     "command": "# place a benign, obvious anomaly and record whether it is noticed and logged"
+    },
+    {
+     "label": "Check escalation",
+     "command": "# are observed incidents recorded and escalated to management?"
+    }
+   ],
+   "variants": [
+    "No recording of patrol rounds.",
+    "Predictable patrol timing enabling avoidance.",
+    "Incidents handled verbally and never logged.",
+    "Records kept but never reviewed."
+   ],
+   "mitigation": [
+    "Use a guard-tour system to record patrol rounds with checkpoints and timestamps.",
+    "Randomize patrol timing to reduce predictability.",
+    "Record and escalate incidents/observations consistently.",
+    "Review guard records and address coverage gaps.",
+    "Correlate guard records with access and camera events.",
+    "Train guards on recording and escalation expectations."
+   ],
+   "mitigationClientFacing": "If your physical security relies on guards, their patrols and anything unusual they notice should be recorded — otherwise you can't prove patrols happen or track what was seen, and an intruder can time predictable rounds. The fix is to record patrol rounds with checkpoints and times, vary the timing, log and escalate anything unusual, and review those records. Recorded patrols turn physical security from something you hope is happening into something you can prove and improve over time.",
+   "reference": {
+    "standard": "AU-12 (Audit Record Generation)",
+    "cwe": "CWE-778",
+    "tools": [
+     "guard-tour system review",
+     "site observation"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-12 Audit Record Generation",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-034",
+   "domain": "SOCIAL",
+   "title": "No Standardized Visitor-Management Process",
+   "sequence": 588,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1188",
+   "prerequisites": "Ability to observe visitor handling across entrances/sites, and authorization to do so. A pretext visit, if in scope.",
+   "whatItIs": "A consistent, documented visitor-management process — sign-in, ID check, badge, escort rules — is a baseline physical control. When each entrance or receptionist handles visitors differently, attackers find the weakest one. This assessment checks whether visitor management is standardized and enforced as a baseline.",
+   "rootCause": "Visitor handling grows ad hoc per site and per receptionist, with no documented standard. Inconsistency creates a weakest link an attacker can target.",
+   "impact": "Inconsistent visitor management lets an attacker enter via the least-controlled entrance or the most accommodating receptionist, bypassing tighter controls elsewhere.",
+   "realWorldContext": "Social-engineering assessors deliberately shop for the weakest entrance, and inconsistent visitor processes reliably provide one — a side reception with no ID check, or a stand-in receptionist who waves people through. Standardizing the process removes the soft spot attackers seek.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Determine whether a documented visitor-management standard exists.",
+    "Observe visitor handling across multiple entrances/sites/receptionists.",
+    "Identify inconsistencies (ID checks, badges, escort, sign-in) between them.",
+    "Find the weakest entry point.",
+    "Where in scope, attempt entry via the weakest point.",
+    "Document the baseline-consistency gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization for observation and any pretext entry.",
+    "Review the visitor-management standard (or its absence).",
+    "Observe handling at several entrances and note variations.",
+    "Identify the least-controlled entry.",
+    "If in scope, enter via the weakest point and document the process failure.",
+    "Document the inconsistency and its exploitability."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Compare entrance handling",
+     "command": "# observe ID check, badge, escort, sign-in at each entrance/reception"
+    },
+    {
+     "label": "Identify the weakest point",
+     "command": "# rank entrances by control strength; pick the softest"
+    },
+    {
+     "label": "Test the weak entrance (in scope)",
+     "command": "# with authorization, attempt entry via the least-controlled reception"
+    },
+    {
+     "label": "Check for a documented standard",
+     "command": "# is there a written, enforced visitor-management process?"
+    }
+   ],
+   "variants": [
+    "Side entrance with no ID check.",
+    "Stand-in receptionist unaware of the process.",
+    "Some sites escort visitors, others don't.",
+    "Badge issuance inconsistent across entrances."
+   ],
+   "mitigation": [
+    "Document and enforce a standard visitor-management process across all entrances/sites.",
+    "Require consistent ID checks, badges, sign-in, and escort rules.",
+    "Train all reception and stand-in staff on the standard.",
+    "Audit entrances for consistency periodically.",
+    "Remove or control weak/secondary entrances.",
+    "Provide clear procedures for exceptions."
+   ],
+   "mitigationClientFacing": "A consistent visitor process — sign-in, ID check, badge, escort — is a basic control, but when each entrance or receptionist does it differently, attackers simply use the weakest one. The fix is to write down one visitor process, apply it at every entrance, train all reception staff (including stand-ins) on it, and check periodically that it's followed consistently. A consistent process at every entrance removes the weak spot attackers look for, and it costs nothing beyond training and attention.",
+   "reference": {
+    "standard": "CM-2 (Baseline Configuration)",
+    "cwe": "CWE-1188",
+    "tools": [
+     "site observation",
+     "process review",
+     "pretext testing"
+    ],
+    "links": [
+     "NIST SP 800-53 CM-2 Baseline Configuration",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "CM",
+   "categoryName": "Configuration Management",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-035",
+   "domain": "SOCIAL",
+   "title": "Inconsistent Badge-Issuance and Access Baseline",
+   "sequence": 589,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1188",
+   "prerequisites": "Ability to review badge-issuance practice and access levels, and authorization to do so.",
+   "whatItIs": "Badges and their access levels should follow a documented baseline — who gets what access, how badges are issued and photographed, and how access maps to role. When badge issuance is inconsistent and access is granted ad hoc, people accumulate access beyond their role and unauthorized badges slip through. This assessment checks the badge/access baseline.",
+   "rootCause": "Access is granted per request without a role-based baseline, and badge issuance varies by who handles it. Over-provisioning and inconsistent issuance follow.",
+   "impact": "Inconsistent baselines lead to excessive physical access (people reaching areas they shouldn't) and to weakly-issued badges an attacker can obtain or clone, undermining physical segmentation.",
+   "realWorldContext": "Assessments routinely find staff with badge access to areas they have no business entering, granted ad hoc and never reviewed — and badge issuance so inconsistent that obtaining or cloning one is easy. A role-based access baseline is what keeps physical access proportionate and controllable.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether a role-based physical-access baseline exists.",
+    "Assess badge-issuance consistency (ID proof, photo, access mapping).",
+    "Sample staff access levels against their roles for over-provisioning.",
+    "Check whether access is periodically reviewed/recertified.",
+    "Assess badge technology strength (cloneable?) as part of the baseline.",
+    "Document the baseline and issuance gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review badge issuance and access levels.",
+    "Examine the issuance process and any access baseline.",
+    "Sample access grants against roles to find over-provisioning.",
+    "Assess badge technology and cloneability.",
+    "Show that inconsistent issuance or excessive access is exploitable.",
+    "Document the configuration-management gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review access-to-role mapping",
+     "command": "# sample staff and compare their badge access to their role"
+    },
+    {
+     "label": "Assess issuance consistency",
+     "command": "# is ID proof, photo, and access mapping required and consistent?"
+    },
+    {
+     "label": "Evaluate badge cloneability",
+     "command": "# with authorization, assess badge tech (e.g. low-frequency 125kHz cloneable with Proxmark)"
+    },
+    {
+     "label": "Check recertification",
+     "command": "# is physical access periodically reviewed against role?"
+    }
+   ],
+   "variants": [
+    "Staff with access far beyond their role.",
+    "Badges issued without ID proof or photo.",
+    "Cloneable low-frequency badge technology.",
+    "No periodic review of physical access."
+   ],
+   "mitigation": [
+    "Define a role-based physical-access baseline and grant access to match.",
+    "Standardize badge issuance (ID proof, photo, access mapping).",
+    "Use strong, non-trivially-cloneable badge technology.",
+    "Periodically review and recertify physical access.",
+    "Alert on out-of-baseline access grants.",
+    "Audit issuance and access against the baseline."
+   ],
+   "mitigationClientFacing": "Badges and the areas they open should follow a clear plan based on people's roles, but when access is granted ad hoc and badges are issued inconsistently, staff end up able to enter areas they shouldn't and weak badges slip through. The fix is to base access on role, standardize how badges are issued (with ID and photo), use badge technology that's hard to copy, and regularly review who can go where.",
+   "reference": {
+    "standard": "CM-6 (Configuration Settings)",
+    "cwe": "CWE-1188",
+    "tools": [
+     "access review",
+     "Proxmark (badge assessment)",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 CM-6 Configuration Settings",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "CM",
+   "categoryName": "Configuration Management",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-036",
+   "domain": "SOCIAL",
+   "title": "No Baseline for Information Reception May Disclose",
+   "sequence": 590,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-200",
+   "prerequisites": "Ability to interact with reception/front-line staff (in scope) and review any disclosure guidance. Authorization for pretext interaction.",
+   "whatItIs": "Front-line staff (reception, help desk) field questions all day, and without a clear baseline of what they may and may not disclose, they can leak useful information — staff names and roles, whether someone is in, internal phone numbers, org structure — to a pretexting caller or visitor. This assessment checks whether information-disclosure limits are defined and followed.",
+   "rootCause": "Reception's job is to be helpful, and without a documented disclosure baseline they answer questions naturally. Pretexting exploits this to gather reconnaissance.",
+   "impact": "Disclosed details (names, roles, schedules, internal numbers) feed targeted phishing/vishing and pretexting, and confirm an attacker's assumptions, making later attacks far more convincing.",
+   "realWorldContext": "Pretext callers routinely harvest an org chart, who's on holiday, and internal extensions from a helpful receptionist — reconnaissance that makes the next phishing or vishing attempt land. A defined disclosure baseline is what turns 'always helpful' into 'helpful within safe limits'.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether reception/front-line staff have disclosure guidance.",
+    "Assess what information is considered non-disclosable (schedules, structure, numbers).",
+    "Where in scope, use a pretext to probe what staff will disclose.",
+    "Identify over-disclosure that aids reconnaissance.",
+    "Check whether staff verify caller/visitor identity before disclosing.",
+    "Document the disclosure-baseline gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization for pretext interaction with staff.",
+    "Review any disclosure guidance/baseline.",
+    "Probe (via a coordinated pretext) what information staff will provide.",
+    "Record the reconnaissance obtainable through normal interaction.",
+    "Assess identity verification before disclosure.",
+    "Document the disclosure gaps and their reconnaissance value."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Probe for org/staff detail (in scope)",
+     "command": "# coordinated pretext call: request names, roles, availability, extensions"
+    },
+    {
+     "label": "Test schedule disclosure",
+     "command": "# ask whether a named person is in/travelling and record the response"
+    },
+    {
+     "label": "Assess identity verification",
+     "command": "# does staff verify who is asking before disclosing?"
+    },
+    {
+     "label": "Compare against a baseline",
+     "command": "# is there defined guidance on what may/may not be disclosed?"
+    }
+   ],
+   "variants": [
+    "Reception confirming staff presence/absence to unknown callers.",
+    "Internal extensions/org structure disclosed freely.",
+    "Executive travel schedules revealed.",
+    "No identity verification before disclosure."
+   ],
+   "mitigation": [
+    "Define a disclosure baseline: what front-line staff may and may not reveal.",
+    "Require identity verification before disclosing sensitive details.",
+    "Train reception/help desk on pretexting and safe responses.",
+    "Route sensitive requests through verified channels.",
+    "Test disclosure resistance periodically.",
+    "Provide scripts for declining and verifying requests."
+   ],
+   "mitigationClientFacing": "Reception and help-desk staff answer questions all day, and without clear limits they can unintentionally reveal useful information — who works there, who's in, internal numbers — to a scammer building an attack. The fix is to define what staff may and may not disclose, require them to verify who's asking before sharing sensitive details, and train them to recognize pretext calls.",
+   "reference": {
+    "standard": "CM-6 (Configuration Settings)",
+    "cwe": "CWE-200",
+    "tools": [
+     "coordinated pretexting",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 CM-6 / AT-2",
+     "MITRE ATT&CK T1598 (Phishing for Information)",
+     "MITRE ATT&CK T1591 (Gather Victim Org Information)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "CM",
+   "categoryName": "Configuration Management",
+   "attack": [
+    {
+     "id": "T1591",
+     "name": "Gather Victim Org Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-037",
+   "domain": "SOCIAL",
+   "title": "Unmanaged Contractor Onboarding/Offboarding for Physical Access",
+   "sequence": 591,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Ability to review contractor access processes and current contractor access, and authorization to do so.",
+   "whatItIs": "Contractors, cleaners, and temporary staff are often granted physical (and sometimes system) access with little process, and their access is frequently not revoked when they leave. Without managed onboarding/offboarding as a controlled change, orphaned access accumulates. This assessment checks contractor access lifecycle management.",
+   "rootCause": "Contractor access is arranged quickly and informally, and offboarding is nobody's clear responsibility, so badges and accounts persist after the engagement ends.",
+   "impact": "Orphaned contractor access — an active badge for a departed cleaner or contractor — provides an attacker (or the former contractor) an unmonitored way in, bypassing controls under a legitimate-looking identity.",
+   "realWorldContext": "Terminated-contractor access that was never revoked is a recurring finding and a real breach vector — a former cleaner's badge still opening doors, a departed contractor's account still active. Treating contractor access as a controlled change with mandatory offboarding is what closes it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review how contractor/temporary physical access is granted and revoked.",
+    "Assess whether onboarding requires approval and offboarding is mandatory and tracked.",
+    "Sample current contractor access against active engagements.",
+    "Identify orphaned access (departed contractors still active).",
+    "Check whether contractor access is time-limited/expiring.",
+    "Document the lifecycle-management gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review contractor access.",
+    "Examine onboarding/offboarding processes and records.",
+    "Sample active contractor badges/accounts against current engagements.",
+    "Identify access that should have been revoked.",
+    "Show that orphaned access grants an unmonitored entry.",
+    "Document the change-control gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Sample contractor access vs engagements",
+     "command": "# list active contractor badges/accounts and match to current, approved engagements"
+    },
+    {
+     "label": "Find orphaned access",
+     "command": "# identify access for contractors whose engagement has ended"
+    },
+    {
+     "label": "Check for access expiry",
+     "command": "# is contractor access time-limited and auto-expiring?"
+    },
+    {
+     "label": "Review offboarding ownership",
+     "command": "# who is responsible for revoking contractor access, and is it tracked?"
+    }
+   ],
+   "variants": [
+    "Departed cleaner's badge still active.",
+    "Contractor account not disabled after project end.",
+    "No expiry on contractor access.",
+    "No clear owner for contractor offboarding."
+   ],
+   "mitigation": [
+    "Treat contractor access as a controlled change with documented approval.",
+    "Make offboarding mandatory, tracked, and owned.",
+    "Time-limit contractor access with automatic expiry.",
+    "Periodically reconcile contractor access against active engagements.",
+    "Alert on contractor access outside an engagement window.",
+    "Include contractors in access recertification."
+   ],
+   "mitigationClientFacing": "Contractors and cleaners often get building access quickly and informally, and it's frequently never turned off when they leave — leaving active badges and accounts an attacker (or the former contractor) can use. The fix is to require approval to grant contractor access, make revoking it a mandatory tracked step when they leave, set access to expire automatically, and regularly check that current access matches current engagements.",
+   "reference": {
+    "standard": "CM-3 (Configuration Change Control)",
+    "cwe": "CWE-284",
+    "tools": [
+     "access review",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 CM-3 / AC-2",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "MITRE ATT&CK T1199 (Trusted Relationship)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "CM",
+   "categoryName": "Configuration Management",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-038",
+   "domain": "SOCIAL",
+   "title": "No Clean-Desk / Sensitive-Information Handling Baseline",
+   "sequence": 592,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-200",
+   "prerequisites": "Ability to walk authorized areas and observe desks/printers/whiteboards, and authorization to do so. A camera.",
+   "whatItIs": "A clean-desk and information-handling baseline defines how sensitive material (documents, credentials, whiteboards, screens) is handled and secured. Without one, passwords on sticky notes, sensitive printouts left on desks, and confidential whiteboards accumulate — easy pickings for a visitor or after-hours intruder. This assessment checks the clean-desk baseline.",
+   "rootCause": "Convenience wins without a defined standard: people leave documents out, write passwords down, and don't clear whiteboards. There is no baseline making them treat this material as sensitive.",
+   "impact": "Sensitive material left exposed hands an attacker credentials, internal documents, and confidential information directly, with no technical attack required, during a visit or after-hours access.",
+   "realWorldContext": "Walking an office after hours (or as a visitor) and photographing sticky-note passwords, sensitive printouts, and un-erased whiteboards is a staple of physical assessments — it works almost everywhere without a clean-desk baseline. It is one of the highest-yield, lowest-effort findings in physical testing.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review whether a clean-desk / information-handling baseline exists.",
+    "Walk authorized areas and observe desks, printers, whiteboards, and screens.",
+    "Photograph exposed credentials, sensitive documents, and confidential whiteboards.",
+    "Assess printer/output handling (unclaimed sensitive prints).",
+    "Check screen-lock and privacy practices.",
+    "Document the handling-baseline gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to walk areas and photograph exposed material.",
+    "Observe and record exposed sensitive material.",
+    "Assess the range of exposure (credentials, documents, whiteboards, screens).",
+    "Check output/printer handling and screen locking.",
+    "Show that the exposed material provides direct value to an attacker.",
+    "Document the clean-desk baseline gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Photograph exposed credentials",
+     "command": "# capture sticky-note passwords and written credentials on desks"
+    },
+    {
+     "label": "Record sensitive printouts",
+     "command": "# note unclaimed/exposed sensitive documents on desks and at printers"
+    },
+    {
+     "label": "Capture confidential whiteboards",
+     "command": "# photograph un-erased whiteboards with sensitive content"
+    },
+    {
+     "label": "Check screen locking",
+     "command": "# observe whether unattended screens are locked"
+    }
+   ],
+   "variants": [
+    "Passwords on sticky notes.",
+    "Sensitive documents left on desks/printers.",
+    "Confidential whiteboards not erased.",
+    "Unlocked unattended screens showing sensitive data."
+   ],
+   "mitigation": [
+    "Define and enforce a clean-desk / information-handling baseline.",
+    "Provide secure storage and shredding; require clearing desks and whiteboards.",
+    "Use secure/pull printing to prevent unclaimed sensitive prints.",
+    "Enforce automatic screen locking.",
+    "Train staff on handling and run periodic clean-desk checks.",
+    "Discourage writing down credentials; provide a password manager."
+   ],
+   "mitigationClientFacing": "Without a clean-desk rule, sensitive things pile up in the open — passwords on sticky notes, confidential printouts on desks, un-erased whiteboards — which a visitor or after-hours intruder can simply photograph. The fix is to set a clear clean-desk standard, provide secure storage, shredding, and pull-printing, require screens to lock automatically, and give staff a password manager so they don't write passwords down.",
+   "reference": {
+    "standard": "CM-6 (Configuration Settings)",
+    "cwe": "CWE-200",
+    "tools": [
+     "camera",
+     "site walk",
+     "clean-desk review"
+    ],
+    "links": [
+     "NIST SP 800-53 CM-6 / MP-4",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "CM",
+   "categoryName": "Configuration Management",
+   "attack": [
+    {
+     "id": "T1592",
+     "name": "Gather Victim Host Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-039",
+   "domain": "SOCIAL",
+   "title": "No Regular Phishing Susceptibility Assessment",
+   "sequence": 593,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Authorization to run a controlled phishing simulation and access to any prior phishing-test results. A phishing platform (gophish) and a target list agreed with the client.",
+   "whatItIs": "Phishing is the leading initial-access vector, and the only way to measure an organization's susceptibility is to test it. If no regular, controlled phishing assessment is run, the organization has no data on how many staff would click, submit credentials, or run an attachment — and no way to target training. This assessment checks whether phishing susceptibility is measured over time.",
+   "rootCause": "Phishing simulations require tooling, coordination, and care, so they are skipped or run once for compliance. Without a cadence, susceptibility is unmeasured and training is untargeted.",
+   "impact": "Unmeasured susceptibility means the organization cannot quantify its most likely breach path, cannot prioritize training, and repeats the same weaknesses. Attackers exploit exactly the click-through the org never measured.",
+   "realWorldContext": "Phishing is behind a large share of real breaches, and organizations that test regularly drive click rates down measurably over time, while those that never test have no idea how exposed they are. A phishing-assessment cadence turns the top breach vector from a blind spot into a managed, trending metric.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether controlled phishing assessments are run and how often.",
+    "Check whether results (click, submit, report rates) are tracked over time.",
+    "Assess whether results feed targeted training and risk assessment.",
+    "With authorization, run a coordinated phishing simulation.",
+    "Measure click, credential-submission, and reporting rates.",
+    "Document the assessment-cadence gap and current susceptibility."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and scope for a controlled phishing simulation.",
+    "Review prior phishing-assessment history and metrics.",
+    "Design and send a benign, clearly-tracked phishing simulation via the platform.",
+    "Measure click, submission, and report rates.",
+    "Compare to any historical data (or note its absence).",
+    "Document susceptibility and the cadence/training gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Set up a tracked phishing campaign",
+     "command": "# gophish: create a campaign with a benign landing page and tracked links to <target-list>"
+    },
+    {
+     "label": "Send the simulation",
+     "command": "# launch the campaign to the agreed target list (example.test sender domain)"
+    },
+    {
+     "label": "Measure engagement",
+     "command": "# collect click, credential-submission, and report rates from the platform"
+    },
+    {
+     "label": "Check the report path",
+     "command": "# was there a 'report phishing' button, and how many used it?"
+    }
+   ],
+   "variants": [
+    "No phishing assessment ever run.",
+    "One-off compliance test with no trending.",
+    "No credential-harvesting variant tested.",
+    "Results collected but never used for training."
+   ],
+   "mitigation": [
+    "Run regular, controlled phishing assessments with tracked metrics.",
+    "Trend click, submission, and report rates over time.",
+    "Feed results into targeted training and risk assessment.",
+    "Provide and promote an easy 'report phishing' mechanism.",
+    "Vary lures to test different attack styles.",
+    "Combine with technical controls (email filtering, MFA)."
+   ],
+   "mitigationClientFacing": "Phishing is the most common way attackers get in, and the only way to know how exposed you are is to test your staff with safe, simulated phishing. Without regular tests, you can't measure the risk or target your training. The fix is to run controlled phishing simulations regularly, track how many click or report over time, use the results to focus training, and make reporting phishing easy.",
+   "reference": {
+    "standard": "RA-5 (Vulnerability Monitoring and Scanning)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "gophish",
+     "SET",
+     "email platform"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-5 / AT-2",
+     "MITRE ATT&CK T1566 (Phishing)",
+     "MITRE ATT&CK T1598 (Phishing for Information)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-040",
+   "domain": "SOCIAL",
+   "title": "No Social-Engineering Risk Assessment Conducted",
+   "sequence": 594,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Access to review the risk-assessment program (or evidence of its absence) and authorization for the review. Prior social-engineering assessment records, if any.",
+   "whatItIs": "Social engineering — phishing, vishing, pretexting, physical intrusion, tailgating — is a major attack surface, but it is often absent from formal risk assessment, which focuses on technical vulnerabilities. Without assessing the human and physical attack surface, the organization cannot see or prioritize its social-engineering risk. This assessment checks whether social-engineering risk is formally assessed.",
+   "rootCause": "Risk assessment is dominated by technical scanning, and the human/physical dimension is harder to quantify, so it is left out. The organization's most exploited path is therefore unassessed.",
+   "impact": "Unassessed social-engineering risk means the organization cannot prioritize awareness training, physical controls, or verification procedures against its actual exposure — leaving the most common real-world attack path unmanaged.",
+   "realWorldContext": "Real breaches overwhelmingly begin with a human — a click, a call, a tailgated door — yet social engineering is routinely missing from risk registers dominated by technical findings. Formally assessing the human and physical attack surface is what lets an organization invest against how it will actually be attacked.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review whether social-engineering risk is included in formal risk assessment.",
+    "Check coverage of phishing, vishing, pretexting, physical, and tailgating vectors.",
+    "Assess whether prior social-engineering assessments informed the risk picture.",
+    "Determine whether human/physical controls are prioritized against assessed risk.",
+    "Identify social-engineering vectors never assessed.",
+    "Document the risk-assessment coverage gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the risk-assessment program.",
+    "Examine whether social-engineering vectors appear in risk assessment.",
+    "Assess coverage across the human and physical attack surface.",
+    "Show that key vectors are unassessed.",
+    "Correlate the gap with real-world attack likelihood.",
+    "Document the coverage gap and recommend inclusion."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review risk-register coverage",
+     "command": "# check whether phishing/vishing/pretext/physical/tailgating appear in risk assessment"
+    },
+    {
+     "label": "Assess prior SE assessment use",
+     "command": "# were previous social-engineering test results fed into the risk picture?"
+    },
+    {
+     "label": "Map unassessed vectors",
+     "command": "# identify human/physical attack vectors never assessed"
+    },
+    {
+     "label": "Check control prioritization",
+     "command": "# are awareness/physical controls prioritized against assessed SE risk?"
+    }
+   ],
+   "variants": [
+    "Social engineering absent from the risk register.",
+    "Only phishing considered, ignoring vishing/physical.",
+    "Physical intrusion risk never assessed.",
+    "Prior SE test results not incorporated."
+   ],
+   "mitigation": [
+    "Include social-engineering vectors in formal risk assessment.",
+    "Assess phishing, vishing, pretexting, physical, and tailgating exposure.",
+    "Feed social-engineering test results into the risk picture.",
+    "Prioritize awareness, verification, and physical controls against assessed risk.",
+    "Reassess periodically as tactics evolve.",
+    "Treat the human/physical surface as first-class in risk management."
+   ],
+   "mitigationClientFacing": "Most real attacks start with a person — a phishing click, a scam call, or someone tailgating through a door — yet this human and physical risk is often left out of formal risk assessments that focus only on technical flaws. The fix is to formally assess your social-engineering exposure (phishing, phone scams, pretexting, physical intrusion), use the results to prioritize training and physical controls, and reassess as attacker tactics change.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "risk-assessment review",
+     "SE test history"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 Risk Assessment",
+     "MITRE ATT&CK T1566 (Phishing)",
+     "MITRE ATT&CK T1598 (Phishing for Information)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-041",
+   "domain": "SOCIAL",
+   "title": "No Assessment of Public OSINT Exposure of Staff",
+   "sequence": 595,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-200",
+   "prerequisites": "OSINT tooling (theHarvester, Maltego, spiderfoot) and authorization to gather open-source information about the organization and its staff. No interaction with staff required.",
+   "whatItIs": "Attackers begin with open-source intelligence: staff names, roles, emails, phone numbers, tech stack, and personal details harvested from the website, LinkedIn, breach dumps, and social media. If the organization never assesses its own OSINT exposure, it cannot know what an attacker can learn to build targeted phishing, vishing, and pretexting. This assessment measures the public information footprint.",
+   "rootCause": "Public exposure accumulates across many sources and is nobody's responsibility to review. Without an OSINT assessment, the organization is unaware of the reconnaissance available to attackers.",
+   "impact": "Rich OSINT enables highly convincing targeted attacks: personalized phishing, plausible pretexts, and credential-stuffing from breach dumps. The more an attacker can learn freely, the more effective every later attack becomes.",
+   "realWorldContext": "Every serious attacker starts with OSINT, and assessments routinely assemble a detailed target profile — emails, roles, tech stack, even breached passwords — purely from public sources before any contact. Knowing your own OSINT footprint is how you anticipate and blunt the reconnaissance that precedes real attacks.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Gather organizational OSINT: domains, email formats, staff names/roles, phone numbers.",
+    "Collect exposure from the website, LinkedIn, social media, and public documents.",
+    "Check breach-dump exposure of corporate emails/credentials.",
+    "Identify technology and infrastructure detail leaked publicly.",
+    "Assess what an attacker could build (phishing lists, pretexts) from this.",
+    "Document the OSINT exposure and whether it is ever assessed."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to gather open-source information about the org and staff.",
+    "Enumerate the public information footprint across sources.",
+    "Assemble the attacker's-eye reconnaissance picture.",
+    "Check corporate emails against known breach data.",
+    "Show how the gathered OSINT enables targeted attacks.",
+    "Document the exposure and the absence of any OSINT assessment."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Harvest emails and subdomains",
+     "command": "theHarvester -d <target-domain> -b all"
+    },
+    {
+     "label": "Enumerate staff and roles",
+     "command": "# map staff/roles from LinkedIn and the public website"
+    },
+    {
+     "label": "Check breach exposure",
+     "command": "# query breach-data sources for <target-domain> email/credential exposure"
+    },
+    {
+     "label": "Map the footprint",
+     "command": "spiderfoot -s <target-domain> -m sfp_dnsresolve,sfp_email,sfp_social"
+    }
+   ],
+   "variants": [
+    "Predictable email format enabling easy targeting.",
+    "Detailed staff roles/contacts on LinkedIn.",
+    "Corporate credentials in breach dumps.",
+    "Leaked tech-stack detail aiding tailored lures."
+   ],
+   "mitigation": [
+    "Periodically assess the organization's OSINT exposure.",
+    "Minimize unnecessary public disclosure of staff detail and tech stack.",
+    "Monitor breach dumps for corporate credential exposure and force resets.",
+    "Train high-exposure staff on targeted-attack risk.",
+    "Reduce metadata leakage from public documents.",
+    "Feed OSINT findings into awareness and risk assessment."
+   ],
+   "mitigationClientFacing": "Attackers start by gathering freely-available information — staff names, emails, roles, tech details, even leaked passwords — to craft convincing scams. If you never check your own public footprint, you don't know what they can learn. The fix is to periodically assess what's exposed about your organization and staff, reduce unnecessary public detail, watch for your credentials in breach data, and train the most-exposed staff.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-200",
+    "tools": [
+     "theHarvester",
+     "Maltego",
+     "spiderfoot",
+     "breach-data sources"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 Risk Assessment",
+     "MITRE ATT&CK T1589 (Gather Victim Identity Information)",
+     "MITRE ATT&CK T1591 (Gather Victim Org Information)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1589",
+     "name": "Gather Victim Identity Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-042",
+   "domain": "SOCIAL",
+   "title": "Physical Security Risk Assessment Never Performed",
+   "sequence": 596,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Ability to review physical security arrangements and any risk-assessment records, and authorization for a physical review. Site access for observation.",
+   "whatItIs": "Physical security — perimeter, entrances, access control, surveillance, guarding — is a core part of protecting information and systems, yet it is often never formally risk-assessed. Without assessing physical threats and control effectiveness, weaknesses (tailgating, weak entrances, blind spots) persist unquantified. This assessment checks whether physical security risk is formally assessed.",
+   "rootCause": "Physical security is treated as a facilities matter, separate from information-security risk assessment, so it is never formally assessed against threats. Weaknesses go unquantified.",
+   "impact": "Unassessed physical weaknesses (unsecured entrances, tailgating, surveillance blind spots) provide attackers direct access to people, devices, and documents, bypassing technical controls entirely.",
+   "realWorldContext": "Physical intrusion remains a reliable path into 'secure' organizations precisely because physical risk is rarely assessed with the rigour applied to technical risk. A formal physical assessment surfaces the tailgating routes and weak entrances that assessors — and intruders — otherwise exploit.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether physical security risk has been formally assessed.",
+    "Observe perimeter, entrances, access control, surveillance, and guarding.",
+    "Identify physical weaknesses (tailgating, weak entrances, blind spots).",
+    "Assess whether physical controls are prioritized against threats.",
+    "Determine whether physical risk feeds the overall risk picture.",
+    "Document the physical-risk-assessment gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization for a physical security review.",
+    "Review any physical risk-assessment records.",
+    "Observe and document physical controls and weaknesses.",
+    "Demonstrate (in scope) an unassessed weakness such as a tailgating route.",
+    "Show that physical risk is unquantified and unmanaged.",
+    "Document the gap and recommend a formal assessment."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Assess perimeter and entrances",
+     "command": "# observe fencing, doors, entrances, and access-control coverage"
+    },
+    {
+     "label": "Test tailgating (in scope)",
+     "command": "# with authorization, attempt to tailgate an authorized entry and record success"
+    },
+    {
+     "label": "Map surveillance blind spots",
+     "command": "# identify camera coverage gaps and unmonitored areas"
+    },
+    {
+     "label": "Check for a physical risk assessment",
+     "command": "# is there a formal, current physical security risk assessment?"
+    }
+   ],
+   "variants": [
+    "Perimeter/entrance weaknesses never assessed.",
+    "Tailgating routes unquantified.",
+    "Surveillance blind spots unknown.",
+    "Physical risk absent from the risk register."
+   ],
+   "mitigation": [
+    "Perform a formal physical security risk assessment covering the full facility.",
+    "Assess perimeter, entrances, access control, surveillance, and guarding.",
+    "Prioritize physical controls against identified threats.",
+    "Integrate physical risk into the overall risk picture.",
+    "Reassess after facility or threat changes.",
+    "Remediate identified physical weaknesses."
+   ],
+   "mitigationClientFacing": "Physical security — doors, entrances, cameras, guards — protects your people, devices, and documents, but it's often never formally risk-assessed the way technical systems are, so weaknesses like tailgating and unwatched entrances go unnoticed. The fix is to perform a formal physical security assessment, fix the weaknesses it finds, and include physical risk in your overall risk picture. Treating physical security with the same rigour as your technical defences closes a gap that intruders rely on being overlooked.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "site observation",
+     "physical assessment",
+     "risk-assessment review"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 Risk Assessment",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-043",
+   "domain": "SOCIAL",
+   "title": "Insider-Threat Risk Not Assessed",
+   "sequence": 597,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Access to review insider-threat considerations in risk assessment and relevant controls (access, monitoring, separation of duties), and authorization for the review.",
+   "whatItIs": "Insiders — malicious or negligent — have legitimate access and knowledge, making them a distinct and serious threat. If insider risk is never assessed, controls like least privilege, separation of duties, monitoring, and offboarding are not prioritized against it. This assessment checks whether insider-threat risk is formally considered.",
+   "rootCause": "Risk assessment focuses on external attackers, and insider threat is uncomfortable and hard to quantify, so it is omitted. Controls that would mitigate it are then not prioritized.",
+   "impact": "Unassessed insider risk leaves excessive access, weak monitoring, poor separation of duties, and slow offboarding — exactly the conditions an insider (or an attacker who compromises an insider account) exploits for data theft or sabotage.",
+   "realWorldContext": "Insider incidents — from data theft to sabotage — are consistently among the most costly, and they exploit precisely the excessive access and weak monitoring that go unaddressed when insider risk is never assessed. Considering the insider explicitly is what drives least-privilege, monitoring, and clean offboarding.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review whether insider-threat risk is assessed (malicious and negligent).",
+    "Check whether least privilege and separation of duties are enforced against it.",
+    "Assess monitoring for insider indicators (unusual access, exfiltration).",
+    "Review offboarding and access-revocation effectiveness.",
+    "Determine whether insider risk feeds the risk picture and controls.",
+    "Document the insider-risk-assessment gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review insider-threat considerations.",
+    "Examine whether insider risk appears in risk assessment.",
+    "Assess access, separation-of-duties, monitoring, and offboarding controls.",
+    "Identify conditions an insider could exploit (excess access, weak monitoring).",
+    "Show that insider risk is unmanaged.",
+    "Document the gap and recommend inclusion."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review insider-risk coverage",
+     "command": "# is malicious/negligent insider risk in the risk assessment?"
+    },
+    {
+     "label": "Assess least privilege / SoD",
+     "command": "# sample access for excessive privilege and separation-of-duties gaps"
+    },
+    {
+     "label": "Check insider monitoring",
+     "command": "# is there monitoring for unusual access or data exfiltration by insiders?"
+    },
+    {
+     "label": "Evaluate offboarding",
+     "command": "# how quickly and completely is access revoked when staff leave?"
+    }
+   ],
+   "variants": [
+    "Insider threat absent from risk assessment.",
+    "Excessive access / poor separation of duties.",
+    "No monitoring for insider indicators.",
+    "Slow or incomplete offboarding."
+   ],
+   "mitigation": [
+    "Include insider threat (malicious and negligent) in risk assessment.",
+    "Enforce least privilege and separation of duties.",
+    "Monitor for insider indicators (anomalous access, exfiltration).",
+    "Ensure prompt, complete offboarding and access revocation.",
+    "Support a positive reporting culture for concerns.",
+    "Reassess insider risk periodically."
+   ],
+   "mitigationClientFacing": "Insiders — whether malicious or just careless — already have access and knowledge, making them a serious and distinct threat, yet risk assessments often ignore them. The fix is to formally consider insider risk, give people only the access they need, separate sensitive duties, watch for unusual access or data movement, and make sure access is fully removed when people leave.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "risk-assessment review",
+     "access review"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 / AC-6",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "MITRE ATT&CK T1052 (Exfiltration Over Physical Medium)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-044",
+   "domain": "SOCIAL",
+   "title": "Contractors and Vendors with Physical Access Not Vetted",
+   "sequence": 598,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Access to review vendor/contractor vetting practices and current access, and authorization for the review.",
+   "whatItIs": "Vendors and contractors — cleaners, maintenance, IT services, security staff — are frequently granted physical access with little or no background vetting. An unvetted individual with facility access is a significant insider-style risk. This assessment checks whether third parties granted physical access are appropriately vetted.",
+   "rootCause": "Vendor access is arranged for operational convenience, and vetting is assumed to be the vendor's responsibility or skipped entirely. Unvetted individuals gain trusted access.",
+   "impact": "An unvetted contractor with facility access can steal devices/documents, plant rogue devices, or provide access to others — a trusted-insider position obtained without scrutiny.",
+   "realWorldContext": "Cleaning and maintenance staff have featured in real physical breaches precisely because they have broad, trusted access and are rarely vetted by the organization itself. Requiring vetting for third parties with physical access closes a trusted-insider gap that attackers deliberately target.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify vendors/contractors with physical access (cleaning, maintenance, IT, security).",
+    "Review whether background vetting is required and performed (by whom).",
+    "Assess the access level granted to third parties versus need.",
+    "Check whether vendor staff are escorted or unsupervised.",
+    "Determine whether vendor access is time-limited and revoked.",
+    "Document the vetting and access-control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review vendor/contractor vetting and access.",
+    "Enumerate third parties with physical access and their access levels.",
+    "Assess whether vetting is required and evidenced.",
+    "Identify unvetted individuals with sensitive access.",
+    "Show the trusted-insider risk this creates.",
+    "Document the vetting and supervision gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate third-party access",
+     "command": "# list vendors/contractors with physical access and their access levels"
+    },
+    {
+     "label": "Check vetting evidence",
+     "command": "# is background vetting required and documented for third parties with access?"
+    },
+    {
+     "label": "Assess supervision",
+     "command": "# are vendor staff escorted in sensitive areas or unsupervised?"
+    },
+    {
+     "label": "Review access lifecycle",
+     "command": "# is vendor access time-limited and revoked at engagement end?"
+    }
+   ],
+   "variants": [
+    "Cleaning staff with unsupervised after-hours access, unvetted.",
+    "Maintenance contractor with broad, unvetted access.",
+    "Security staff (outsourced) not vetted by the organization.",
+    "Vendor access never revoked after the engagement."
+   ],
+   "mitigation": [
+    "Require appropriate background vetting for third parties granted physical access.",
+    "Grant least-privilege physical access to vendors and time-limit it.",
+    "Escort or supervise vendor staff in sensitive areas.",
+    "Include vetting requirements in vendor contracts.",
+    "Revoke vendor access promptly at engagement end.",
+    "Audit third-party access against need and vetting."
+   ],
+   "mitigationClientFacing": "Cleaners, maintenance workers, and other contractors often get building access with little or no background checking, yet they have trusted access to your facility. The fix is to require appropriate vetting for anyone given physical access, limit their access to what they need and for how long they need it, supervise them in sensitive areas, and remove access when the work ends.",
+   "reference": {
+    "standard": "SA-9 (External System Services)",
+    "cwe": "CWE-284",
+    "tools": [
+     "access review",
+     "vendor contract review"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-9 External System Services",
+     "MITRE ATT&CK T1199 (Trusted Relationship)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1591",
+     "name": "Gather Victim Org Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-045",
+   "domain": "SOCIAL",
+   "title": "Outsourced Help Desk a Weakly-Controlled Vishing Target",
+   "sequence": 599,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to assess the outsourced help-desk's security posture, ideally via a coordinated vishing test, and access to the contract/SLA.",
+   "whatItIs": "When the help desk is outsourced, the third-party agents can reset passwords and grant access to your systems — but their identity-verification rigor, training, and monitoring are the provider's, and may be weak. A weakly-controlled outsourced help desk is a prime vishing target. This assessment checks the security of, and requirements on, an outsourced help desk.",
+   "rootCause": "Outsourcing the help desk shifts control of a powerful capability to a third party whose verification standards and social-engineering resistance may not match the organization's, and the contract often does not specify them.",
+   "impact": "An attacker who vishes the outsourced help desk into a reset or MFA re-enrollment gains account access, exploiting the provider's weaker verification — with the organization's systems as the target and unclear accountability.",
+   "realWorldContext": "Help-desk vishing has driven major breaches, and outsourced help desks are especially attractive because their agents' verification rigor is often weaker and set by the provider, not the organization. Specifying and testing verification standards for an outsourced help desk closes a favoured attacker route.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify whether the help desk is outsourced and what it can do (resets, access grants, MFA re-enrollment).",
+    "Review the contract/SLA for identity-verification and security requirements.",
+    "Assess the provider's verification rigor and social-engineering training.",
+    "Where in scope, run a coordinated vishing test against the outsourced help desk.",
+    "Check monitoring and accountability for provider actions.",
+    "Document the control and requirement gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for any vishing test.",
+    "Review the outsourced help desk's capabilities and contractual requirements.",
+    "Assess verification standards and training.",
+    "If in scope, attempt a socially-engineered reset via the provider and record the outcome.",
+    "Check logging and accountability for provider identity actions.",
+    "Document the gaps and their exploitability."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review contractual verification requirements",
+     "command": "# does the contract mandate identity-verification standards for resets/MFA changes?"
+    },
+    {
+     "label": "Coordinated vishing test (in scope)",
+     "command": "# with authorization, call the outsourced help desk with a pretext; record verification and outcome"
+    },
+    {
+     "label": "Assess provider training",
+     "command": "# what social-engineering resistance training do agents receive?"
+    },
+    {
+     "label": "Check action logging",
+     "command": "# are provider identity actions logged and attributable to the organization's satisfaction?"
+    }
+   ],
+   "variants": [
+    "Provider resets passwords with weak identity proof.",
+    "MFA re-enrollment via the outsourced help desk with no strong verification.",
+    "No contractual verification standard.",
+    "Provider actions poorly logged or unaccountable."
+   ],
+   "mitigation": [
+    "Specify strong identity-verification standards for the outsourced help desk in the contract.",
+    "Require and verify social-engineering resistance training for agents.",
+    "Apply stricter verification for privileged accounts and MFA changes.",
+    "Ensure provider identity actions are logged and reviewable.",
+    "Test the outsourced help desk with periodic coordinated vishing.",
+    "Retain organizational oversight of high-risk identity actions."
+   ],
+   "mitigationClientFacing": "If your help desk is outsourced, the outside agents can still reset passwords and grant access to your systems — but their identity-checking may be weaker and is set by the provider, making them a prime target for scam calls. The fix is to require strong identity-verification standards in the contract, make sure agents are trained to resist social engineering, log their actions, and test them periodically with coordinated scam-call simulations.",
+   "reference": {
+    "standard": "SA-9 (External System Services)",
+    "cwe": "CWE-284",
+    "tools": [
+     "coordinated vishing",
+     "contract review"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-9 External System Services",
+     "MITRE ATT&CK T1556 (Modify Authentication Process)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-046",
+   "domain": "SOCIAL",
+   "title": "Supply-Chain Personnel Social-Engineering Risk Unmanaged",
+   "sequence": 600,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1357",
+   "prerequisites": "Access to review supplier/partner interaction processes and any related security requirements, and authorization for the review.",
+   "whatItIs": "Suppliers and partners interact with staff constantly — invoices, orders, support requests — and attackers impersonate them (or compromise them) to social-engineer the organization: fraudulent invoices, changed bank details, malicious 'support'. If supply-chain social-engineering risk is unmanaged, these attacks succeed. This assessment checks controls against supplier-impersonation and compromised-partner attacks.",
+   "rootCause": "Supplier interactions are routine and trusted, and verification of changes (bank details, urgent requests) is often informal. Attackers exploit this trust via impersonation or partner compromise.",
+   "impact": "Successful supplier-impersonation attacks (invoice fraud, bank-detail changes, malicious support) cause direct financial loss and can deliver malware or access, exploiting a trusted relationship the organization does not verify.",
+   "realWorldContext": "Business email compromise and supplier-impersonation fraud — a fake invoice, a 'changed bank details' email from a compromised partner — cause enormous documented losses. Managing supply-chain social-engineering risk with verification procedures is what stops a trusted relationship from becoming a fraud channel.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review how supplier/partner interactions (invoices, changes, support) are handled and verified.",
+    "Assess verification for high-risk changes (bank details, payment instructions).",
+    "Check resistance to supplier-impersonation and compromised-partner attacks.",
+    "Where in scope, test with a coordinated supplier-impersonation pretext.",
+    "Assess whether staff verify partner requests out-of-band.",
+    "Document the supply-chain social-engineering control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for any impersonation test.",
+    "Review supplier-interaction and change-verification processes.",
+    "Assess out-of-band verification for high-risk requests.",
+    "If in scope, run a coordinated supplier-impersonation test (e.g. a bank-detail-change request) and record the outcome.",
+    "Show the exploitability of unmanaged supply-chain trust.",
+    "Document the gaps and recommend verification controls."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review change-verification process",
+     "command": "# how are bank-detail/payment changes from suppliers verified?"
+    },
+    {
+     "label": "Coordinated impersonation test (in scope)",
+     "command": "# with authorization, send a pretext supplier request (bank-detail change) via email; record response"
+    },
+    {
+     "label": "Assess out-of-band verification",
+     "command": "# do staff call a known supplier number to verify changes, or act on email alone?"
+    },
+    {
+     "label": "Check malicious-support resistance",
+     "command": "# would staff grant access to a caller claiming to be supplier support?"
+    }
+   ],
+   "variants": [
+    "Fraudulent invoice paid without verification.",
+    "Bank-detail change actioned on email alone.",
+    "Malicious 'supplier support' granted access.",
+    "Compromised-partner email trusted implicitly."
+   ],
+   "mitigation": [
+    "Require out-of-band verification for supplier bank-detail and payment changes.",
+    "Train finance and staff on supplier-impersonation and BEC.",
+    "Verify partner requests against known, trusted contacts.",
+    "Apply dual-control for high-value payments and changes.",
+    "Include social-engineering resistance in supplier processes.",
+    "Test with periodic coordinated impersonation exercises."
+   ],
+   "mitigationClientFacing": "Attackers impersonate your suppliers — or hijack a supplier's email — to trick staff into paying fake invoices, changing bank details, or granting 'support' access. If these requests aren't verified, the fraud succeeds. The fix is to verify high-risk supplier requests (like bank-detail changes) through a separate known channel, use dual approval for big payments, and train staff to recognize supplier-impersonation scams.",
+   "reference": {
+    "standard": "SA-12 (Supply Chain Protection)",
+    "cwe": "CWE-1357",
+    "tools": [
+     "coordinated impersonation",
+     "process review",
+     "gophish"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-12 Supply Chain Protection",
+     "MITRE ATT&CK T1566 (Phishing)",
+     "MITRE ATT&CK T1199 (Trusted Relationship)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1591",
+     "name": "Gather Victim Org Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-047",
+   "domain": "SOCIAL",
+   "title": "No Security Requirements for Third Parties Handling Sensitive Data",
+   "sequence": 601,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1357",
+   "prerequisites": "Access to review third-party contracts/SLAs and data-handling arrangements, and authorization for the review.",
+   "whatItIs": "Third parties that handle the organization's sensitive data or interact with its staff (processors, outsourced functions, partners) inherit real risk. If their security requirements — data handling, staff vetting, social-engineering resistance, breach notification — are not specified and verified, weaknesses at the third party become the organization's exposure. This assessment checks the security requirements imposed on and verified for such third parties.",
+   "rootCause": "Third-party engagements are driven by cost and capability, and security requirements are often omitted or unverified. The organization inherits the third party's weaknesses without visibility.",
+   "impact": "A weakly-controlled third party can leak data, be socially-engineered into granting access, or suffer a breach that cascades to the organization — with unclear accountability and no imposed standard to enforce.",
+   "realWorldContext": "Third-party and processor breaches routinely become their customers' breaches, and social engineering of a partner is a well-worn path in. Imposing and verifying security requirements — including social-engineering resistance and breach notification — on third parties is what contains this inherited risk.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify third parties handling sensitive data or interacting with staff.",
+    "Review contracts/SLAs for security requirements (data handling, vetting, breach notice).",
+    "Assess whether social-engineering resistance is required of the third party.",
+    "Check whether third-party security posture is verified (assessments, attestations).",
+    "Identify third parties with no imposed or verified requirements.",
+    "Document the requirement and verification gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review third-party contracts and arrangements.",
+    "Enumerate third parties handling sensitive data or staff interactions.",
+    "Assess the security requirements imposed and whether they are verified.",
+    "Identify gaps (no data-handling standard, no vetting, no breach notice).",
+    "Show how a weak third party becomes the organization's exposure.",
+    "Document the gaps and recommend requirements/verification."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review contract security requirements",
+     "command": "# do third-party contracts specify data handling, vetting, and breach notification?"
+    },
+    {
+     "label": "Assess verification",
+     "command": "# is the third party's security posture ever verified (assessment/attestation)?"
+    },
+    {
+     "label": "Check SE-resistance requirements",
+     "command": "# are third parties required to resist social engineering (e.g. verification procedures)?"
+    },
+    {
+     "label": "Find unmanaged third parties",
+     "command": "# identify sensitive-data third parties with no imposed/verified requirements"
+    }
+   ],
+   "variants": [
+    "Processor with no contractual data-handling standard.",
+    "Third party with unvetted staff handling sensitive data.",
+    "No breach-notification requirement.",
+    "Third-party security never verified."
+   ],
+   "mitigation": [
+    "Impose security requirements on third parties handling sensitive data (data handling, vetting, breach notice).",
+    "Require social-engineering resistance and verification procedures.",
+    "Verify third-party security posture (assessments/attestations).",
+    "Include right-to-audit and breach-notification clauses.",
+    "Reassess third-party security periodically.",
+    "Treat third-party risk as part of the organization's risk picture."
+   ],
+   "mitigationClientFacing": "Outside companies that handle your sensitive data or deal with your staff carry real risk, and if you don't set and check their security standards, their weaknesses become your exposure. The fix is to require third parties to meet clear security standards (data handling, staff vetting, breach notification, resistance to scams), verify they actually do, and include audit and notification rights in contracts.",
+   "reference": {
+    "standard": "SA-9 (External System Services)",
+    "cwe": "CWE-1357",
+    "tools": [
+     "contract review",
+     "third-party assessment"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-9 External System Services",
+     "MITRE ATT&CK T1199 (Trusted Relationship)",
+     "MITRE ATT&CK T1195 (Supply Chain Compromise)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-048",
+   "domain": "SOCIAL",
+   "title": "No Vetting of Temporary and Seasonal Staff",
+   "sequence": 602,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-284",
+   "prerequisites": "Access to review hiring/vetting practices for temporary staff and their access, and authorization for the review.",
+   "whatItIs": "Temporary, seasonal, and agency staff are often onboarded quickly with minimal vetting yet granted real access to systems, facilities, and data. Rushed hiring plus real access is a recognized insider-risk path. This assessment checks whether temporary staff are vetted commensurate with their access.",
+   "rootCause": "Temporary hiring prioritizes speed to fill gaps, and vetting is minimized or delegated to an agency and unverified. Access is granted before adequate vetting.",
+   "impact": "An unvetted temporary worker with real access can steal data or devices, provide access to others, or act maliciously — a trusted-insider position obtained with little scrutiny.",
+   "realWorldContext": "Seasonal and agency staff onboarded in a rush, with access but no vetting, are a recurring insider-risk finding — and real incidents have involved exactly such short-term staff. Vetting proportionate to access, even for temporary roles, is what prevents access from outrunning trust.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify temporary/seasonal/agency staff and their access levels.",
+    "Review vetting requirements and whether they are performed and verified.",
+    "Assess whether access is proportionate to vetting and need.",
+    "Check whether temporary access is time-limited and revoked.",
+    "Determine whether agency-performed vetting is verified.",
+    "Document the vetting-versus-access gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review temporary-staff vetting and access.",
+    "Enumerate temporary staff and their access.",
+    "Assess vetting requirements and evidence.",
+    "Identify unvetted temporary staff with sensitive access.",
+    "Show the trusted-insider risk created.",
+    "Document the vetting and access-lifecycle gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate temporary-staff access",
+     "command": "# list temporary/agency staff and their system/facility/data access"
+    },
+    {
+     "label": "Check vetting evidence",
+     "command": "# is vetting required, performed, and verified (not just assumed via the agency)?"
+    },
+    {
+     "label": "Assess access proportionality",
+     "command": "# is access proportionate to vetting level and role need?"
+    },
+    {
+     "label": "Review access lifecycle",
+     "command": "# is temporary access time-limited and revoked at the end of the engagement?"
+    }
+   ],
+   "variants": [
+    "Seasonal staff with real access and no vetting.",
+    "Agency vetting assumed but never verified.",
+    "Temporary access not time-limited.",
+    "Access disproportionate to a short-term role."
+   ],
+   "mitigation": [
+    "Vet temporary/seasonal/agency staff proportionate to their access.",
+    "Verify agency-performed vetting rather than assuming it.",
+    "Grant least-privilege, time-limited access to temporary staff.",
+    "Revoke temporary access promptly at engagement end.",
+    "Supervise temporary staff in sensitive areas/systems.",
+    "Include temporary staff in access recertification."
+   ],
+   "mitigationClientFacing": "Temporary and seasonal workers are often hired fast with little background checking but still get real access to systems and buildings — a known insider risk. The fix is to vet temporary staff appropriately for the access they'll have, verify any checks the agency claims to have done, limit their access and how long it lasts, and remove it promptly when they leave.",
+   "reference": {
+    "standard": "SA-21 (Developer Screening)",
+    "cwe": "CWE-284",
+    "tools": [
+     "hiring/vetting review",
+     "access review"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-21 / PS-3",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "MITRE ATT&CK T1199 (Trusted Relationship)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-049",
+   "domain": "SOCIAL",
+   "title": "Sensitive Information Disclosed Over Unverified Phone Calls",
+   "sequence": 603,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to run a coordinated vishing test and access to review phone-based disclosure practices.",
+   "whatItIs": "The phone is a trusted channel with no built-in identity assurance, so an attacker who calls with a plausible pretext can extract sensitive information — credentials, internal data, verification details — from helpful staff. If there is no requirement to verify a caller before disclosing over the phone, vishing succeeds. This assessment checks phone-based disclosure controls.",
+   "rootCause": "Phone calls carry no inherent identity proof, and staff default to being helpful. Without a verification requirement, a confident pretext is enough to extract information.",
+   "impact": "Disclosed information over the phone (credentials, internal detail, verification data) enables account takeover, further pretexting, and fraud, exploiting a trusted channel that provides no real caller assurance.",
+   "realWorldContext": "Vishing — a confident call with a plausible story — reliably extracts sensitive information from staff who have no way to verify the caller and every incentive to help. Requiring caller verification before disclosure over the phone is the control that turns 'sounds legitimate' into 'proven legitimate'.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether staff must verify a caller's identity before disclosing sensitive information.",
+    "Assess what information can be extracted over the phone (credentials, internal detail).",
+    "Where in scope, run a coordinated vishing test with realistic pretexts.",
+    "Check whether callback/verification procedures exist for sensitive requests.",
+    "Assess staff resistance and escalation behaviour.",
+    "Document the phone-disclosure control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for a vishing test.",
+    "Review phone-disclosure practices and verification requirements.",
+    "Run coordinated vishing calls with realistic pretexts.",
+    "Record what sensitive information staff disclose without verifying the caller.",
+    "Assess whether callback/verification would have prevented disclosure.",
+    "Document susceptibility and the control gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Coordinated vishing call (in scope)",
+     "command": "# with authorization, call staff with a pretext requesting sensitive info; record disclosure"
+    },
+    {
+     "label": "Assess verification requirement",
+     "command": "# must staff verify caller identity before disclosing? is it enforced?"
+    },
+    {
+     "label": "Test callback procedure",
+     "command": "# would staff call back a known number to verify, or act on the call alone?"
+    },
+    {
+     "label": "Record escalation",
+     "command": "# do staff escalate/refuse suspicious requests?"
+    }
+   ],
+   "variants": [
+    "Credentials or reset details disclosed to a caller.",
+    "Internal information given without verification.",
+    "No callback procedure for sensitive requests.",
+    "Staff pressured into disclosure by urgency."
+   ],
+   "mitigation": [
+    "Require caller-identity verification before disclosing sensitive information by phone.",
+    "Provide callback procedures using known, trusted numbers for sensitive requests.",
+    "Train staff on vishing and pressure tactics.",
+    "Limit what may be disclosed over the phone.",
+    "Escalate and log suspicious calls.",
+    "Test resistance with periodic coordinated vishing."
+   ],
+   "mitigationClientFacing": "The phone offers no proof of who's actually calling, so a confident scammer with a good story can talk helpful staff into revealing passwords or sensitive information. The fix is to require staff to verify who's calling before sharing anything sensitive — ideally by calling back a known number — limit what can be shared by phone at all, and train staff to recognize and resist pressure tactics.",
+   "reference": {
+    "standard": "SC-8 (Transmission Confidentiality and Integrity)",
+    "cwe": "CWE-284",
+    "tools": [
+     "coordinated vishing",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SC-8 / AT-2",
+     "MITRE ATT&CK T1598.004 (Spearphishing Voice)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SC",
+   "categoryName": "System and Communications Protection",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-050",
+   "domain": "SOCIAL",
+   "title": "No Callback Verification for Sensitive or Financial Requests",
+   "sequence": 604,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-345",
+   "prerequisites": "Authorization to assess (and coordinated-test) the verification process for sensitive/financial requests. Access to review the process.",
+   "whatItIs": "High-risk requests — payments, bank-detail changes, credential resets, access grants — arriving by email or phone should be verified via an independent callback to a known contact before action. Without a mandatory callback-verification step, an attacker's forged or pressured request is actioned directly. This assessment checks callback verification for sensitive requests.",
+   "rootCause": "Callback verification adds friction, so it is skipped for speed, especially under manufactured urgency. Requests are actioned on the originating (spoofable) channel alone.",
+   "impact": "Without callback verification, forged payment/bank-change requests (BEC) and pressured reset/access requests are actioned, causing financial loss and account compromise, because the spoofable channel is trusted on its own.",
+   "realWorldContext": "Business email compromise thrives on the absence of callback verification: a spoofed 'CEO' or 'supplier' email requesting an urgent payment or bank-detail change is actioned because no one called a known number to check. Mandatory out-of-band callback for sensitive requests is the single most effective control against this multi-billion-dollar fraud.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether sensitive/financial requests require independent callback verification.",
+    "Assess which request types are covered (payments, bank changes, resets, access).",
+    "Check that callbacks use known, pre-established contacts (not numbers in the request).",
+    "Where in scope, test with a coordinated forged/pressured request.",
+    "Assess whether urgency bypasses the process.",
+    "Document the callback-verification gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for a test request.",
+    "Review the verification process for sensitive/financial requests.",
+    "Assess coverage and whether known contacts are used.",
+    "If in scope, submit a coordinated forged/pressured request and observe whether callback verification occurs.",
+    "Test whether manufactured urgency bypasses verification.",
+    "Document the gap and its exploitability."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Coordinated forged request (in scope)",
+     "command": "# with authorization, send a pretext bank-detail-change/payment request; observe verification"
+    },
+    {
+     "label": "Assess callback requirement",
+     "command": "# is independent callback to a known contact mandatory for sensitive requests?"
+    },
+    {
+     "label": "Check contact source",
+     "command": "# does staff use a known number, or one supplied in the request itself?"
+    },
+    {
+     "label": "Test urgency bypass",
+     "command": "# does manufactured urgency cause the verification step to be skipped?"
+    }
+   ],
+   "variants": [
+    "Payment actioned on email alone (BEC).",
+    "Bank-detail change without callback.",
+    "Callback to a number supplied by the attacker.",
+    "Urgency used to bypass verification."
+   ],
+   "mitigation": [
+    "Mandate independent callback verification for sensitive/financial requests.",
+    "Use known, pre-established contacts — never numbers supplied in the request.",
+    "Apply dual-control for high-value payments and changes.",
+    "Train staff to resist urgency and always verify.",
+    "Log and review sensitive requests and their verification.",
+    "Test with periodic coordinated exercises."
+   ],
+   "mitigationClientFacing": "Important requests like payments or bank-detail changes should be double-checked by calling the person back on a known, trusted number before acting — but without that step, a forged or urgent-sounding email gets actioned directly, which is how invoice and CEO-fraud scams succeed. The fix is to require an independent callback to a known contact for sensitive requests, use two-person approval for big payments, and train staff to resist pressure and always verify.",
+   "reference": {
+    "standard": "SC-8 (Transmission Confidentiality and Integrity)",
+    "cwe": "CWE-345",
+    "tools": [
+     "coordinated pretexting",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SC-8 / AT-2",
+     "MITRE ATT&CK T1566 (Phishing)",
+     "MITRE ATT&CK T1657 (Financial Theft)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SC",
+   "categoryName": "System and Communications Protection",
+   "attack": [
+    {
+     "id": "T1550",
+     "name": "Use Alternate Authentication Material",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-051",
+   "domain": "SOCIAL",
+   "title": "Confidential Conversations Audible in Public / Shared Areas",
+   "sequence": 605,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-200",
+   "prerequisites": "Ability to observe/listen in public and shared areas (lobby, open plan, meeting rooms), and authorization to do so.",
+   "whatItIs": "Sensitive information is often discussed where it can be overheard — reception, open-plan areas, lifts, cafes near the office, or meeting rooms with poor sound isolation. An attacker positioned nearby (or a visitor waiting in reception) can gather valuable intelligence simply by listening. This assessment checks whether confidential conversations are protected from eavesdropping.",
+   "rootCause": "People discuss work where convenient without considering who can hear, and physical spaces often lack sound isolation. There is no baseline for where sensitive conversations may occur.",
+   "impact": "Overheard conversations leak credentials, deal details, internal structure, and plans, feeding pretexting and providing intelligence with no technical attack — obtained by a nearby listener or waiting visitor.",
+   "realWorldContext": "Shoulder-surfing's audible cousin — overhearing sensitive conversations in reception, lifts, or nearby cafes — is a low-tech intelligence source assessors use regularly, from deal terms to spoken passwords. Defining where sensitive conversations may happen, and isolating meeting rooms, closes this quiet leak.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify areas where sensitive conversations occur and who can overhear (reception, open plan, lifts, nearby cafes).",
+    "Assess meeting-room sound isolation.",
+    "Where in scope, observe/listen from a plausible position and record obtainable intelligence.",
+    "Assess whether staff are aware of overhearing risk.",
+    "Check whether a baseline exists for where sensitive topics may be discussed.",
+    "Document the eavesdropping exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to observe/listen in public and shared areas.",
+    "Position plausibly (e.g. reception) and note overheard sensitive information.",
+    "Assess meeting-room isolation and overhearing from adjacent spaces.",
+    "Record the intelligence obtainable purely by listening.",
+    "Assess staff awareness and any baseline.",
+    "Document the exposure and its intelligence value."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Observe from reception (in scope)",
+     "command": "# note sensitive information audible from a waiting-visitor position"
+    },
+    {
+     "label": "Assess meeting-room isolation",
+     "command": "# can conversations be heard from adjacent rooms/corridors?"
+    },
+    {
+     "label": "Listen in shared spaces",
+     "command": "# record obtainable intelligence in lifts, open plan, nearby cafes"
+    },
+    {
+     "label": "Check for a conversation baseline",
+     "command": "# is there guidance on where sensitive topics may be discussed?"
+    }
+   ],
+   "variants": [
+    "Sensitive deal details overheard in reception.",
+    "Spoken credentials audible in open plan.",
+    "Meeting-room conversations heard from the corridor.",
+    "Work discussed loudly in a nearby cafe."
+   ],
+   "mitigation": [
+    "Define where sensitive conversations may occur; avoid public/shared areas.",
+    "Improve meeting-room sound isolation for confidential discussions.",
+    "Train staff on overhearing risk and discretion.",
+    "Use private spaces for sensitive calls and discussions.",
+    "Position reception/waiting areas away from working areas.",
+    "Include eavesdropping in physical security reviews."
+   ],
+   "mitigationClientFacing": "Sensitive discussions often happen where they can be overheard — reception, open-plan desks, lifts, or a nearby cafe — letting a waiting visitor or nearby listener gather valuable information with no hacking at all. The fix is to hold confidential conversations only in private, sound-isolated spaces, keep waiting areas away from working areas, and train staff to be discreet in shared spaces.",
+   "reference": {
+    "standard": "SC-8 (Transmission Confidentiality and Integrity)",
+    "cwe": "CWE-200",
+    "tools": [
+     "site observation",
+     "physical assessment"
+    ],
+    "links": [
+     "NIST SP 800-53 SC-8 / PE-5",
+     "MITRE ATT&CK T1591 (Gather Victim Org Information)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SC",
+   "categoryName": "System and Communications Protection",
+   "attack": [
+    {
+     "id": "T1213",
+     "name": "Data from Information Repositories",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-052",
+   "domain": "SOCIAL",
+   "title": "Sensitive Data Left on Voicemail / Answering Systems",
+   "sequence": 606,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-359",
+   "prerequisites": "Authorization to assess voicemail/answering-system practices and (in scope) test access to voicemail. Knowledge of the voicemail system.",
+   "whatItIs": "Voicemail and automated answering systems accumulate messages that may contain sensitive information — callback numbers, account details, reset codes, internal information. Weak voicemail PINs, default access, or messages left on unsecured systems expose this. This assessment checks whether sensitive data left on voicemail/answering systems is protected.",
+   "rootCause": "Voicemail is a legacy convenience with often-weak access controls (default/short PINs) and no thought to message sensitivity. Sensitive content is left and retained without protection.",
+   "impact": "Accessed voicemail can leak reset codes, account details, callback numbers, and internal information, enabling account takeover and pretexting, especially where PINs are weak or default.",
+   "realWorldContext": "Voicemail systems with default or guessable PINs have been abused to intercept reset codes and sensitive messages, and callers routinely leave account details and callback numbers assuming privacy. Securing voicemail access and discouraging sensitive messages closes an often-forgotten channel.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Assess voicemail/answering-system access controls (PIN strength, defaults).",
+    "Determine what sensitive content is typically left (reset codes, account details).",
+    "Where in scope, test voicemail access with default/weak PINs.",
+    "Check whether external access to voicemail is possible and controlled.",
+    "Assess message retention and whether sensitive messages persist.",
+    "Document the voicemail-protection gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess and (in scope) test voicemail access.",
+    "Assess PIN policy and default access on the voicemail system.",
+    "If in scope, attempt access with default/weak PINs.",
+    "Record sensitive content that would be exposed.",
+    "Assess external access controls and retention.",
+    "Document the exposure and control gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test default/weak voicemail PINs (in scope)",
+     "command": "# with authorization, attempt voicemail access using default or short PINs"
+    },
+    {
+     "label": "Assess external access",
+     "command": "# is voicemail accessible externally, and how is it controlled?"
+    },
+    {
+     "label": "Review typical message content",
+     "command": "# what sensitive info (reset codes, account details) is commonly left?"
+    },
+    {
+     "label": "Check retention",
+     "command": "# how long are messages retained; do sensitive messages persist?"
+    }
+   ],
+   "variants": [
+    "Default/short voicemail PIN.",
+    "Reset codes left on voicemail.",
+    "External voicemail access weakly controlled.",
+    "Sensitive messages retained indefinitely."
+   ],
+   "mitigation": [
+    "Enforce strong, non-default voicemail PINs and change defaults.",
+    "Control and secure external voicemail access.",
+    "Discourage leaving sensitive information on voicemail.",
+    "Limit message retention and purge sensitive messages.",
+    "Avoid sending reset codes to voicemail-reachable numbers.",
+    "Include voicemail in communications-security reviews."
+   ],
+   "mitigationClientFacing": "Voicemail systems collect messages that can contain sensitive details — account numbers, reset codes, callback numbers — and weak or default PINs let attackers listen in. The fix is to require strong voicemail PINs (never defaults), control who can access voicemail from outside, discourage leaving sensitive information as messages, and avoid sending reset codes to numbers that reach voicemail. Voicemail is easy to forget about, but a few simple settings stop it from becoming a quiet way for attackers to intercept sensitive information.",
+   "reference": {
+    "standard": "SC-8 (Transmission Confidentiality and Integrity)",
+    "cwe": "CWE-359",
+    "tools": [
+     "voicemail assessment",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SC-8 Transmission Confidentiality",
+     "MITRE ATT&CK T1111 (Multi-Factor Authentication Interception)",
+     "MITRE ATT&CK T1598 (Phishing for Information)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SC",
+   "categoryName": "System and Communications Protection",
+   "attack": [
+    {
+     "id": "T1213",
+     "name": "Data from Information Repositories",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-053",
+   "domain": "SOCIAL",
+   "title": "No Protection Against Pretext-Based Information Disclosure",
+   "sequence": 607,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to run coordinated pretexting across channels (phone, email, chat) and access to review disclosure controls.",
+   "whatItIs": "Pretexting — a fabricated scenario that makes disclosure seem reasonable ('I'm from IT and need to confirm your details', 'this is the auditor') — extracts information across phone, email, and chat. Without controls that require verification regardless of the story, staff comply. This assessment checks resistance to pretext-based disclosure across channels.",
+   "rootCause": "A convincing pretext lowers staff guard, and without a verification requirement that holds regardless of the story, the scenario itself becomes the authorization. Attackers craft pretexts to fit the target.",
+   "impact": "Successful pretexting extracts credentials, internal information, and verification details across channels, feeding account takeover and further attacks — because the fabricated authority is trusted without verification.",
+   "realWorldContext": "Pretexting is the engine of social engineering: a believable role and scenario ('IT support', 'the auditor', 'facilities') makes almost any request seem reasonable. Assessors extract information across phone, email, and chat this way routinely — which is why verification that holds regardless of the story is the real defence.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether disclosure controls require verification regardless of the caller's claimed role.",
+    "Assess resistance across channels (phone, email, chat).",
+    "Where in scope, run coordinated pretexting with varied authority scenarios.",
+    "Record what is disclosed under each pretext.",
+    "Assess whether staff verify claimed authority independently.",
+    "Document the pretexting-resistance gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for cross-channel pretexting.",
+    "Review disclosure controls and verification requirements.",
+    "Run coordinated pretexts (IT, auditor, facilities) across channels.",
+    "Record disclosures under each scenario.",
+    "Assess whether independent verification would have prevented them.",
+    "Document susceptibility and the control gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Coordinated pretext calls/emails (in scope)",
+     "command": "# with authorization, use varied authority pretexts across phone/email/chat; record disclosures"
+    },
+    {
+     "label": "Assess verification requirement",
+     "command": "# is verification required regardless of the claimed role/authority?"
+    },
+    {
+     "label": "Test cross-channel consistency",
+     "command": "# does resistance differ by channel (phone vs email vs chat)?"
+    },
+    {
+     "label": "Record independent verification",
+     "command": "# do staff independently verify claimed authority?"
+    }
+   ],
+   "variants": [
+    "'IT support' pretext extracting credentials.",
+    "'Auditor' pretext extracting internal information.",
+    "'Facilities/vendor' pretext gaining access detail.",
+    "Weaker resistance on chat than phone."
+   ],
+   "mitigation": [
+    "Require identity/authority verification regardless of the claimed role or scenario.",
+    "Apply consistent disclosure controls across all channels.",
+    "Train staff on pretexting tactics and safe responses.",
+    "Provide verification and escalation procedures.",
+    "Limit sensitive disclosure to verified, authorized channels.",
+    "Test cross-channel resistance with periodic exercises."
+   ],
+   "mitigationClientFacing": "Scammers invent believable roles — 'IT support', 'the auditor', 'facilities' — to make their requests seem reasonable and extract information by phone, email, or chat. If staff comply based on the story alone, it works. The fix is to require verification of who someone really is regardless of the role they claim, apply the same caution across every channel, and train staff to recognize these pretexts.",
+   "reference": {
+    "standard": "SC-8 (Transmission Confidentiality and Integrity)",
+    "cwe": "CWE-284",
+    "tools": [
+     "coordinated pretexting",
+     "SET",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SC-8 / AT-2",
+     "MITRE ATT&CK T1598 (Phishing for Information)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SC",
+   "categoryName": "System and Communications Protection",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-054",
+   "domain": "SOCIAL",
+   "title": "Staff Act on Unverified Email Instructions (BEC)",
+   "sequence": 608,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-345",
+   "prerequisites": "Authorization to run a coordinated BEC-style test and access to review request-handling and email-authentication controls.",
+   "whatItIs": "Business Email Compromise (BEC) uses a spoofed or compromised email — often impersonating an executive or supplier — to instruct staff to make payments, change details, or share data. If staff act on such instructions without verifying integrity/authenticity, and if email authentication (SPF/DKIM/DMARC) is weak, BEC succeeds. This assessment checks resistance to acting on unverified email instructions.",
+   "rootCause": "Email is trusted implicitly, executive/supplier authority discourages questioning, and email authentication is often weak — so spoofed or compromised instructions are actioned without integrity verification.",
+   "impact": "Actioned BEC instructions cause direct financial loss, fraudulent bank-detail changes, and data disclosure, exploiting trust in email and the reluctance to question apparent authority.",
+   "realWorldContext": "BEC is among the costliest cybercrimes by reported losses, and it works through pure social engineering over email — a spoofed executive or supplier and an urgent instruction. Verification procedures plus strong email authentication (SPF/DKIM/DMARC) are what stop an unverified email from moving money.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether staff verify email instructions for sensitive actions before acting.",
+    "Assess email authentication (SPF/DKIM/DMARC) and anti-spoofing controls.",
+    "Where in scope, run a coordinated BEC-style test (executive/supplier impersonation).",
+    "Check whether payment/change instructions require out-of-band verification.",
+    "Assess susceptibility to urgency and authority.",
+    "Document the BEC-resistance and email-authentication gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for a BEC-style test.",
+    "Assess email authentication and anti-spoofing configuration.",
+    "Run a coordinated impersonation email requesting a sensitive action.",
+    "Record whether staff act without independent verification.",
+    "Assess whether verification/DMARC would have prevented it.",
+    "Document susceptibility and the control gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check email authentication",
+     "command": "dig TXT <target-domain> | grep -Ei 'spf|dmarc' ; dig TXT _dmarc.<target-domain>"
+    },
+    {
+     "label": "Coordinated BEC test (in scope)",
+     "command": "# with authorization, send an executive/supplier-impersonation instruction; record action taken"
+    },
+    {
+     "label": "Assess out-of-band verification",
+     "command": "# do payment/change instructions require independent verification?"
+    },
+    {
+     "label": "Test urgency/authority susceptibility",
+     "command": "# does urgency + apparent authority cause action without verification?"
+    }
+   ],
+   "variants": [
+    "Executive-impersonation payment instruction actioned.",
+    "Supplier bank-detail change via spoofed email.",
+    "Weak/absent DMARC allowing spoofing.",
+    "Data shared on an unverified email request."
+   ],
+   "mitigation": [
+    "Require out-of-band verification for sensitive email instructions (payments, changes, data).",
+    "Implement and enforce SPF, DKIM, and DMARC (reject) to prevent spoofing.",
+    "Train staff on BEC, urgency, and authority tactics.",
+    "Apply dual-control for high-value actions.",
+    "Flag external and look-alike-domain emails.",
+    "Monitor for and test BEC susceptibility periodically."
+   ],
+   "mitigationClientFacing": "Business Email Compromise uses a faked or hijacked email — often posing as an executive or supplier — to instruct staff to pay money, change bank details, or share data. If staff act without verifying, and email spoofing isn't blocked, it works, and losses are huge. The fix is to require independent verification for sensitive email instructions, block spoofing with SPF/DKIM/DMARC, use two-person approval for big actions, and train staff to spot these scams.",
+   "reference": {
+    "standard": "SI-4 (System Monitoring)",
+    "cwe": "CWE-345",
+    "tools": [
+     "gophish",
+     "dig",
+     "email-auth review"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-4 / SC-8",
+     "MITRE ATT&CK T1566 (Phishing)",
+     "MITRE ATT&CK T1657 (Financial Theft)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1591",
+     "name": "Gather Victim Org Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-055",
+   "domain": "SOCIAL",
+   "title": "No Verification of Payment / Bank-Detail Change Requests",
+   "sequence": 609,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-345",
+   "prerequisites": "Authorization to assess (and coordinated-test) the payment/bank-detail change process. Access to review finance controls.",
+   "whatItIs": "Changing where money is sent — supplier bank details, payroll accounts, one-off payments — is a high-integrity action that must be verified before it takes effect. If bank-detail changes are actioned on an emailed or called-in request without independent verification and dual control, an attacker's fraudulent change redirects funds. This assessment checks integrity controls on payment/bank-detail changes.",
+   "rootCause": "Bank-detail changes are handled as routine admin, and verification/dual-control add friction, so they are skipped — especially under urgency. The integrity of the change is not independently confirmed.",
+   "impact": "A fraudulent bank-detail change redirects supplier or payroll payments to the attacker, causing direct and often large financial loss, exploiting the missing integrity verification.",
+   "realWorldContext": "Redirected-payment fraud — a fake 'we've changed our bank details' request actioned without verification — is one of the most damaging BEC variants, with individual losses often large. Independent verification and dual control on bank-detail changes is the control that directly stops the money leaving.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review the process for changing supplier/payroll/payment bank details.",
+    "Assess whether independent verification (known contact) is mandatory before action.",
+    "Check whether dual control applies to bank-detail changes.",
+    "Where in scope, test with a coordinated fraudulent-change request.",
+    "Assess susceptibility to urgency and apparent authority.",
+    "Document the payment-integrity control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for a test change request.",
+    "Review the bank-detail-change process and its controls.",
+    "Assess verification and dual-control requirements.",
+    "If in scope, submit a coordinated fraudulent-change request and observe whether it is verified.",
+    "Test whether urgency bypasses controls.",
+    "Document the gap and its financial exploitability."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Coordinated bank-change test (in scope)",
+     "command": "# with authorization, request a supplier/payroll bank-detail change; observe verification"
+    },
+    {
+     "label": "Assess verification requirement",
+     "command": "# is independent verification to a known contact mandatory before the change takes effect?"
+    },
+    {
+     "label": "Check dual control",
+     "command": "# does a second authorized person independently approve the change?"
+    },
+    {
+     "label": "Test urgency bypass",
+     "command": "# does manufactured urgency cause verification/dual control to be skipped?"
+    }
+   ],
+   "variants": [
+    "Supplier bank details changed on email alone.",
+    "Payroll account changed without verification.",
+    "Verification to a number supplied in the request.",
+    "Urgency bypassing dual control."
+   ],
+   "mitigation": [
+    "Mandate independent verification (known contact) before any bank-detail change takes effect.",
+    "Require dual control/approval for bank-detail and payment changes.",
+    "Never verify using contact details supplied in the request.",
+    "Train finance staff on redirected-payment fraud and urgency tactics.",
+    "Log and review all bank-detail changes.",
+    "Test the process with periodic coordinated exercises."
+   ],
+   "mitigationClientFacing": "Changing where money is sent — supplier or payroll bank details — is exactly what fraudsters target, and if a change is made on an email or call without independent checking, the money goes to the attacker. The fix is to always verify bank-detail changes by contacting a known trusted contact before they take effect, require a second person to approve, never use contact details from the request itself, and train finance staff on this scam.",
+   "reference": {
+    "standard": "SI-7 (Software, Firmware, and Information Integrity)",
+    "cwe": "CWE-345",
+    "tools": [
+     "coordinated pretexting",
+     "finance-process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-7 / SC-8",
+     "MITRE ATT&CK T1657 (Financial Theft)",
+     "MITRE ATT&CK T1566 (Phishing)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1591",
+     "name": "Gather Victim Org Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-056",
+   "domain": "SOCIAL",
+   "title": "Susceptibility to Fake-Invoice Fraud",
+   "sequence": 610,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-345",
+   "prerequisites": "Authorization to assess (and coordinated-test) invoice-handling controls. Access to review accounts-payable process.",
+   "whatItIs": "Fake-invoice fraud submits fraudulent invoices — for never-ordered goods/services, or impersonating a real supplier — hoping accounts payable pays without validating them against real orders and suppliers. If invoices are paid without matching to purchase orders and verifying supplier authenticity, the fraud succeeds. This assessment checks invoice-validation integrity controls.",
+   "rootCause": "Accounts payable processes high volumes and defaults to paying plausible invoices, and without enforced three-way matching (PO, receipt, invoice) and supplier verification, fraudulent invoices are paid.",
+   "impact": "Paid fake invoices cause direct financial loss and can establish a recurring fraud, exploiting weak invoice validation and the assumption that a plausible invoice is genuine.",
+   "realWorldContext": "Fake-invoice and vendor-impersonation fraud costs organizations heavily every year, succeeding wherever invoices are paid without matching them to real orders and verified suppliers. Enforced three-way matching and supplier verification is the accounts-payable control that stops fraudulent invoices being paid.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review the accounts-payable process for invoice validation (PO matching, supplier verification).",
+    "Assess whether three-way matching (PO, receipt, invoice) is enforced.",
+    "Check supplier-authenticity and bank-detail verification.",
+    "Where in scope, test with a coordinated fake/duplicate invoice.",
+    "Assess susceptibility to plausible but unmatched invoices.",
+    "Document the invoice-integrity control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for a test invoice.",
+    "Review invoice-validation and matching controls.",
+    "Assess supplier and bank-detail verification.",
+    "If in scope, submit a coordinated fake/duplicate invoice and observe whether it is validated.",
+    "Test whether plausibility alone leads to payment.",
+    "Document the gap and its financial exploitability."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Coordinated fake-invoice test (in scope)",
+     "command": "# with authorization, submit a plausible fake/duplicate invoice; observe validation"
+    },
+    {
+     "label": "Assess three-way matching",
+     "command": "# is each invoice matched to a purchase order and goods receipt before payment?"
+    },
+    {
+     "label": "Check supplier verification",
+     "command": "# is supplier authenticity and bank detail verified before payment?"
+    },
+    {
+     "label": "Test duplicate/inflated invoices",
+     "command": "# would a duplicate or inflated invoice be caught?"
+    }
+   ],
+   "variants": [
+    "Invoice paid with no matching purchase order.",
+    "Supplier-impersonation invoice paid.",
+    "Duplicate invoice paid twice.",
+    "Bank details on the invoice trusted without verification."
+   ],
+   "mitigation": [
+    "Enforce three-way matching (PO, receipt, invoice) before payment.",
+    "Verify supplier authenticity and bank details independently.",
+    "Detect duplicate and inflated invoices.",
+    "Apply dual control for payments above a threshold.",
+    "Train accounts-payable staff on invoice fraud.",
+    "Test invoice controls with periodic coordinated exercises."
+   ],
+   "mitigationClientFacing": "Fraudsters submit fake invoices — for things never ordered, or pretending to be a real supplier — hoping they get paid without checking. If invoices are paid without matching them to real orders and verified suppliers, the scam works. The fix is to match every invoice to a purchase order and delivery before paying, verify the supplier and their bank details, catch duplicates, and require a second approver for larger payments.",
+   "reference": {
+    "standard": "SI-7 (Software, Firmware, and Information Integrity)",
+    "cwe": "CWE-345",
+    "tools": [
+     "coordinated pretexting",
+     "AP-process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-7 Integrity",
+     "MITRE ATT&CK T1657 (Financial Theft)",
+     "MITRE ATT&CK T1566 (Phishing)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1591",
+     "name": "Gather Victim Org Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-057",
+   "domain": "SOCIAL",
+   "title": "No Integrity Checks on Instructions Received by Phone or Chat",
+   "sequence": 611,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-345",
+   "prerequisites": "Authorization to assess (and coordinated-test) how phone/chat instructions for sensitive actions are handled. Process review access.",
+   "whatItIs": "Instructions arriving by phone or chat (Teams/Slack) for sensitive actions — grant access, run a command, change a setting, make a payment — carry no inherent integrity guarantee and are easily spoofed or coerced. Without a requirement to verify such instructions independently, staff act on them directly. This assessment checks integrity controls on phone/chat instructions.",
+   "rootCause": "Phone and chat feel personal and trusted, and compromised or spoofed accounts/callers issue instructions that are actioned without integrity verification. There is no requirement to confirm the instruction's authenticity.",
+   "impact": "Actioned spoofed/coerced instructions grant access, change configurations, or move money, exploiting trust in the channel and the absence of integrity verification — increasingly via compromised chat accounts.",
+   "realWorldContext": "Attackers increasingly issue instructions via compromised chat accounts and spoofed calls because these channels feel trusted and are rarely verified — a message from a 'colleague's' hijacked account carries built-in authority. Requiring independent verification of sensitive instructions, whatever the channel, is what preserves their integrity.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review how sensitive instructions received by phone/chat are handled and verified.",
+    "Assess whether independent verification is required for such instructions.",
+    "Consider compromised-account and spoofed-caller scenarios.",
+    "Where in scope, test with a coordinated phone/chat instruction from an unexpected source.",
+    "Assess whether staff verify before acting.",
+    "Document the instruction-integrity control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for a phone/chat instruction test.",
+    "Review handling and verification of sensitive phone/chat instructions.",
+    "Assess resistance to compromised-account/spoofed-caller instructions.",
+    "If in scope, issue a coordinated instruction from an unexpected/impersonated source and observe action.",
+    "Assess whether independent verification would have prevented it.",
+    "Document susceptibility and the control gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Coordinated chat/call instruction (in scope)",
+     "command": "# with authorization, issue a sensitive instruction via chat/call from an impersonated source; record action"
+    },
+    {
+     "label": "Assess verification requirement",
+     "command": "# are sensitive phone/chat instructions independently verified before action?"
+    },
+    {
+     "label": "Test compromised-account scenario",
+     "command": "# would an instruction from a 'colleague's' account be actioned without verification?"
+    },
+    {
+     "label": "Check channel consistency",
+     "command": "# does verification hold across phone and chat, not just email?"
+    }
+   ],
+   "variants": [
+    "Access granted on a chat instruction from a compromised account.",
+    "Configuration change actioned on a spoofed call.",
+    "Payment instruction via chat without verification.",
+    "Trust in a 'colleague's' hijacked account."
+   ],
+   "mitigation": [
+    "Require independent verification for sensitive instructions on any channel, including phone and chat.",
+    "Treat chat/call instructions with the same rigor as email for sensitive actions.",
+    "Verify via a separate known channel, especially for access/config/payment changes.",
+    "Train staff on compromised-account and spoofed-caller risk.",
+    "Log and review sensitive instructions and their verification.",
+    "Test cross-channel resistance periodically."
+   ],
+   "mitigationClientFacing": "Instructions by phone or chat feel trustworthy, but accounts get hijacked and calls get spoofed, so a message from a 'colleague's' account or a convincing caller can trick staff into granting access, changing settings, or paying money. The fix is to verify sensitive instructions independently no matter the channel — treating phone and chat as carefully as email — and train staff that a hijacked account can send convincing messages.",
+   "reference": {
+    "standard": "SI-7 (Software, Firmware, and Information Integrity)",
+    "cwe": "CWE-345",
+    "tools": [
+     "coordinated pretexting",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-7 Integrity",
+     "MITRE ATT&CK T1534 (Internal Spearphishing)",
+     "MITRE ATT&CK T1657 (Financial Theft)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1550",
+     "name": "Use Alternate Authentication Material",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-058",
+   "domain": "SOCIAL",
+   "title": "Susceptibility to Deepfake / Voice-Clone Impersonation",
+   "sequence": 612,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-345",
+   "prerequisites": "Authorization to assess resistance to synthetic-media impersonation (and, if in scope, a coordinated voice-clone test with strict ethical controls). Process review access.",
+   "whatItIs": "AI voice-cloning and deepfake video can convincingly impersonate executives and colleagues, making 'CEO fraud' calls and video requests far more believable. If verification of high-stakes requests relies on recognizing a familiar voice or face, synthetic-media attacks defeat it. This assessment checks whether controls resist deepfake/voice-clone impersonation.",
+   "rootCause": "Verification has traditionally leaned on recognizing a known voice or face, which synthetic media now defeats. Without verification independent of voice/face recognition, deepfake requests are trusted.",
+   "impact": "A convincing voice-clone or deepfake instructing an urgent payment or access grant can bypass recognition-based trust, causing significant financial loss or compromise — a threat now practical, not hypothetical.",
+   "realWorldContext": "Voice-cloned 'CEO' calls have already caused large fraudulent transfers, and deepfake video has been used in real finance-fraud cases. Because these defeat 'I recognized their voice/face', high-stakes requests must be verified by process — callback, code word, dual control — not by recognition.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether high-stakes request verification relies on recognizing a voice or face.",
+    "Assess whether verification independent of recognition exists (callback, code words, dual control).",
+    "Consider deepfake/voice-clone scenarios for executive/colleague impersonation.",
+    "Where in scope and ethically controlled, test resistance to a synthetic-media pretext.",
+    "Assess staff and process susceptibility to convincing impersonation.",
+    "Document the synthetic-media resistance gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and strict ethical controls for any synthetic-media test.",
+    "Review verification methods for high-stakes requests.",
+    "Assess reliance on voice/face recognition.",
+    "If in scope, test with a coordinated, controlled synthetic-media pretext and record the outcome.",
+    "Assess whether recognition-independent verification would have prevented it.",
+    "Document susceptibility and the control gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Assess recognition reliance",
+     "command": "# does high-stakes verification rely on recognizing a voice/face?"
+    },
+    {
+     "label": "Check recognition-independent verification",
+     "command": "# are callback, code words, or dual control required regardless of voice/face?"
+    },
+    {
+     "label": "Coordinated synthetic-media test (in scope, ethical)",
+     "command": "# with authorization and strict controls, test resistance to a voice-clone/deepfake pretext"
+    },
+    {
+     "label": "Assess high-stakes process",
+     "command": "# do urgent payment/access requests require process-based verification?"
+    }
+   ],
+   "variants": [
+    "Voice-cloned executive requesting an urgent payment.",
+    "Deepfake video in a fraudulent finance request.",
+    "Colleague voice-clone requesting access.",
+    "Recognition-based trust with no process verification."
+   ],
+   "mitigation": [
+    "Verify high-stakes requests by process (callback, code words, dual control), never by voice/face recognition alone.",
+    "Establish out-of-band verification for executive/finance requests.",
+    "Use shared secret phrases/code words for sensitive verbal requests.",
+    "Train staff on deepfake/voice-clone risk and process-based verification.",
+    "Apply dual control for high-value actions regardless of who appears to request them.",
+    "Monitor for and test synthetic-media impersonation resistance."
+   ],
+   "mitigationClientFacing": "AI can now convincingly clone an executive's voice or face, making fake 'urgent payment' calls and video requests believable — and relying on recognizing a familiar voice or face no longer protects you. The fix is to verify high-stakes requests by process — a callback to a known number, a shared code word, or two-person approval — regardless of who they appear to come from, and train staff that a familiar voice or face can now be faked.",
+   "reference": {
+    "standard": "SI-4 (System Monitoring)",
+    "cwe": "CWE-345",
+    "tools": [
+     "process review",
+     "controlled synthetic-media testing"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-4 / SC-8",
+     "MITRE ATT&CK T1656 (Impersonation)",
+     "MITRE ATT&CK T1657 (Financial Theft)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1585",
+     "name": "Establish Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-059",
+   "domain": "SOCIAL",
+   "title": "Tailgating Through Access-Controlled Doors",
+   "sequence": 704,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to attempt tailgating at access-controlled entrances, and observation access. Physical presence at the site.",
+   "whatItIs": "Access-controlled doors only work if one badge admits one person. Tailgating — following an authorized person through a door before it closes — defeats badge control entirely, and social norms (holding the door) make it easy. This tests whether physical access enforcement resists tailgating.",
+   "rootCause": "Badge readers enforce one credential per unlock but cannot stop a second person walking through, and politeness discourages challenging followers. Without anti-tailgating measures and awareness, the control is bypassed.",
+   "impact": "Tailgating gives an attacker facility access with no credential, bypassing all badge-based controls and enabling device theft, rogue-device placement, and access to sensitive areas.",
+   "realWorldContext": "Tailgating is the single most reliable physical-intrusion technique in assessments — people hold doors open out of courtesy, and challenging a follower feels rude. Anti-tailgating measures plus a culture of polite challenge are what actually stop credential-free entry.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify access-controlled entrances and their anti-tailgating measures (mantraps, turnstiles, sensors).",
+    "Observe whether staff hold doors or challenge followers.",
+    "Where authorized, attempt tailgating through controlled doors.",
+    "Assess which sensitive areas are reachable via tailgating.",
+    "Check whether tailgating would be detected (cameras reviewed, alerts).",
+    "Document the access-enforcement gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to attempt tailgating at controlled entrances.",
+    "Observe entrance behaviour and anti-tailgating measures.",
+    "Attempt to follow an authorized person through a controlled door.",
+    "Record success and the areas reached.",
+    "Assess whether the tailgating was detected or challenged.",
+    "Document the enforcement and awareness gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Attempt tailgating (in scope)",
+     "command": "# with authorization, follow an authorized person through a badge-controlled door"
+    },
+    {
+     "label": "Assess anti-tailgating measures",
+     "command": "# note mantraps, turnstiles, or tailgating sensors at each entrance"
+    },
+    {
+     "label": "Map reachable sensitive areas",
+     "command": "# document which sensitive areas tailgating grants access to"
+    },
+    {
+     "label": "Check detection",
+     "command": "# would cameras/alerts flag an un-badged entry?"
+    }
+   ],
+   "variants": [
+    "Following through a main entrance behind an employee.",
+    "Door held open courteously for the attacker.",
+    "Tailgating into a sensitive area (server room, offices).",
+    "Piggybacking with a delivery/visitor pretext."
+   ],
+   "mitigation": [
+    "Deploy anti-tailgating measures (mantraps, turnstiles, tailgating sensors) at sensitive entrances.",
+    "Train staff to challenge unfamiliar followers politely and not hold secure doors.",
+    "Use one-person-per-unlock enforcement where feasible.",
+    "Monitor entrances with reviewed cameras and alerts.",
+    "Escort visitors and require visible badges.",
+    "Foster a positive security culture around polite challenge."
+   ],
+   "mitigationClientFacing": "Badge-controlled doors only protect you if one badge lets one person in, but 'tailgating' — following someone through before the door closes — defeats that, and people hold doors open to be polite. The fix is to use physical measures like turnstiles or mantraps at sensitive doors, train staff to politely check unfamiliar followers and not hold secure doors, and watch entrances with cameras.",
+   "reference": {
+    "standard": "AC-3 (Access Enforcement)",
+    "cwe": "CWE-284",
+    "tools": [
+     "physical assessment",
+     "site observation"
+    ],
+    "links": [
+     "NIST SP 800-53 AC-3 Access Enforcement",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AC",
+   "categoryName": "Access Control",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-060",
+   "domain": "SOCIAL",
+   "title": "Shared or Cloned Access Badges",
+   "sequence": 705,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to assess badge sharing and cloneability (with a Proxmark/RFID cloner where in scope). Access to observe badge practices.",
+   "whatItIs": "Access control assumes each badge belongs to one person and cannot be duplicated. When staff share badges for convenience, or when badges use cloneable low-frequency technology, access can be duplicated and misattributed. This tests whether badge access enforcement resists sharing and cloning.",
+   "rootCause": "Badge sharing is convenient (a forgotten badge, a quick favour), and older 125kHz badges are trivially cloneable. Without policy enforcement and modern badge technology, one credential can become many.",
+   "impact": "Shared/cloned badges let unauthorized people gain access under someone else's identity, defeating accountability and enabling an attacker with a cloned badge to enter as a legitimate holder.",
+   "realWorldContext": "Low-frequency (125kHz) badges can be cloned in seconds with a cheap Proxmark from a brief brush past someone, and badge-sharing is rampant — both turn 'one badge, one person' into a fiction. Modern encrypted badge technology and anti-sharing enforcement are what restore real access control.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Assess badge sharing practices and policy.",
+    "Determine the badge technology and whether it is cloneable (125kHz LF vs encrypted HF).",
+    "Where authorized, demonstrate cloning a test badge.",
+    "Assess anti-passback and one-badge-one-person enforcement.",
+    "Check whether shared/cloned use would be detected.",
+    "Document the badge-enforcement gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess badge sharing and cloneability.",
+    "Observe or survey badge-sharing behaviour.",
+    "Assess badge technology; where in scope, clone a test badge with a Proxmark.",
+    "Demonstrate access with a shared/cloned test credential.",
+    "Assess detection (anti-passback, anomaly alerts).",
+    "Document the sharing/cloning exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Assess badge technology",
+     "command": "# identify frequency/tech (125kHz LF cloneable vs 13.56MHz encrypted)"
+    },
+    {
+     "label": "Clone a test badge (in scope)",
+     "command": "proxmark3 -c 'lf hid read' ; proxmark3 -c 'lf hid clone -r <id>'   # authorized test badge only"
+    },
+    {
+     "label": "Test cloned/shared access",
+     "command": "# use the cloned/shared test badge at a reader and record access"
+    },
+    {
+     "label": "Check anti-passback",
+     "command": "# is one-badge-one-person / anti-passback enforced and are anomalies alerted?"
+    }
+   ],
+   "variants": [
+    "Staff sharing badges for convenience.",
+    "Cloneable 125kHz badge duplicated with a Proxmark.",
+    "No anti-passback allowing simultaneous shared use.",
+    "Cloned badge granting access under another identity."
+   ],
+   "mitigation": [
+    "Use modern encrypted badge technology (13.56MHz with mutual authentication), not cloneable LF.",
+    "Enforce one-badge-one-person policy; prohibit sharing.",
+    "Enable anti-passback to detect simultaneous/shared use.",
+    "Add a second factor (PIN/biometric) for sensitive areas.",
+    "Monitor for anomalous badge use and alert.",
+    "Re-issue cloneable badges and train staff on sharing risks."
+   ],
+   "mitigationClientFacing": "Access control assumes one badge belongs to one person and can't be copied — but staff share badges, and old-style badges can be cloned in seconds with cheap gear. The fix is to use modern encrypted badges that resist cloning, ban badge sharing, add a PIN or fingerprint for sensitive areas, and detect when the same badge is used in impossible ways.",
+   "reference": {
+    "standard": "AC-3 (Access Enforcement)",
+    "cwe": "CWE-284",
+    "tools": [
+     "Proxmark3",
+     "RFID assessment",
+     "access review"
+    ],
+    "links": [
+     "NIST SP 800-53 AC-3 Access Enforcement",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AC",
+   "categoryName": "Access Control",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-061",
+   "domain": "SOCIAL",
+   "title": "Sensitive Areas Lack Additional Access Restriction",
+   "sequence": 706,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to assess access to sensitive areas (server rooms, executive offices, records) and review access levels.",
+   "whatItIs": "Not all areas carry equal risk: server rooms, executive offices, and records storage warrant stricter access than general office space. If sensitive areas rely on the same broad badge access as everywhere else, far too many people can enter them. This tests whether sensitive areas apply least-privilege physical access.",
+   "rootCause": "Access is often granted broadly for convenience, and sensitive areas are not separately restricted. Without least-privilege zoning, general access implies sensitive access.",
+   "impact": "Over-broad access to sensitive areas lets many staff — and anyone who obtains a general badge — reach servers, executive information, or records, greatly expanding who can steal data or plant devices.",
+   "realWorldContext": "Assessments routinely find that a general staff badge opens the server room or records store, because sensitive areas were never separately restricted. Applying least privilege to physical zones — so only those who need it can enter — is what contains the impact of a lost, shared, or cloned badge.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify sensitive areas (server rooms, executive offices, records, comms rooms).",
+    "Assess whether they apply stricter access than general space.",
+    "Sample who has access to sensitive areas versus need.",
+    "Check for a second factor on the most sensitive areas.",
+    "Assess whether general access implies sensitive access.",
+    "Document the least-privilege gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess access to sensitive areas.",
+    "Map access levels for sensitive areas against roles/need.",
+    "Identify over-broad access to sensitive zones.",
+    "Where in scope, demonstrate that general access reaches a sensitive area.",
+    "Assess second-factor use on the most sensitive areas.",
+    "Document the least-privilege gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Sample sensitive-area access",
+     "command": "# list who can badge into server room/records/executive areas and compare to need"
+    },
+    {
+     "label": "Test general->sensitive access (in scope)",
+     "command": "# with authorization, check whether a general badge opens a sensitive area"
+    },
+    {
+     "label": "Check second factor",
+     "command": "# is a PIN/biometric required for the most sensitive areas?"
+    },
+    {
+     "label": "Map zoning",
+     "command": "# does access zoning apply least privilege, or is it flat?"
+    }
+   ],
+   "variants": [
+    "General badge opening the server room.",
+    "Executive areas accessible to all staff.",
+    "Records storage with no extra restriction.",
+    "No second factor on the most sensitive areas."
+   ],
+   "mitigation": [
+    "Apply least-privilege access zoning: restrict sensitive areas to those who need them.",
+    "Require a second factor (PIN/biometric) for the most sensitive areas.",
+    "Separate sensitive-area access from general access grants.",
+    "Periodically review and recertify sensitive-area access.",
+    "Alert on access to sensitive areas by unexpected staff.",
+    "Document access zones and their justification."
+   ],
+   "mitigationClientFacing": "Some areas — server rooms, executive offices, records — are more sensitive than a general office and should be harder to enter, but often the same badge opens everything. The fix is to restrict sensitive areas to only the people who need them, add a PIN or fingerprint for the most sensitive ones, and regularly review who can get in.",
+   "reference": {
+    "standard": "AC-6 (Least Privilege)",
+    "cwe": "CWE-284",
+    "tools": [
+     "access review",
+     "physical assessment"
+    ],
+    "links": [
+     "NIST SP 800-53 AC-6 Least Privilege",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AC",
+   "categoryName": "Access Control",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-062",
+   "domain": "SOCIAL",
+   "title": "Unattended Unlocked Workstations Enable Walk-Up Access",
+   "sequence": 707,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to observe and (in scope) interact with unattended workstations, and site access. A test USB device if permitted.",
+   "whatItIs": "An unlocked, unattended workstation gives anyone walking by full access to a logged-in user's session — email, files, systems — with no credentials needed. If screens do not lock automatically and staff do not lock on leaving, walk-up access is trivial. This tests whether device-lock controls prevent walk-up session access.",
+   "rootCause": "Automatic screen locking is often not enforced or set too long, and staff forget to lock when stepping away. The logged-in session then sits open to anyone nearby.",
+   "impact": "Walk-up access to an unlocked session lets an attacker read/exfiltrate data, send email as the user, install a payload, or plant a device — a full session takeover with no authentication.",
+   "realWorldContext": "Walking up to an unlocked, unattended workstation and acting as the logged-in user is a classic physical-assessment move that works constantly — a few minutes at an open session can plant a payload or exfiltrate data. Enforced auto-lock plus a lock-on-leave habit is the simple control that closes it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Observe whether workstations lock automatically and after how long.",
+    "Assess whether staff lock screens when stepping away.",
+    "Where authorized, interact with an unattended unlocked session (benign action).",
+    "Assess what a walk-up attacker could access.",
+    "Check whether a test USB device would be accepted.",
+    "Document the device-lock gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to observe and benignly interact with unattended workstations.",
+    "Observe auto-lock behaviour and staff locking habits.",
+    "At an unattended unlocked session, perform a benign, authorized action to demonstrate access.",
+    "Assess the data/systems reachable from the session.",
+    "Test whether a test USB device is accepted (if in scope).",
+    "Document the walk-up exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Observe auto-lock timing",
+     "command": "# how long until unattended screens lock automatically?"
+    },
+    {
+     "label": "Benign action at an open session (in scope)",
+     "command": "# with authorization, leave a harmless marker (e.g. a note) to prove walk-up access"
+    },
+    {
+     "label": "Assess reachable data",
+     "command": "# note what email/files/systems the open session exposes"
+    },
+    {
+     "label": "Test USB acceptance (in scope)",
+     "command": "# with authorization, check whether a test USB device is auto-accepted"
+    }
+   ],
+   "variants": [
+    "No auto-lock, sessions open indefinitely.",
+    "Auto-lock timeout far too long.",
+    "Staff not locking on leaving.",
+    "USB device auto-accepted at an open session."
+   ],
+   "mitigation": [
+    "Enforce automatic screen locking after a short idle timeout.",
+    "Train and remind staff to lock screens when stepping away.",
+    "Consider proximity-based locking for sensitive roles.",
+    "Restrict USB device use via policy/endpoint control.",
+    "Apply a clean-desk/clear-screen policy.",
+    "Audit lock behaviour periodically."
+   ],
+   "mitigationClientFacing": "An unlocked computer left unattended lets anyone walking by use the logged-in person's session — their email, files, and systems — with no password. The fix is to make screens lock automatically after a short idle time, remind staff to lock when they step away, and limit what plugged-in USB devices can do. The result is that a walk-up attacker finds locked, unattended machines rather than an open session they can immediately abuse.",
+   "reference": {
+    "standard": "AC-11 (Device Lock)",
+    "cwe": "CWE-284",
+    "tools": [
+     "site observation",
+     "physical assessment"
+    ],
+    "links": [
+     "NIST SP 800-53 AC-11 Device Lock",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AC",
+   "categoryName": "Access Control",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-063",
+   "domain": "SOCIAL",
+   "title": "Help-Desk Identity Verification Bypassed via Personal Data",
+   "sequence": 708,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-287",
+   "prerequisites": "Authorization to run a coordinated vishing test against help-desk identity verification, and OSINT-gathered personal data about a test target (with consent).",
+   "whatItIs": "Help desks verify identity before resets or access changes, but if verification relies on knowledge an attacker can gather (name, employee ID, date of birth, manager) rather than something only the real user has, it is easily bypassed. This tests whether help-desk identity verification resists an attacker armed with personal data.",
+   "rootCause": "Verification questions often use 'personal' data that is actually discoverable via OSINT or breaches. Without strong, non-guessable verification, a well-researched attacker answers them and passes.",
+   "impact": "Bypassed verification lets an attacker reset a target's password or re-enroll MFA, taking over the account — a direct account-takeover path exploiting weak, knowledge-based verification.",
+   "realWorldContext": "Attackers research a target's personal details from social media and breach data, then answer the help desk's 'security questions' to trigger a reset — a technique behind real account-takeover and SIM-swap incidents. Verification that relies on discoverable knowledge is verification an attacker can pass.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review what identity verification the help desk requires for resets/access changes.",
+    "Assess whether verification data is discoverable (OSINT, breaches).",
+    "Where in scope, gather a test target's discoverable data (with consent).",
+    "Run a coordinated vishing test using that data to attempt verification bypass.",
+    "Assess whether stronger verification (out-of-band, one-time codes) is used.",
+    "Document the identity-verification gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and consent for a coordinated verification-bypass test.",
+    "Review the help-desk verification process.",
+    "Gather the test target's discoverable personal data.",
+    "Attempt to pass verification using only discoverable data.",
+    "Record whether the reset/change would be granted.",
+    "Document the bypass and the weak-verification root cause."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Gather discoverable data (test target, consent)",
+     "command": "theHarvester -d <target-domain> -b all   # plus public profiles for the consenting test target"
+    },
+    {
+     "label": "Coordinated verification-bypass call (in scope)",
+     "command": "# with authorization, attempt help-desk verification using only discoverable data"
+    },
+    {
+     "label": "Assess verification strength",
+     "command": "# does verification use out-of-band codes / something only the user has?"
+    },
+    {
+     "label": "Test MFA re-enrollment path",
+     "command": "# would the help desk re-enroll MFA on the same weak verification?"
+    }
+   ],
+   "variants": [
+    "Verification via name/employee-ID/DOB (all discoverable).",
+    "Manager's name used as a 'secret'.",
+    "MFA re-enrollment on weak verification.",
+    "No out-of-band confirmation to the real user."
+   ],
+   "mitigation": [
+    "Use strong verification: out-of-band one-time codes to a pre-registered device, not discoverable knowledge.",
+    "Send confirmation to the real user's known contact before sensitive changes.",
+    "Apply stricter verification for privileged accounts and MFA changes.",
+    "Train help-desk staff on OSINT-armed social engineering.",
+    "Log and review verification and sensitive changes.",
+    "Test verification resistance with periodic coordinated exercises."
+   ],
+   "mitigationClientFacing": "Help desks check who you are before resetting passwords, but if they rely on facts a scammer can find online (your name, ID, date of birth), that check is easily beaten. The fix is to verify people using something only the real user has — like a one-time code sent to their registered device — confirm sensitive changes with the real user, and apply extra checks for important accounts.",
+   "reference": {
+    "standard": "IA-2 (Identification and Authentication)",
+    "cwe": "CWE-287",
+    "tools": [
+     "theHarvester",
+     "coordinated vishing",
+     "process review"
+    ],
+    "links": [
+     "NIST SP 800-53 IA-2 Identification and Authentication",
+     "MITRE ATT&CK T1556 (Modify Authentication Process)",
+     "MITRE ATT&CK T1589 (Gather Victim Identity Information)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "IA",
+   "categoryName": "Identification and Authentication",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-064",
+   "domain": "SOCIAL",
+   "title": "SIM-Swap Enables SMS-Based MFA Bypass",
+   "sequence": 709,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-287",
+   "prerequisites": "Authorization to assess reliance on SMS-based MFA and account-recovery, and (in scope) coordinated testing of the recovery process. Process review access.",
+   "whatItIs": "SMS-based MFA and phone-number-based account recovery can be defeated by a SIM-swap: an attacker convinces (or bribes) a mobile carrier to move the victim's number to their SIM, then receives the victim's SMS codes. This tests whether the organization's reliance on phone-number-based authentication exposes it to SIM-swap account takeover.",
+   "rootCause": "SMS MFA and phone-based recovery are convenient and widely deployed, but the phone number's security depends on the carrier, which social engineering can defeat. Reliance on it inherits that weakness.",
+   "impact": "A successful SIM-swap lets an attacker receive MFA codes and recovery messages, taking over accounts protected only by SMS — a well-documented account-takeover path, especially for high-value targets.",
+   "realWorldContext": "SIM-swap attacks have driven high-profile account takeovers and cryptocurrency thefts, defeating SMS-based MFA by moving the victim's number to the attacker. Because the weakness lives at the carrier, any account relying on SMS codes or phone-based recovery inherits it — which is why phishing-resistant MFA matters.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify where SMS-based MFA and phone-based account recovery are used.",
+    "Assess reliance on the phone number as an authentication factor.",
+    "Consider the SIM-swap threat for high-value accounts.",
+    "Where in scope, coordinate a test of the account-recovery process's phone reliance.",
+    "Assess availability of phishing-resistant MFA alternatives.",
+    "Document the SMS/phone-reliance exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordination for any recovery-process test.",
+    "Map where SMS MFA and phone-based recovery are used.",
+    "Assess whether a SIM-swap would grant account access via SMS codes.",
+    "Coordinate a controlled test of the recovery process's phone reliance.",
+    "Assess phishing-resistant MFA availability and adoption.",
+    "Document the exposure and mitigation gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inventory SMS-MFA/phone-recovery usage",
+     "command": "# identify accounts/systems relying on SMS codes or phone-number recovery"
+    },
+    {
+     "label": "Assess high-value target exposure",
+     "command": "# which privileged/executive accounts rely on SMS MFA?"
+    },
+    {
+     "label": "Coordinated recovery test (in scope)",
+     "command": "# with authorization, test whether phone-based recovery alone can take over a test account"
+    },
+    {
+     "label": "Check phishing-resistant MFA",
+     "command": "# are FIDO2/WebAuthn/app-based authenticators available and enforced?"
+    }
+   ],
+   "variants": [
+    "SMS MFA on privileged/executive accounts.",
+    "Phone-number-based account recovery bypassing MFA.",
+    "No phishing-resistant MFA option.",
+    "High-value targets reliant on SMS."
+   ],
+   "mitigation": [
+    "Move to phishing-resistant MFA (FIDO2/WebAuthn, authenticator apps) instead of SMS.",
+    "Remove phone-number-based account recovery for sensitive accounts.",
+    "Prioritize privileged/executive accounts for strong MFA.",
+    "Add carrier-level protections (port-out PIN) where phone reliance remains.",
+    "Train high-value targets on SIM-swap risk.",
+    "Monitor for account-recovery and MFA-change anomalies."
+   ],
+   "mitigationClientFacing": "Text-message codes and phone-based account recovery can be defeated by a 'SIM swap', where an attacker tricks your phone carrier into moving your number to their phone and then receives your codes. The fix is to use stronger, phishing-resistant login methods (like security keys or authenticator apps) instead of text messages, remove phone-based recovery for important accounts, and prioritize protecting executives and admins.",
+   "reference": {
+    "standard": "IA-2 (Identification and Authentication)",
+    "cwe": "CWE-287",
+    "tools": [
+     "process review",
+     "MFA-config review"
+    ],
+    "links": [
+     "NIST SP 800-53 IA-2 Identification and Authentication",
+     "MITRE ATT&CK T1111 (Multi-Factor Authentication Interception)",
+     "MITRE ATT&CK T1451 (SIM Card Swap)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "IA",
+   "categoryName": "Identification and Authentication",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-065",
+   "domain": "SOCIAL",
+   "title": "Sensitive Documents Not Securely Destroyed",
+   "sequence": 710,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-530",
+   "prerequisites": "Authorization to review document-disposal practices and (in scope) recover discarded documents. Access to disposal areas.",
+   "whatItIs": "Sensitive printed documents — reports, customer records, internal memos — must be securely destroyed (cross-cut shredding or a secure disposal service), not dropped in ordinary bins. If secure destruction is not enforced, recoverable sensitive documents leave the building. This tests whether sensitive document disposal prevents recovery.",
+   "rootCause": "Secure destruction adds friction and cost, so documents go into ordinary recycling. Without enforced disposal and provided shredding, sensitive material is recoverable.",
+   "impact": "Recovered sensitive documents expose customer data, internal information, and sometimes credentials directly, enabling fraud, pretexting, and reconnaissance with no technical attack.",
+   "realWorldContext": "Dumpster-diving for sensitive documents remains effective because secure destruction is inconsistently enforced — assessors and real intruders alike recover customer records and internal memos from ordinary recycling. Enforced cross-cut shredding or a secure disposal service is what makes recovery infeasible.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review document-disposal practices and whether secure destruction is enforced.",
+    "Assess availability and use of shredding/secure disposal.",
+    "Where authorized, review disposal areas for recoverable sensitive documents.",
+    "Assess the sensitivity of recoverable material.",
+    "Check whether strip-cut (reconstructable) vs cross-cut shredding is used.",
+    "Document the secure-destruction gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review disposal and recover discarded documents.",
+    "Assess disposal practices and destruction methods.",
+    "Recover and review any sensitive documents from disposal areas.",
+    "Assess reconstructability of any shredded material (strip-cut).",
+    "Show that recoverable documents provide value to an attacker.",
+    "Document the disposal and destruction gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review disposal method",
+     "command": "# is cross-cut shredding or a secure disposal service enforced for sensitive documents?"
+    },
+    {
+     "label": "Recover discarded documents (in scope)",
+     "command": "# with authorization, review disposal areas for recoverable sensitive material"
+    },
+    {
+     "label": "Assess shred reconstructability",
+     "command": "# strip-cut shreds can be reconstructed; check the shredder type"
+    },
+    {
+     "label": "Assess sensitivity",
+     "command": "# document what sensitive data the recovered material exposes"
+    }
+   ],
+   "variants": [
+    "Sensitive documents in ordinary recycling.",
+    "Strip-cut shredder producing reconstructable output.",
+    "No secure disposal service for bulk sensitive material.",
+    "Customer records or credentials recoverable."
+   ],
+   "mitigation": [
+    "Enforce cross-cut shredding or a certified secure disposal service for sensitive documents.",
+    "Provide secure disposal bins and remove ordinary recycling for sensitive material.",
+    "Train staff on what must be securely destroyed.",
+    "Avoid printing sensitive material where possible.",
+    "Audit disposal practices and areas periodically.",
+    "Include document destruction in the media-disposal policy."
+   ],
+   "mitigationClientFacing": "Sensitive printed documents — customer records, internal reports — need to be properly destroyed, not just tossed in a bin, or someone can retrieve them. The fix is to use cross-cut shredding or a secure disposal service for sensitive documents, provide secure disposal bins, train staff on what must be destroyed, and print less sensitive material in the first place.",
+   "reference": {
+    "standard": "MP-6 (Media Sanitization)",
+    "cwe": "CWE-530",
+    "tools": [
+     "physical assessment",
+     "disposal review"
+    ],
+    "links": [
+     "NIST SP 800-53 MP-6 Media Sanitization",
+     "NIST SP 800-88 (Media Sanitization)",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1592",
+     "name": "Gather Victim Host Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-066",
+   "domain": "SOCIAL",
+   "title": "Portable Media (USB) Not Controlled or Sanitized",
+   "sequence": 711,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-312",
+   "prerequisites": "Authorization to assess USB/portable-media practices and (in scope) test USB acceptance and data recovery. Endpoint access.",
+   "whatItIs": "Portable media (USB drives, external disks) can carry sensitive data out of the organization and malware in. If USB use is uncontrolled and media is not sanitized or encrypted, data leaks out on lost/discarded drives and malware enters via dropped or shared USBs. This tests whether portable-media use and sanitization are controlled.",
+   "rootCause": "USB drives are convenient, and controlling them adds friction, so use is uncontrolled. Media is rarely encrypted or sanitized, so lost/discarded drives leak data and unknown drives carry risk.",
+   "impact": "Uncontrolled USB media leaks sensitive data on lost/discarded drives and introduces malware via dropped or shared USBs — a classic bidirectional risk that endpoint policy should govern.",
+   "realWorldContext": "USB-drop attacks (leaving infected drives for curious staff to plug in) and data leaks from lost unencrypted drives are both well-documented. Controlling USB use, encrypting portable media, and sanitizing it before disposal is what closes this two-way channel.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether USB/portable-media use is controlled (policy, endpoint control).",
+    "Assess whether portable media is encrypted and sanitized before disposal.",
+    "Where authorized, test whether an unknown USB device is accepted on endpoints.",
+    "Assess data-exfiltration risk via portable media.",
+    "Check for recoverable data on discarded/reused media.",
+    "Document the portable-media control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test USB acceptance and media data recovery.",
+    "Review USB-control policy and endpoint enforcement.",
+    "Test whether a benign unknown USB device is accepted on an endpoint.",
+    "Assess encryption and sanitization of portable media.",
+    "Attempt recovery of data from a discarded/reused test drive.",
+    "Document the use and sanitization gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test USB acceptance (benign, in scope)",
+     "command": "# with authorization, plug a benign test USB into an endpoint and observe whether it mounts/autoruns"
+    },
+    {
+     "label": "Assess encryption requirement",
+     "command": "# is portable media required to be encrypted?"
+    },
+    {
+     "label": "Recover data from reused media (in scope)",
+     "command": "photorec /dev/sdX   # attempt recovery from a discarded/reused test drive"
+    },
+    {
+     "label": "Assess exfiltration control",
+     "command": "# can sensitive data be copied to USB without control/logging?"
+    }
+   ],
+   "variants": [
+    "Unknown USB accepted and auto-mounted.",
+    "Unencrypted portable media leaking data if lost.",
+    "Recoverable data on reused/discarded drives.",
+    "No control/logging of copying to USB."
+   ],
+   "mitigation": [
+    "Control USB/portable-media use via endpoint policy (block, allow-list, or read-only).",
+    "Require encryption for portable media holding sensitive data.",
+    "Sanitize or destroy media before disposal/reuse.",
+    "Disable autorun and train staff on USB-drop risk.",
+    "Log and control copying of sensitive data to portable media.",
+    "Provide sanctioned, encrypted media for legitimate needs."
+   ],
+   "mitigationClientFacing": "USB drives can carry sensitive data out of the organization and malware in. If their use isn't controlled and the drives aren't encrypted or wiped, data leaks on lost drives and malware enters via unknown ones. The fix is to control USB use with endpoint policy, require encryption for portable media, wipe or destroy drives before disposal, and train staff not to plug in unknown USBs.",
+   "reference": {
+    "standard": "MP-7 (Media Use)",
+    "cwe": "CWE-312",
+    "tools": [
+     "photorec",
+     "endpoint policy review",
+     "physical assessment"
+    ],
+    "links": [
+     "NIST SP 800-53 MP-7 Media Use",
+     "MITRE ATT&CK T1052 (Exfiltration Over Physical Medium)",
+     "MITRE ATT&CK T1091 (Replication Through Removable Media)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "SOCIAL",
+     "name": "Social engineering"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-067",
+   "domain": "SOCIAL",
+   "title": "Sensitive Information Left on Whiteboards and Printouts",
+   "sequence": 712,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-200",
+   "prerequisites": "Authorization to walk areas and photograph exposed information, and site access. A camera.",
+   "whatItIs": "Whiteboards and printouts capture sensitive information — architecture, credentials, plans, customer data — that is then left visible in meeting rooms, on desks, and at shared printers. This 'information at rest in the open' is easily photographed by a visitor or after-hours intruder. This tests whether sensitive information on physical media is stored/handled securely.",
+   "rootCause": "People capture information on whiteboards and paper for convenience and don't treat it as sensitive media to clear or secure. It then sits exposed until someone happens to erase or collect it.",
+   "impact": "Exposed whiteboards and printouts hand an attacker architecture, credentials, plans, or customer data directly, feeding pretexting and providing intelligence with no technical attack.",
+   "realWorldContext": "Photographing un-erased whiteboards (often with architecture diagrams or even credentials) and sensitive printouts is a staple of physical assessments — the information is just sitting there. Clearing whiteboards and using secure printing is the low-cost control that stops it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Walk authorized areas and observe whiteboards, desks, and printers.",
+    "Photograph exposed sensitive information (architecture, credentials, plans, data).",
+    "Assess unclaimed sensitive printouts at shared printers.",
+    "Assess whether whiteboards are cleared after use.",
+    "Assess the sensitivity of exposed information.",
+    "Document the information-handling gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to walk areas and photograph exposed information.",
+    "Observe and photograph exposed whiteboards, desks, and printouts.",
+    "Assess unclaimed printouts and printer output handling.",
+    "Assess the value of the exposed information to an attacker.",
+    "Assess whiteboard-clearing and printout-handling practices.",
+    "Document the exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Photograph exposed whiteboards",
+     "command": "# capture un-erased whiteboards with sensitive content"
+    },
+    {
+     "label": "Record sensitive printouts",
+     "command": "# note unclaimed/exposed sensitive printouts on desks and at printers"
+    },
+    {
+     "label": "Assess printer output handling",
+     "command": "# is secure/pull printing used, or do prints sit in the tray?"
+    },
+    {
+     "label": "Assess sensitivity",
+     "command": "# document what the exposed information reveals"
+    }
+   ],
+   "variants": [
+    "Architecture/credentials left on a meeting-room whiteboard.",
+    "Sensitive printouts unclaimed at a shared printer.",
+    "Customer data on printouts left on desks.",
+    "Plans/roadmaps visible to visitors."
+   ],
+   "mitigation": [
+    "Clear whiteboards after sensitive discussions.",
+    "Use secure/pull printing so prints are released at the device.",
+    "Apply a clean-desk policy and provide secure storage.",
+    "Train staff to treat whiteboards and printouts as sensitive media.",
+    "Position whiteboards/printers away from visitor sightlines.",
+    "Run periodic checks for exposed sensitive information."
+   ],
+   "mitigationClientFacing": "Whiteboards and printouts often hold sensitive information — diagrams, passwords, plans — and get left visible in meeting rooms and at printers, where a visitor can photograph them. The fix is to clear whiteboards after use, use secure 'pull' printing so pages aren't left in the tray, apply a clean-desk policy, and treat whiteboards and printouts as sensitive. This means confidential information is not left in plain sight on whiteboards or printouts for a visitor or cleaner to photograph.",
+   "reference": {
+    "standard": "MP-4 (Media Storage)",
+    "cwe": "CWE-200",
+    "tools": [
+     "camera",
+     "site walk",
+     "clean-desk review"
+    ],
+    "links": [
+     "NIST SP 800-53 MP-4 Media Storage",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1213",
+     "name": "Data from Information Repositories",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
+  },
+  {
+   "id": "SOCIAL-068",
+   "domain": "SOCIAL",
+   "title": "Perimeter and Entry Points Inadequately Secured",
+   "sequence": 713,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-284",
+   "prerequisites": "Authorization to assess the facility perimeter and entry points, and site access for observation. Physical presence.",
+   "whatItIs": "The facility perimeter and its entry points — main doors, side/service entrances, loading docks, fire exits, windows — are the first physical control. Weaknesses (propped doors, unmonitored side entrances, accessible fire exits, ground-floor windows) let an attacker bypass reception entirely. This tests whether the perimeter and all entry points are adequately secured.",
+   "rootCause": "Perimeter security focuses on the main entrance, and secondary entry points (service doors, fire exits, windows) are overlooked or propped open for convenience. Attackers target the weakest point, not the front door.",
+   "impact": "An inadequately-secured entry point lets an attacker enter unnoticed, bypassing reception and badge control, and reach sensitive areas, devices, and documents.",
+   "realWorldContext": "Physical red-teams routinely bypass a well-guarded front entrance by using a propped service door, an accessible fire exit, or a ground-floor window — the perimeter is only as strong as its weakest point. Securing and monitoring all entry points, not just the main door, is what closes these bypasses.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Survey the perimeter and all entry points (main, side/service, loading dock, fire exits, windows).",
+    "Identify propped doors, unmonitored entrances, and accessible windows.",
+    "Assess monitoring (cameras, alarms) coverage of entry points.",
+    "Where authorized, attempt entry via a secondary point.",
+    "Assess what a bypassed entry point grants access to.",
+    "Document the perimeter and entry-point gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess the perimeter and attempt secondary-entry access.",
+    "Survey all entry points and their security/monitoring.",
+    "Identify the weakest entry point.",
+    "Attempt (in scope) entry via a secondary or propped point.",
+    "Assess detection and the areas reached.",
+    "Document the perimeter weaknesses."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Survey entry points",
+     "command": "# document main/side/service/loading/fire-exit/window security and monitoring"
+    },
+    {
+     "label": "Test a secondary entrance (in scope)",
+     "command": "# with authorization, attempt entry via a propped/unmonitored secondary point"
+    },
+    {
+     "label": "Assess monitoring coverage",
+     "command": "# do cameras/alarms cover all entry points, or just the main door?"
+    },
+    {
+     "label": "Map reachable areas",
+     "command": "# what does a bypassed entry point grant access to?"
+    }
+   ],
+   "variants": [
+    "Propped-open service/side door.",
+    "Unmonitored secondary entrance.",
+    "Accessible fire exit as an entry point.",
+    "Ground-floor window providing access."
+   ],
+   "mitigation": [
+    "Secure and monitor all entry points, not just the main entrance.",
+    "Prevent doors from being propped; alarm on prop/held-open.",
+    "Ensure fire exits are alarmed and not usable as entry points.",
+    "Secure ground-floor and accessible windows.",
+    "Extend camera/alarm coverage to the full perimeter.",
+    "Include the full perimeter in physical security reviews."
+   ],
+   "mitigationClientFacing": "The weakest way into a building is often not the front door but a propped side door, an unwatched service entrance, an accessible fire exit, or a ground-floor window. The fix is to secure and monitor every entry point, stop doors from being propped open (with alarms if needed), make sure fire exits can't be used to get in, and secure accessible windows.",
+   "reference": {
+    "standard": "PE-3 (Physical Access Control)",
+    "cwe": "CWE-284",
+    "tools": [
+     "physical assessment",
+     "perimeter survey"
+    ],
+    "links": [
+     "NIST SP 800-53 PE-3 Physical Access Control",
+     "NIST SP 800-115 (Physical Security Testing)",
+     "MITRE ATT&CK T1200 (Hardware Additions)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "PE",
+   "categoryName": "Physical and Environmental Protection",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "NIST SP 800-115",
+     "code": "PHYS",
+     "name": "Physical security testing"
+    }
+   ]
   }
  ]
 }

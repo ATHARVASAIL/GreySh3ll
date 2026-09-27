@@ -1,0 +1,463 @@
+/* =========================================================
+   landing-premium.css  —  GreySh3ll landing "Signal" redesign
+   Loaded LAST on index.html only. Reskins the dashboard into a
+   high-end, full-journey experience without touching app logic
+   or the assessment workspace. Every dynamic value is driven by
+   data-* attributes / custom properties set from JS — no inline
+   styles, CSP-clean (style-src 'self', script-src 'self').
+
+   Section map:
+     0. landing tokens (scoped premium palette + motion)
+     1. atmospheric backdrop (aurora, grid, grain, depth light)
+     2. typography system (Calibri/Carlito, weight contrast, gradients)
+     3. topbar refinement
+     4. HERO (full viewport, kinetic wordmark, stat trio, magnetic CTAs)
+     5. domain ticker (infinite marquee)
+     6. storytelling — "how an engagement runs"
+     7. dashboard-as-proof reskin (identity, ring, sev, charts, grid, search)
+     8. standards / social-proof band
+     9. CTA footer
+    10. motion primitives (load stagger, scroll reveals, reduced-motion)
+    11. responsive
+========================================================= */
+
+/* ---------------------------------------------------------
+   0. LANDING TOKENS  — scoped premium layer over base.css.
+   Reuses the app's --accent / severity tokens so meaning stays
+   consistent, but establishes its own richer surfaces + glows.
+--------------------------------------------------------- */
+:root{
+  --l-ink:#05070B;              /* deepest graphite base            */
+  --l-ink-2:#080B11;
+  --l-panel:#0C1017;            /* raised panel                     */
+  --l-panel-2:#10151E;
+  --l-line:rgba(120,150,190,.12);
+  --l-line-soft:rgba(120,150,190,.06);
+  --l-line-strong:rgba(47,140,255,.30);
+
+  --l-cyan:#43E0FF;             /* cool secondary accent for depth  */
+  --l-cyan-rgb:67,224,255;
+  --l-blue:var(--accent);       /* #2F8CFF — brand primary          */
+  --l-blue-rgb:var(--accent-rgb);
+  --l-amber:var(--accent-2);    /* #FFB000 — warm punctuation       */
+  --l-amber-rgb:var(--accent-2-rgb);
+
+  /* the signature hero gradient — blue → cyan, never purple */
+  --l-grad-text:linear-gradient(104deg,#EAF3FF 0%,#8FD0FF 34%,#43E0FF 62%,#2F8CFF 100%);
+  --l-grad-accent:linear-gradient(120deg,var(--l-blue),var(--l-cyan));
+
+  --l-glow-blue:rgba(47,140,255,.42);
+  --l-glow-cyan:rgba(67,224,255,.28);
+
+  --l-shadow-float:0 40px 90px -30px rgba(0,0,0,.85), 0 12px 30px -12px rgba(0,0,0,.6);
+  --l-shadow-glow:0 20px 60px -20px var(--l-glow-blue);
+
+  --l-ease:cubic-bezier(.16,1,.3,1);
+  --l-ease-spring:cubic-bezier(.34,1.4,.5,1);
+
+  --l-maxw:1200px;
+  --l-gutter:clamp(20px,5vw,64px);
+}
+
+/* Light theme: keep the premium feel but on a bright, layered surface.
+   The app is dark-first; this makes the landing legible if a visitor
+   flips the toggle, without going flat-white. */
+:root[data-theme="light"]{
+  --l-ink:#EEF3FA;
+  --l-ink-2:#E6EDF6;
+  --l-panel:#FFFFFF;
+  --l-panel-2:#F3F7FC;
+  --l-line:rgba(20,40,70,.12);
+  --l-line-soft:rgba(20,40,70,.06);
+  --l-grad-text:linear-gradient(104deg,#0B2547 0%,#12609E 40%,#1478C8 70%,#2F8CFF 100%);
+  --l-glow-blue:rgba(47,140,255,.22);
+  --l-glow-cyan:rgba(67,224,255,.16);
+  --l-shadow-float:0 30px 70px -30px rgba(20,40,80,.30), 0 10px 24px -12px rgba(20,40,80,.18);
+}
+
+/* ---------------------------------------------------------
+   1. ATMOSPHERIC BACKDROP
+   Layered depth lighting instead of a flat fill: a drifting aurora,
+   an engineered grid, and a fine grain. Sits behind everything.
+--------------------------------------------------------- */
+body{
+  background:
+    radial-gradient(1200px 720px at 12% -8%, rgba(var(--l-blue-rgb),.10), transparent 60%),
+    radial-gradient(1000px 680px at 100% 0%, rgba(var(--l-cyan-rgb),.07), transparent 58%),
+    radial-gradient(900px 900px at 50% 120%, rgba(var(--l-amber-rgb),.05), transparent 60%),
+    var(--l-ink);
+}
+
+/* reuse the existing .bg-grid element for an engineered grid */
+.bg-grid{
+  position:fixed; inset:0; z-index:0; pointer-events:none;
+  background-image:
+    linear-gradient(var(--l-line-soft) 1px, transparent 1px),
+    linear-gradient(90deg, var(--l-line-soft) 1px, transparent 1px);
+  background-size:64px 64px, 64px 64px;
+  -webkit-mask-image:radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+  mask-image:radial-gradient(120% 90% at 50% 0%, #000 30%, transparent 78%);
+  opacity:.5;
+}
+
+/* drifting aurora + grain — injected once by landing-motion.js */
+.l-atmos{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
+.l-aurora{
+  position:absolute; width:60vw; height:60vw; max-width:820px; max-height:820px;
+  border-radius:50%; filter:blur(90px); opacity:.55; mix-blend-mode:screen;
+  will-change:transform;
+}
+.l-aurora.a1{ top:-18vw; left:-6vw;  background:radial-gradient(circle at 30% 30%, var(--l-glow-blue), transparent 66%); animation:l-drift1 26s var(--l-ease) infinite alternate; }
+.l-aurora.a2{ top:-6vw;  right:-10vw; background:radial-gradient(circle at 60% 40%, var(--l-glow-cyan), transparent 66%); animation:l-drift2 32s var(--l-ease) infinite alternate; }
+.l-aurora.a3{ bottom:-24vw; left:38vw; width:44vw; height:44vw; background:radial-gradient(circle at 50% 50%, rgba(var(--l-amber-rgb),.16), transparent 68%); animation:l-drift3 38s var(--l-ease) infinite alternate; }
+.l-grain{
+  position:absolute; inset:-50%; opacity:.035; pointer-events:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+}
+@keyframes l-drift1{ from{ transform:translate3d(0,0,0) scale(1);} to{ transform:translate3d(6vw,4vw,0) scale(1.12);} }
+@keyframes l-drift2{ from{ transform:translate3d(0,0,0) scale(1.05);} to{ transform:translate3d(-5vw,5vw,0) scale(1);} }
+@keyframes l-drift3{ from{ transform:translate3d(0,0,0) scale(1);} to{ transform:translate3d(-4vw,-3vw,0) scale(1.15);} }
+
+/* keep real content above the atmosphere */
+.topbar,.identity-wrap,.dash-main,.l-hero,.l-ticker,.l-story,.l-standards,.l-footer{ position:relative; z-index:1; }
+
+/* ---------------------------------------------------------
+   2. TYPOGRAPHY SYSTEM  (Calibri / Carlito)
+   Premium via weight contrast + tracking + gradient clip,
+   not via a novelty face.
+--------------------------------------------------------- */
+body{ letter-spacing:.1px; }
+
+.l-eyebrow{
+  font-weight:700; font-size:12px; letter-spacing:.34em; text-transform:uppercase;
+  color:var(--l-cyan);
+  display:inline-flex; align-items:center; gap:10px;
+}
+.l-eyebrow::before{
+  content:''; width:26px; height:1px; background:linear-gradient(90deg,transparent,var(--l-cyan));
+}
+
+/* the giant kinetic display face */
+.l-display{
+  font-weight:700;
+  font-size:clamp(48px,9.2vw,124px);
+  line-height:.92;
+  letter-spacing:-.03em;
+  color:var(--text-bright);
+}
+.l-display .thin{ font-weight:400; letter-spacing:-.01em; color:var(--text); }
+.l-gradient{
+  background:var(--l-grad-text);
+  -webkit-background-clip:text; background-clip:text;
+  -webkit-text-fill-color:transparent; color:transparent;
+}
+.l-em{ font-style:italic; font-weight:700; }
+
+.l-section-title{
+  font-weight:700; font-size:clamp(28px,4vw,46px); line-height:1.04;
+  letter-spacing:-.02em; color:var(--text-bright);
+}
+.l-section-title .thin{ font-weight:400; color:var(--text); }
+.l-lead{
+  font-weight:400; font-size:clamp(16px,1.7vw,20px); line-height:1.6;
+  color:var(--text); max-width:56ch; letter-spacing:.1px;
+}
+
+/* ---------------------------------------------------------
+   3. TOPBAR refinement — glassy, quieter, premium
+--------------------------------------------------------- */
+.topbar{
+  background:linear-gradient(180deg, rgba(8,11,17,.86), rgba(8,11,17,.55));
+  backdrop-filter:blur(14px) saturate(1.2);
+  -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  border-bottom:1px solid var(--l-line);
+  padding-inline:var(--l-gutter);
+}
+:root[data-theme="light"] .topbar{
+  background:linear-gradient(180deg, rgba(255,255,255,.9), rgba(255,255,255,.6));
+}
+.topbar .brand .title{ font-weight:700; letter-spacing:.02em; }
+.topbar .brand .dot{ box-shadow:0 0 14px 2px var(--l-glow-blue); }
+.topbar .btn.primary{
+  background:var(--l-grad-accent); border:none; color:#04101F; font-weight:700;
+  box-shadow:0 8px 24px -8px var(--l-glow-blue);
+}
+
+/* ---------------------------------------------------------
+   4. HERO
+--------------------------------------------------------- */
+.l-hero{
+  min-height:calc(100vh - 56px);
+  display:flex; flex-direction:column; justify-content:center;
+  padding:clamp(40px,8vh,120px) var(--l-gutter) clamp(48px,7vh,90px);
+  max-width:var(--l-maxw); margin:0 auto;
+}
+.l-hero-inner{ max-width:960px; }
+.l-hero .l-eyebrow{ margin-bottom:26px; }
+.l-hero h1{ margin:0 0 26px; }
+.l-hero .l-lead{ margin-bottom:40px; }
+
+.l-cta-row{ display:flex; flex-wrap:wrap; gap:16px; align-items:center; }
+.l-btn{
+  position:relative; display:inline-flex; align-items:center; gap:11px;
+  font-weight:700; font-size:15px; letter-spacing:.01em;
+  padding:15px 26px; border-radius:var(--r-pill);
+  border:1px solid var(--l-line-strong); color:var(--text-bright);
+  background:rgba(255,255,255,.02);
+  transition:transform .3s var(--l-ease-spring), box-shadow .3s var(--l-ease), border-color .3s, background .3s;
+  will-change:transform;
+}
+.l-btn .icn{ width:17px; height:17px; transition:transform .3s var(--l-ease); }
+.l-btn-primary{
+  background:var(--l-grad-accent); border-color:transparent; color:#04101F;
+  box-shadow:0 14px 34px -12px var(--l-glow-blue);
+}
+.l-btn-primary:hover{ box-shadow:0 20px 50px -12px var(--l-glow-blue); }
+.l-btn:hover{ border-color:var(--l-line-strong); background:rgba(var(--l-blue-rgb),.08); }
+.l-btn:hover .icn{ transform:translateX(4px); }
+.l-btn-primary:hover .icn{ transform:translateX(4px); }
+
+/* live stat trio under the CTAs */
+.l-stats{ display:flex; flex-wrap:wrap; gap:clamp(24px,5vw,64px); margin-top:56px; }
+.l-stat b{
+  display:block; font-weight:700; font-size:clamp(32px,4.4vw,52px); line-height:1;
+  letter-spacing:-.02em; color:var(--text-bright);
+}
+.l-stat b .u{ background:var(--l-grad-text); -webkit-background-clip:text; background-clip:text; -webkit-text-fill-color:transparent; }
+.l-stat span{ display:block; margin-top:8px; font-size:12px; letter-spacing:.22em; text-transform:uppercase; color:var(--text-dim); font-weight:700; }
+.l-stat{ position:relative; padding-left:20px; }
+.l-stat::before{ content:''; position:absolute; left:0; top:4px; bottom:8px; width:2px; border-radius:2px; background:var(--l-grad-accent); opacity:.7; }
+
+.l-scroll-hint{
+  margin-top:clamp(40px,7vh,84px); display:inline-flex; align-items:center; gap:10px;
+  color:var(--text-dim); font-size:11px; letter-spacing:.28em; text-transform:uppercase; font-weight:700;
+}
+.l-scroll-hint .l-mouse{ width:20px; height:32px; border:1.6px solid var(--text-dim); border-radius:12px; position:relative; }
+.l-scroll-hint .l-mouse::after{ content:''; position:absolute; left:50%; top:6px; width:3px; height:6px; border-radius:3px; margin-left:-1.5px; background:var(--l-cyan); animation:l-wheel 1.6s var(--l-ease) infinite; }
+@keyframes l-wheel{ 0%{ transform:translateY(0); opacity:1;} 70%{ transform:translateY(9px); opacity:0;} 100%{ opacity:0;} }
+
+/* ---------------------------------------------------------
+   5. DOMAIN TICKER — infinite marquee of the 10 domains
+--------------------------------------------------------- */
+.l-ticker{
+  border-block:1px solid var(--l-line);
+  background:linear-gradient(180deg, rgba(255,255,255,.015), transparent);
+  overflow:hidden; padding:22px 0; margin:0;
+  -webkit-mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+  mask-image:linear-gradient(90deg, transparent, #000 8%, #000 92%, transparent);
+}
+.l-ticker-track{ display:flex; gap:0; width:max-content; animation:l-marquee 32s linear infinite; }
+.l-ticker:hover .l-ticker-track{ animation-play-state:paused; }
+.l-ticker-item{
+  display:inline-flex; align-items:center; gap:14px; padding:0 34px;
+  font-weight:700; font-size:clamp(15px,1.5vw,19px); letter-spacing:.02em; color:var(--text);
+  white-space:nowrap;
+}
+.l-ticker-item .n{ color:var(--l-cyan); font-size:.7em; letter-spacing:.1em; }
+.l-ticker-item::after{ content:'//'; margin-left:34px; color:var(--l-line-strong); font-weight:400; }
+@keyframes l-marquee{ from{ transform:translateX(0);} to{ transform:translateX(-50%);} }
+
+/* ---------------------------------------------------------
+   6. STORYTELLING — "how an engagement runs"
+--------------------------------------------------------- */
+.l-story{ max-width:var(--l-maxw); margin:0 auto; padding:clamp(72px,12vh,150px) var(--l-gutter); }
+.l-story-head{ max-width:720px; margin-bottom:clamp(40px,6vh,72px); }
+.l-story-head .l-eyebrow{ margin-bottom:20px; }
+.l-story-head .l-lead{ margin-top:20px; }
+
+.l-flow{ display:grid; gap:18px; grid-template-columns:repeat(3,1fr); counter-reset:flow; }
+.l-flow-card{
+  position:relative; padding:28px 26px 30px; border-radius:var(--r-xl);
+  background:linear-gradient(160deg, var(--l-panel), var(--l-panel-2));
+  border:1px solid var(--l-line);
+  overflow:hidden; transition:transform .4s var(--l-ease), border-color .4s, box-shadow .4s;
+  will-change:transform;
+}
+.l-flow-card::before{
+  content:''; position:absolute; inset:0;
+  background:radial-gradient(340px 200px at var(--mx,50%) var(--my,0%), rgba(var(--l-blue-rgb),.12), transparent 70%);
+  opacity:0; transition:opacity .4s var(--l-ease); pointer-events:none;
+}
+.l-flow-card:hover{ transform:translateY(-6px); border-color:var(--l-line-strong); box-shadow:var(--l-shadow-float); }
+.l-flow-card:hover::before{ opacity:1; }
+.l-flow-num{
+  counter-increment:flow; font-weight:700; font-size:13px; letter-spacing:.2em;
+  color:var(--l-cyan); margin-bottom:16px; display:block;
+}
+.l-flow-num::before{ content:'0' counter(flow); }
+.l-flow-card h3{ font-weight:700; font-size:19px; letter-spacing:-.01em; color:var(--text-bright); margin-bottom:10px; }
+.l-flow-card p{ font-size:14.5px; line-height:1.62; color:var(--text-dim); }
+.l-flow-ico{
+  width:44px; height:44px; border-radius:12px; margin-bottom:18px;
+  display:grid; place-items:center; color:var(--l-cyan);
+  background:rgba(var(--l-cyan-rgb),.08); border:1px solid rgba(var(--l-cyan-rgb),.2);
+}
+.l-flow-ico .icn{ width:22px; height:22px; }
+
+/* ---------------------------------------------------------
+   7. DASHBOARD-AS-PROOF reskin
+   The existing dashboard DOM is kept; we upgrade the surfaces so
+   it reads as the "proof" payoff, wrapped in a labelled band.
+--------------------------------------------------------- */
+.l-proof-band{ border-top:1px solid var(--l-line); background:linear-gradient(180deg, rgba(255,255,255,.012), transparent 40%); }
+.l-proof-head{ max-width:var(--l-maxw); margin:0 auto; padding:clamp(64px,10vh,120px) var(--l-gutter) 0; }
+.l-proof-head .l-eyebrow{ margin-bottom:20px; }
+.l-proof-head .l-lead{ margin-top:18px; }
+
+/* Identity card → premium glass hero-card */
+.identity-wrap{ max-width:var(--l-maxw); margin:clamp(28px,4vh,44px) auto 0; padding-inline:var(--l-gutter); }
+.identity{
+  background:linear-gradient(150deg, var(--l-panel) 0%, var(--l-panel-2) 100%);
+  border:1px solid var(--l-line);
+  border-radius:var(--r-xl);
+  box-shadow:var(--l-shadow-float);
+  position:relative; overflow:hidden;
+}
+.identity::after{
+  content:''; position:absolute; inset:0; pointer-events:none; border-radius:inherit;
+  background:radial-gradient(600px 220px at 90% -10%, rgba(var(--l-blue-rgb),.14), transparent 60%);
+}
+.identity-eyebrow{ color:var(--l-cyan); font-weight:700; letter-spacing:.1em; }
+#typedName{ font-weight:700; letter-spacing:-.02em; }
+.avatar-initials{ font-weight:700; }
+
+/* dash section titles → premium eyebrow style */
+.dash-section-title{
+  font-weight:700; font-size:12px; letter-spacing:.28em; text-transform:uppercase;
+  color:var(--text-dim);
+  display:flex; align-items:center; gap:14px;
+}
+.dash-section-title::before{ content:''; width:22px; height:1px; background:linear-gradient(90deg,var(--l-cyan),transparent); }
+
+/* stat + ring cards → glassy floats */
+.dash-ring-card,.dash-stat-card,.chart-card,.bar-row,.dash-cta,.dash-search{
+  border:1px solid var(--l-line);
+  background:linear-gradient(160deg, var(--l-panel), var(--l-panel-2));
+}
+.dash-ring-card,.chart-card{ box-shadow:var(--l-shadow-float); border-radius:var(--r-xl); }
+.dash-stat-card{ border-radius:var(--r-lg); transition:transform .35s var(--l-ease), border-color .35s, box-shadow .35s; will-change:transform; }
+.dash-stat-card:hover{ transform:translateY(-4px); border-color:var(--l-line-strong); box-shadow:var(--l-shadow-float); }
+.dash-stat-card b{ font-weight:700; letter-spacing:-.01em; }
+.dash-ring-label b,.dash-stat-card b,.chart-legend-val{ font-family:var(--font-calibri); }
+.dash-ring-fill{ filter:drop-shadow(0 0 8px var(--l-glow-blue)); }
+
+.dash-cta{
+  border-radius:var(--r-xl); box-shadow:var(--l-shadow-float);
+  background:linear-gradient(120deg, rgba(var(--l-blue-rgb),.08), var(--l-panel-2));
+}
+.dash-cta .btn.primary{ background:var(--l-grad-accent); border:none; color:#04101F; font-weight:700; }
+
+.dash-search{ border-radius:var(--r-pill); }
+.dash-search input{ font-family:var(--font-calibri); }
+.dash-search .btn{ background:var(--l-grad-accent); border:none; color:#04101F; font-weight:700; }
+
+/* domain cards → the showpiece grid: magnetic-tilt glass with sheen */
+.domain-card{
+  position:relative; overflow:hidden;
+  border:1px solid var(--l-line);
+  border-radius:var(--r-xl);
+  background:linear-gradient(160deg, var(--l-panel), var(--l-panel-2));
+  transition:transform .45s var(--l-ease-spring), border-color .4s, box-shadow .45s;
+  will-change:transform;
+}
+.domain-card::before{
+  content:''; position:absolute; inset:0; pointer-events:none;
+  background:radial-gradient(360px 220px at var(--mx,50%) var(--my,0%), rgba(var(--l-cyan-rgb),.14), transparent 68%);
+  opacity:0; transition:opacity .4s var(--l-ease);
+}
+.domain-card::after{
+  content:''; position:absolute; top:0; left:0; right:0; height:2px;
+  background:var(--l-grad-accent); transform:scaleX(0); transform-origin:left;
+  transition:transform .5s var(--l-ease);
+}
+.domain-card:hover{ transform:translateY(-8px); border-color:var(--l-line-strong); box-shadow:var(--l-shadow-float); }
+.domain-card:hover::before{ opacity:1; }
+.domain-card:hover::after{ transform:scaleX(1); }
+.domain-card-icn{ color:var(--l-cyan); }
+.domain-card-code{ font-weight:700; letter-spacing:.02em; }
+.domain-card-name{ font-weight:700; letter-spacing:-.01em; color:var(--text-bright); }
+.domain-card-link{ color:var(--l-cyan); font-weight:700; }
+
+/* ---------------------------------------------------------
+   8. STANDARDS / SOCIAL-PROOF band
+--------------------------------------------------------- */
+.l-standards{ max-width:var(--l-maxw); margin:0 auto; padding:clamp(72px,11vh,140px) var(--l-gutter); }
+.l-standards-head{ text-align:center; max-width:640px; margin:0 auto clamp(36px,5vh,56px); }
+.l-standards-head .l-eyebrow{ justify-content:center; margin-bottom:18px; }
+.l-standards-head .l-eyebrow::before{ display:none; }
+.l-chips{ display:flex; flex-wrap:wrap; gap:14px; justify-content:center; }
+.l-chip{
+  display:inline-flex; flex-direction:column; gap:4px; align-items:flex-start;
+  padding:18px 24px; border-radius:var(--r-lg);
+  border:1px solid var(--l-line); background:linear-gradient(160deg,var(--l-panel),var(--l-panel-2));
+  transition:transform .35s var(--l-ease), border-color .35s, box-shadow .35s; will-change:transform;
+}
+.l-chip:hover{ transform:translateY(-4px); border-color:var(--l-line-strong); box-shadow:var(--l-shadow-float); }
+.l-chip b{ font-weight:700; font-size:15px; color:var(--text-bright); letter-spacing:.01em; }
+.l-chip span{ font-size:12px; color:var(--text-dim); letter-spacing:.02em; }
+.l-chip .k{ font-weight:700; font-size:11px; letter-spacing:.2em; text-transform:uppercase; color:var(--l-cyan); }
+
+/* ---------------------------------------------------------
+   9. CTA FOOTER
+--------------------------------------------------------- */
+.l-footer{
+  border-top:1px solid var(--l-line);
+  background:
+    radial-gradient(900px 400px at 50% 120%, rgba(var(--l-blue-rgb),.12), transparent 60%),
+    linear-gradient(180deg, transparent, rgba(var(--l-blue-rgb),.03));
+}
+.l-footer-cta{ max-width:900px; margin:0 auto; padding:clamp(80px,14vh,160px) var(--l-gutter) clamp(40px,6vh,72px); text-align:center; }
+.l-footer-cta .l-eyebrow{ justify-content:center; margin-bottom:24px; }
+.l-footer-cta .l-eyebrow::before{ display:none; }
+.l-footer-cta h2{ margin-bottom:30px; }
+.l-footer-cta .l-cta-row{ justify-content:center; }
+.l-footer-meta{
+  max-width:var(--l-maxw); margin:0 auto; padding:26px var(--l-gutter);
+  border-top:1px solid var(--l-line);
+  display:flex; flex-wrap:wrap; gap:16px; align-items:center; justify-content:space-between;
+  color:var(--text-dim); font-size:13px;
+}
+.l-footer-meta .brand-min{ font-weight:700; color:var(--text); letter-spacing:.02em; }
+.l-footer-meta .brand-min span{ color:var(--l-cyan); }
+.l-footer-meta a{ color:var(--text-dim); transition:color .2s; }
+.l-footer-meta a:hover{ color:var(--l-cyan); }
+
+/* ---------------------------------------------------------
+   10. MOTION PRIMITIVES
+   Page-load stagger via animation-delay (set from CSS below),
+   scroll reveals toggled by IntersectionObserver adding .in-view.
+--------------------------------------------------------- */
+@keyframes l-rise{ from{ opacity:0; transform:translate3d(0,26px,0);} to{ opacity:1; transform:none;} }
+
+/* elements that reveal on load — staggered by --i (set in JS via setProperty) */
+.l-load{ opacity:0; animation:l-rise .9s var(--l-ease) forwards; animation-delay:calc(var(--i,0) * 90ms + 120ms); }
+
+/* scroll-reveal: hidden until observed */
+.l-reveal{ opacity:0; transform:translate3d(0,34px,0); transition:opacity .8s var(--l-ease), transform .8s var(--l-ease); transition-delay:calc(var(--i,0) * 80ms); }
+.l-reveal.in-view{ opacity:1; transform:none; }
+
+/* hero parallax layer offset driven by --py (JS rAF) */
+.l-parallax{ will-change:transform; transform:translate3d(0, var(--py,0px), 0); }
+
+@media (prefers-reduced-motion: reduce){
+  .l-aurora,.l-ticker-track,.l-scroll-hint .l-mouse::after{ animation:none !important; }
+  .l-load,.l-reveal{ opacity:1 !important; transform:none !important; animation:none !important; transition:none !important; }
+  .l-parallax{ transform:none !important; }
+  .domain-card,.dash-stat-card,.l-flow-card,.l-chip,.l-btn{ transition:none !important; }
+}
+
+/* ---------------------------------------------------------
+   11. RESPONSIVE
+--------------------------------------------------------- */
+@media (max-width:900px){
+  .l-flow{ grid-template-columns:1fr; }
+  .l-hero{ min-height:auto; padding-top:clamp(48px,12vh,90px); }
+}
+@media (max-width:600px){
+  .l-stats{ gap:22px; }
+  .l-stat{ flex:1 1 40%; }
+  .l-cta-row{ width:100%; }
+  .l-btn{ flex:1 1 auto; justify-content:center; }
+  .l-ticker-item{ padding:0 22px; }
+  .l-ticker-item::after{ margin-left:22px; }
+}

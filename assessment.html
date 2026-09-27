@@ -4,22 +4,23 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GreySh3ll — VAPT Assessment Console</title>
-<meta name="description" content="577 VAPT test cases across network, web, API, LLM/AI, cloud, mobile, thick client, wireless, source code and social engineering — ordered the way a real assessment runs.">
+<meta name="description" content="817 VAPT test cases across network, web, API, LLM/AI, cloud, mobile, thick client, wireless, source code and social engineering — ordered the way a real assessment runs.">
 <meta name="theme-color" content="#0a0e14">
 <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'%3E%3Crect width='100' height='100' rx='18' fill='%230a0e14'/%3E%3Ctext x='50' y='68' font-size='58' font-family='monospace' font-weight='700' fill='%232f8cff' text-anchor='middle'%3E%3E_%3C/text%3E%3C/svg%3E">
-<meta property="og:title" content="GreySh3ll — 577-case penetration testing checklist">
-<meta property="og:description" content="GreySh3ll — an offline-first, multi-page VAPT assessment console: 577 test cases across 10 domains, with real payloads, an Analyst Toolkit, and gamified progress tracking.">
+<meta property="og:title" content="GreySh3ll — 817-case penetration testing checklist">
+<meta property="og:description" content="GreySh3ll — an offline-first, multi-page VAPT assessment console: 817 test cases across 10 domains, with real payloads, an Analyst Toolkit, and gamified progress tracking.">
 <meta property="og:type" content="website">
 <meta property="og:url" content="https://atharvasail.github.io/GreySh3ll/assessment.html">
 <meta property="og:image" content="https://atharvasail.github.io/GreySh3ll/assets/og-banner.png">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta name="twitter:card" content="summary_large_image">
-<meta name="twitter:title" content="GreySh3ll — 577-case penetration testing checklist">
+<meta name="twitter:title" content="GreySh3ll — 817-case penetration testing checklist">
 <meta name="twitter:image" content="https://atharvasail.github.io/GreySh3ll/assets/og-banner.png">
-<!-- Typography is Calibri via a system font stack (see css/base.css --font-calibri):
-     no web fonts are loaded, so there is no Google Fonts dependency and the CSP
-     needs no third-party style/font origins. -->
+<!-- Typography is Calibri, with self-hosted Carlito (its metric-compatible
+     open-source twin) bundled in assets/fonts and declared in css/fonts.css,
+     so the same Calibri metrics render on every OS. No third-party fonts are
+     fetched, so the CSP needs no external style/font origin. -->
 <!-- CSP: script-src and style-src are both 'self' — no 'unsafe-inline'.
      Dynamic colours use data-sev / data-status / data-rem attributes and CSS
      custom properties set via element.style.setProperty(), which is CSP-safe.
@@ -27,6 +28,9 @@
      REPORT_SEV_COLOR are the only remaining legitimate keeps and apply only
      to a generated print document, not to any page rendered by the browser. -->
   <meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self'; style-src 'self'; font-src 'self'; img-src 'self' data:; connect-src 'self'; object-src 'none'; base-uri 'none'; form-action 'none';">
+<link rel="preload" href="assets/fonts/carlito-latin-700-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="preload" href="assets/fonts/carlito-latin-400-normal.woff2" as="font" type="font/woff2" crossorigin>
+<link rel="stylesheet" href="css/fonts.css">
 <link rel="stylesheet" href="css/base.css">
 <link rel="stylesheet" href="css/layout.css">
 <link rel="stylesheet" href="css/components.css">
@@ -37,7 +41,7 @@
 
 <div class="boot-loader" id="bootLoader">
   <div class="boot-spinner"></div>
-  <span>Loading 577 test cases…</span>
+  <span>Loading 817 test cases…</span>
 </div>
 
 <div class="bg-grid"></div>

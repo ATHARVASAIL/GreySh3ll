@@ -121,6 +121,44 @@ NIST_800_53 = {
     'SI': 'System and Information Integrity',
 }
 
+# --------------------------------------------- per-case category pins
+# A small number of cases are authored deliberately for a specific category
+# whose defining weakness is not the one their CWE points at. For an OWASP
+# domain the CWE table (step 0b) would otherwise pull them elsewhere — e.g. a
+# Subresource-Integrity gap is a Supply-Chain (A03) finding by intent, but its
+# CWE-353/829 maps to A08. These pins are the authoritative category and win
+# over every heuristic. Each is validated against the domain taxonomy at load.
+CATEGORY_PINS = {
+    # WEB — supply-chain findings the CWE table sends to A08
+    'WEB-157': 'A03', 'WEB-159': 'A03', 'WEB-160': 'A03',
+    # WEB — a logging finding the CWE table sends to A07
+    'WEB-161': 'A09',
+    # THICK — exceptional-condition findings the CWE table sends to A06
+    'THICK-038': 'A10', 'THICK-039': 'A10',
+
+    # API — mass-assignment (API6) and unsafe-consumption (API10) findings
+    # whose CWE routes them to authorization/SSRF categories instead.
+    'API-042': 'API5', 'API-055': 'API10',
+
+    # MOBILE — cryptography/tampering findings the CWE table pulls to
+    # M7 (poor binary protection) / M5 (insecure communication).
+    'MOBILE-052': 'M8', 'MOBILE-053': 'M8', 'MOBILE-057': 'M10',
+
+    # THICK — supply-chain (A03), crypto (A02) and auth (A07) findings the
+    # generic web CWE table sends to A08/A06.
+    'THICK-043': 'A02', 'THICK-046': 'A03', 'THICK-048': 'A03',
+    'THICK-051': 'A07', 'THICK-052': 'A07',
+
+    # CLOUD — supply-chain (A03), outdated-component (A06) and
+    # exceptional-condition (A10) findings misrouted by CWE.
+    'CLOUD-046': 'A03', 'CLOUD-049': 'A06', 'CLOUD-050': 'A06',
+    'CLOUD-051': 'A06', 'CLOUD-059': 'A10',
+
+    # SRC — crypto (A02), auth (A07), software-integrity (A08) and
+    # exceptional-condition (A10) findings the CWE table misroutes.
+    'SRC-042': 'A02', 'SRC-048': 'A07', 'SRC-052': 'A08', 'SRC-057': 'A10',
+}
+
 # --------------------------------------------- domain-specific CWE overrides
 # The generic web mapping is wrong for a few risks that have a dedicated
 # category in the domain's own list. SSRF is the clearest: the web Top 10
@@ -377,6 +415,12 @@ def classify(item):
     text = ' '.join(str(item.get(k, '')) for k in ('whatItIs', 'rootCause', 'impact'))
     existing = (item.get('reference') or {}).get('standard', '') or ''
     num = cwe_num(item)
+
+    # 0. An explicit per-case pin is authoritative — it is a reviewed decision
+    #    that this case belongs in a category its CWE would not select.
+    pin = CATEGORY_PINS.get(item['id'])
+    if pin and pin in taxonomy:
+        return pin, standard, 'pin'
 
     # 0a. Strongest signal of all: the case is named after a category in its
     #     own taxonomy. "Unsafe Consumption of APIs" is API10 by definition,

@@ -3559,6 +3559,1955 @@
      "name": "Authorization"
     }
    ]
+  },
+  {
+   "id": "THICK-037",
+   "domain": "THICK",
+   "title": "Fail-Open Authentication When a Check Throws an Exception",
+   "sequence": 633,
+   "severity": "critical",
+   "severityLabel": "Critical",
+   "cwe": "CWE-755",
+   "prerequisites": "A local installation of the target thick-client application on a test machine you control. A disassembler/decompiler for the runtime (dnSpy/ILSpy for .NET, Ghidra/IDA for native binaries). Frida and a debugger (x64dbg/WinDbg) for runtime manipulation. The ability to induce error conditions (block the auth server, corrupt a token, disconnect the network). Authorization to reverse-engineer and fault-inject against the test installation.",
+   "whatItIs": "The application's login or authorization logic is wrapped in a try/catch (or equivalent) whose error handler treats a failure as success — or simply continues — instead of denying access. When the authentication check throws an unexpected exception (the auth server is unreachable, a token can't be parsed, a crypto call fails), the code 'fails open': it swallows the error and lets the user in, or grants a privilege it should have withheld. An attacker who can force that exception bypasses authentication entirely.",
+   "rootCause": "Defensive error handling gets written to keep the app running rather than to keep it secure, so a catch block sets an `isAuthenticated = true` default, returns early past the deny path, or logs-and-continues. The security decision and the error decision get conflated: the developer's instinct 'don't crash the app on an error' becomes 'don't block the user on an error'. Because the exception path is rarely tested, no one notices that the safe default is 'allow' instead of 'deny'.",
+   "impact": "By reliably triggering the exception — cutting network access to the auth backend, feeding a malformed token, or interrupting a validation call — an attacker gets authenticated or elevated without valid credentials. Depending on where the fail-open sits, this is a full login bypass, an authorization bypass to admin-only functions, or a licensing/entitlement escalation. Because the condition is attacker-inducible on demand, it is not a rare edge case but a dependable exploit path, and it typically leaves the app believing the session is legitimately authenticated.",
+   "realWorldContext": "Fail-open on exception is one of the most damaging error-handling defects because the 'safe' instinct produces the unsafe result. The pattern echoes the industry-defining Apple 'goto fail' TLS bug, where an errant control-flow path caused certificate validation to succeed when it should have failed — a fail-open on the verification step. In thick-client engagements the concrete finding is usually a desktop app that validates a session token or checks an entitlement against a server, wraps it in try/catch, and in the catch block returns 'authorized' so the app 'still works offline' — meaning an attacker who blocks the server or corrupts the token walks straight in. The consequence is complete authentication or authorization bypass, and it is frequently rated critical.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-3 hours",
+   "stepsToIdentify": [
+    "Decompile the client and locate authentication/authorization decision points, then read the surrounding try/catch (or SEH) blocks to see how each handles an exception.",
+    "Flag any catch/error path that returns success, sets an authenticated/authorized flag true, defaults an entitlement to granted, or falls through to the allow path rather than explicitly denying.",
+    "Trace what can make the protected check throw: an unreachable auth endpoint, a null/malformed token, a failed cryptographic verification, a parse error, or a missing config value.",
+    "Instrument the running app with Frida to observe the auth-check method's return value and confirm control flow enters the catch block under an induced error.",
+    "Induce each candidate error condition (block the server host, corrupt the stored token, disconnect the network) and observe whether the app grants access despite the failure.",
+    "Confirm the fail-open is server-independent — i.e. the client makes the final access decision locally — so that forcing the error yields access with no valid backend approval."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes reverse engineering, fault injection, and authentication-bypass testing against the test installation.",
+    "Identify the auth/authorization check and the specific exception that routes execution into a fail-open handler.",
+    "Induce that exception through the least invasive means available (e.g. add a hosts-file/firewall block for the auth endpoint, or supply a malformed token) with no valid credentials in play.",
+    "Observe the app proceed past authentication or into a privileged area, and confirm the session is treated as authenticated.",
+    "If needed, use Frida/debugger to deterministically drive the catch path (throw at the check or force the failure) to prove the bypass is reliable.",
+    "Document the exact method, the exception trigger, the fail-open handler, and the access gained, using benign non-destructive actions only, and restore any modified host/network state afterward."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Locate fail-open handlers in .NET auth code",
+     "command": "dnSpy target_app.exe  # search for catch blocks that 'return true'/set IsAuthenticated=true; grep decompiled export: ilspycmd target_app.exe | grep -nB3 -A3 'catch'"
+    },
+    {
+     "label": "Block the auth backend to force the exception (Windows)",
+     "command": "echo 127.0.0.1 auth.example.test >> %SystemRoot%\\System32\\drivers\\etc\\hosts   # or add an outbound firewall rule to the auth endpoint, then launch the client"
+    },
+    {
+     "label": "Frida: force the auth check to throw and observe fail-open (.NET via frida-clr / native)",
+     "command": "frida -f target_app.exe -l force_authcheck_throw.js  # Interceptor.attach(validateSession, { onEnter(){ throw new Error('induced'); } }) and watch the app authenticate"
+    },
+    {
+     "label": "Feed a malformed token to trigger a parse exception",
+     "command": "# Replace the stored session token with invalid content, e.g. reg add HKCU\\Software\\<Vendor>\\<App> /v Token /d \"@@invalid@@\" /f, then start the client"
+    },
+    {
+     "label": "Watch the auth method return value under induced error (WinDbg)",
+     "command": "windbg -o target_app.exe  # bp on the validate-session routine, g, inspect return register (eax/rax) after the induced failure to confirm 'authorized'"
+    }
+   ],
+   "variants": [
+    "Catch block sets an `isAuthenticated`/`isAdmin` flag to true (or leaves a default-true unchanged) so any exception yields an authenticated session.",
+    "Offline/degraded mode that fails open — when the auth server is unreachable the client grants access 'so the app still works' instead of denying.",
+    "Authorization (not authentication) fail-open — a role/entitlement check that throws is treated as 'permitted', unlocking admin-only functions.",
+    "Certificate/signature verification whose error path is mishandled so a failed verification is treated as a pass (goto-fail-style logic error)."
+   ],
+   "mitigation": [
+    "Make every security decision fail closed: the default in any catch/error path for authentication and authorization must be to deny access, never to grant or continue.",
+    "Separate error handling from the security decision — catch exceptions to log and surface a controlled failure, but return an explicit deny/unauthenticated result rather than a success or a mutable default.",
+    "Do not let the client be the final arbiter of authentication for privileged actions; enforce the decision server-side so blocking the server or corrupting a token cannot yield access.",
+    "Initialize authenticated/authorized/entitlement flags to false and only set them true on the explicit success path, so an early exit through an exception cannot leave them permissively set.",
+    "Add negative and fault-injection tests that force each auth/authorization check to throw (server down, malformed token, crypto failure) and assert the outcome is denial.",
+    "Review all certificate/signature/crypto verification for logic errors that convert a failure into a pass, and prefer verification APIs that return a clear boolean checked before proceeding."
+   ],
+   "mitigationClientFacing": "The way your application checks who a user is, and what they are allowed to do, can be tricked into letting someone in. When that check hits an unexpected error — for example the login server is unreachable or a security token is malformed — the application currently reacts by allowing the user through rather than by stopping them. An attacker can deliberately cause that error and so bypass the login entirely, with no valid password. The fix is a firm rule that any failure in a security check must result in access being denied, not granted, and that the decision is confirmed on your servers rather than made on the user's machine. This is a critical item because it turns a routine error into a way past your front door.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-755",
+    "tools": [
+     "dnSpy/ILSpy",
+     "Frida",
+     "x64dbg/WinDbg",
+     "Ghidra"
+    ],
+    "links": [
+     "CWE-636 (Not Failing Securely - Failing Open)",
+     "OWASP WSTG-ATHN-04 (Testing for Bypassing Authentication Schema)",
+     "MITRE ATT&CK T1211 (Exploitation for Defense Evasion)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-038",
+   "domain": "THICK",
+   "title": "Unhandled Exception Crash Leaking Memory and Stack Trace",
+   "sequence": 634,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-209",
+   "prerequisites": "A local installation of the target thick-client application on a test machine you control. A debugger (x64dbg/WinDbg for native, dnSpy for .NET) attached to observe unhandled exceptions and dumps. Process Monitor to catch crash-dump/log file writes. Malformed-input sources and a fuzzer or manual test inputs to trigger faults. Authorization to crash the test installation and inspect the resulting artifacts.",
+   "whatItIs": "The application has no proper top-level exception handling, so an unexpected error produces a raw crash: an unhandled-exception dialog, a full stack trace, a Windows Error Reporting dump, or a written crash log. These artifacts expose internal detail an attacker can use — source-level stack traces, class and method names, file paths, library versions, memory contents, and sometimes sensitive data that happened to be in memory at the moment of the fault. The crash itself is easy to induce with malformed input.",
+   "rootCause": "Global/last-chance exception handlers are either missing or configured for developer convenience (show the full diagnostic) and never hardened for release. Debug-oriented handlers and verbose crash reporting are left on, and there is no policy to strip stack traces, redact memory, or present a generic failure. Because crashes are treated as bugs to diagnose rather than as an information-disclosure channel, the detailed output ships to end users.",
+   "impact": "An attacker who can crash the app — via malformed files, oversized or unexpected inputs, or a fault-triggering interaction — harvests reconnaissance that accelerates further attacks: exact code paths, internal architecture, third-party library versions (for known-CVE targeting), and filesystem layout. Memory dumps can contain secrets, tokens, keys, connection strings, or other users' data that was resident at crash time. Repeatable crashes also constitute a denial-of-service, and dumps written to disk or auto-submitted to a reporting service can exfiltrate sensitive state off the machine.",
+   "realWorldContext": "Verbose crash output is a classic reconnaissance goldmine, the thick-client analogue of a web app returning a full framework stack trace. On engagements you routinely crash a .NET desktop client with a malformed input and get an unhandled-exception dialog listing the full namespace, method chain, and file paths — sometimes with a connection string or token visible in a logged variable. Native clients produce WER minidumps in `%LOCALAPPDATA%\\CrashDumps` that, opened in WinDbg, reveal heap contents including secrets that were in memory. The broader lesson is the one behind the Heartbleed era of memory-disclosure bugs: whatever is in process memory at the moment of failure can leak, so a crash is never just a stability issue. The practical impact is faster, better-targeted follow-on attacks plus a DoS.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Decompile the client and check for a configured global/last-chance exception handler (`AppDomain.CurrentDomain.UnhandledException`/`Application.ThreadException` in .NET, a top-level SEH/`SetUnhandledExceptionFilter` in native) and whether it presents raw detail.",
+    "Feed malformed or unexpected input to each input surface (files it opens, fields it parses, IPC/named-pipe messages, command-line args) and watch for unhandled-exception dialogs, stack traces, or crashes.",
+    "Attach a debugger and observe unhandled exceptions to capture the stack trace, exception type, and any sensitive data present in the exception message or nearby memory.",
+    "Use Process Monitor to catch crash-dump and log-file writes, then inspect those artifacts for stack traces, file paths, library versions, and in-memory secrets.",
+    "Check `%LOCALAPPDATA%\\CrashDumps`, the app's own log directory, and any Windows Error Reporting configuration for retained dumps and whether they are auto-submitted externally.",
+    "Assess whether the disclosed detail (internal class/method names, paths, dependency versions, or resident secrets) provides materially useful information to an attacker."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes crash induction and inspection of crash artifacts against the test installation.",
+    "Identify an input surface and craft malformed input likely to trigger an unhandled exception (oversized value, wrong type, corrupt file header, unexpected IPC message).",
+    "Trigger the crash and capture whatever the app exposes — the exception dialog/stack trace shown to the user, and any dump or log written to disk.",
+    "Open the resulting dump/log in a debugger or text viewer and enumerate the disclosed detail: code paths, paths, library versions, and any secrets or other-user data in memory.",
+    "If the crash is reliably repeatable, note the denial-of-service angle, and check whether dumps are auto-submitted off-machine.",
+    "Document the trigger input, the exact information disclosed (with sensitive values redacted in the report), the artifact locations, and the DoS/exfiltration implications."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check for a hardened global exception handler (.NET)",
+     "command": "dnSpy target_app.exe  # look for AppDomain.CurrentDomain.UnhandledException / Application.ThreadException and whether it shows ex.ToString() to the user"
+    },
+    {
+     "label": "Trigger a crash with a malformed input file",
+     "command": "python3 -c 'open(\"crash.dat\",\"wb\").write(b\"\\xff\"*100000 + b\"%n%n%s\")' && target_app.exe --open crash.dat"
+    },
+    {
+     "label": "Capture the crash dump and inspect memory (WinDbg)",
+     "command": "windbg -z %LOCALAPPDATA%\\CrashDumps\\target_app.exe.*.dmp  # !analyze -v ; then 's -a 0 L?80000000 \"password\"' to scan the dump for secrets"
+    },
+    {
+     "label": "Watch for crash-log / dump writes at fault time",
+     "command": "procmon.exe /AcceptEula /Quiet /BackingFile capture.pml  # filter Operation=WriteFile, Path contains 'CrashDumps' or the app's log dir after inducing the crash"
+    },
+    {
+     "label": "Fuzz an input surface to surface unhandled exceptions",
+     "command": "for f in fuzz_corpus/*; do target_app.exe --import \"$f\"; echo \"$f rc=$?\"; done  # rc indicating crash marks a candidate; review the dialog/dump produced"
+    }
+   ],
+   "variants": [
+    "A user-facing unhandled-exception dialog showing a full source stack trace, class/method names, and file paths (info disclosure without a dump).",
+    "A minidump/WER dump written with heap memory that contains tokens, keys, connection strings, or other users' data resident at crash time.",
+    "Verbose crash logs written to a world-readable location, disclosing internal architecture and dependency versions useful for CVE targeting.",
+    "Auto-submission of crash dumps to a reporting service, exfiltrating sensitive in-memory data off the machine without the user's awareness."
+   ],
+   "mitigation": [
+    "Install a hardened global/last-chance exception handler that catches all unhandled exceptions and presents a generic, non-technical failure message with no stack trace, memory, or path detail to the user.",
+    "Log full diagnostics only to a secured, access-controlled location (not shown to the user), and redact secrets, tokens, and personal data from both messages and logs.",
+    "Disable or scope crash-dump generation so dumps exclude sensitive memory where possible, store any retained dumps with restrictive permissions, and do not auto-submit them externally without consent and redaction.",
+    "Validate and sanitize all input surfaces (files, fields, IPC, command-line) so malformed input is handled gracefully rather than reaching an unhandled fault.",
+    "Zeroize sensitive material in memory promptly after use so the window in which a crash could capture it is minimized.",
+    "Add fuzzing and negative-input testing to the release process to find and fix unhandled-exception paths before shipping."
+   ],
+   "mitigationClientFacing": "When your application hits an unexpected error it currently crashes in a way that reveals a great deal about how it is built — detailed error traces, internal file locations, the versions of components it uses, and sometimes sensitive information that happened to be in memory. An attacker can deliberately cause these crashes with malformed input and read that output as a map for further attacks, and repeated crashes can also make the application unusable. The fix is for the application to catch unexpected errors quietly, show the user only a plain 'something went wrong' message, keep the detailed diagnostics in a protected place for your engineers, and make sure crash reports do not carry sensitive data off the machine. This reduces both the information you leak and the ways the app can be knocked over.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-209",
+    "tools": [
+     "x64dbg/WinDbg",
+     "dnSpy",
+     "Process Monitor",
+     "Ghidra"
+    ],
+    "links": [
+     "CWE-248 (Uncaught Exception)",
+     "OWASP WSTG-ERRH-02 (Testing for Stack Traces)",
+     "MITRE ATT&CK T1005 (Data from Local System)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1204",
+     "name": "User Execution",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-039",
+   "domain": "THICK",
+   "title": "Verbose Error Dialogs Leaking Connection Strings and SQL",
+   "sequence": 635,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-209",
+   "prerequisites": "A local installation of the target thick-client application on a test machine you control. The ability to induce error conditions against the app's data/backend layer (invalid input, a wrong credential, an unreachable database, a constraint violation). A decompiler (dnSpy/Ghidra) to review error-message construction, and Process Monitor to catch verbose error logs. Authorization to trigger and record error output.",
+   "whatItIs": "When something goes wrong in the app's data or backend layer, it shows the user (or writes to a log) the raw underlying error — a database exception containing the full connection string, a failing SQL statement with table and column names, an ODBC/driver error, a server file path, or an internal API's raw response. Instead of a clean 'operation failed' message, the app surfaces implementation detail that hands an attacker the database location, credentials, schema, and query structure.",
+   "rootCause": "Error messages are wired straight through from the data layer to the UI/log during development for easy debugging, and that pass-through is never replaced with sanitized, user-appropriate messaging before release. Exceptions from the database driver or backend carry rich detail by design, and the app treats that detail as the error text to display. There is no separation between an internal diagnostic and a user-facing message.",
+   "impact": "A verbose data-layer error can disclose the database server hostname and, in the worst case, embedded credentials from a connection string, giving an attacker a direct route to the backend that bypasses the client. Leaked SQL and schema details reveal table/column names and query structure, which enables SQL-injection targeting and data-model reconnaissance. Server file paths and internal endpoints expose infrastructure for further attack. Even without credentials in the message, the schema and topology disclosure materially lowers the effort for the next stage.",
+   "realWorldContext": "Leaking connection strings and SQL through error messages is a perennial finding and has caused real breaches: thick clients that talk directly to a database frequently embed a connection string, and a mishandled data-layer exception prints it — server, database, username, and sometimes password — straight into an error dialog. It is the desktop cousin of the verbose-SQL-error web bug that has fed countless SQL-injection exploits by revealing the query and schema. On engagements the classic reproduction is entering an apostrophe or an oversized value into a search field and getting back a `SqlException` dialog showing the full `SELECT ... FROM Customers WHERE ...` statement, or forcing a connection failure that echoes `Server=db.example.test;User Id=appsvc;Password=...`. The consequence is direct backend access and a roadmap for data theft.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Exercise each data-driven feature (searches, saves, reports, logins) with inputs likely to cause backend errors: special characters (`'`), oversized values, wrong types, and out-of-range IDs, and observe the resulting error text.",
+    "Induce infrastructure-level failures — point the client at an unreachable database, supply wrong DB credentials, or revoke a permission — and capture whether the error surfaces connection strings, server names, or driver detail.",
+    "Read the on-screen error dialogs and any written error logs for connection strings, SQL statements, table/column names, server file paths, stack traces, or internal endpoint URLs.",
+    "Decompile the client and review how error messages are built — whether the raw exception (`ex.Message`/`ex.ToString()`, driver error) is displayed/logged directly rather than mapped to a generic message.",
+    "Use Process Monitor to locate verbose error logs the app writes and inspect them for the same sensitive detail even when the UI message is terse.",
+    "Assess the sensitivity of what leaks — credentials in a connection string are high impact; schema/SQL disclosure is reconnaissance that enables injection targeting."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes error-induction and information-disclosure testing against the test installation and its backend.",
+    "Trigger an application-level data error (e.g. inject an apostrophe or oversized value into a query-backed field) and record the error message shown.",
+    "Trigger an infrastructure-level error (unreachable DB or bad credential) and record whether a connection string, server name, or driver detail is revealed.",
+    "Extract and catalog the disclosed detail: connection string/credentials, SQL and schema, server paths, internal endpoints.",
+    "If a connection string with credentials is leaked, note (without using beyond scope) that it enables direct backend access bypassing the client; if SQL/schema is leaked, note the injection-targeting value.",
+    "Document each trigger, the exact information disclosed (redacting live secrets in the report), whether it appeared in the UI, the log, or both, and the resulting risk."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Induce a SQL error via special-character input",
+     "command": "# In a query-backed field enter:  ' OR 1=1--   or a lone apostrophe  '  and capture the resulting error dialog for leaked SQL/schema"
+    },
+    {
+     "label": "Force a database connection failure",
+     "command": "echo 127.0.0.1 db.example.test >> %SystemRoot%\\System32\\drivers\\etc\\hosts   # redirect the DB host so the connect fails, then observe whether the connection string leaks"
+    },
+    {
+     "label": "Review error-message construction in decompiled .NET",
+     "command": "dnSpy target_app.exe  # search for MessageBox.Show(ex...), ex.ToString(), SqlException handling that surfaces raw text; also grep config for ConnectionStrings"
+    },
+    {
+     "label": "Catch verbose error logs written by the app",
+     "command": "procmon.exe /AcceptEula /Quiet /BackingFile capture.pml  # filter WriteFile to the app log dir, then open the log and grep for 'Server=', 'Password=', 'SELECT', 'Exception'"
+    },
+    {
+     "label": "Scan on-disk config/logs for leaked connection strings",
+     "command": "findstr /s /i /c:\"Server=\" /c:\"Data Source=\" /c:\"Password=\" \"%LOCALAPPDATA%\\<Vendor>\\*\" \"%PROGRAMDATA%\\<Vendor>\\*\""
+    }
+   ],
+   "variants": [
+    "A raw database exception dialog exposing the full connection string including server, database, and embedded credentials.",
+    "A failing SQL statement surfaced to the user, disclosing table/column names and query structure that enable SQL-injection targeting.",
+    "Backend/API error responses passed through verbatim, leaking internal endpoint URLs, server file paths, or framework detail.",
+    "A terse UI message but a verbose written log containing the same connection strings, SQL, and stack traces in a readable location."
+   ],
+   "mitigation": [
+    "Map all data-layer and backend exceptions to generic, user-appropriate messages ('The operation could not be completed') that contain no connection string, SQL, schema, path, or driver detail.",
+    "Never embed database credentials in a client-side connection string; have the client talk to a backend service that holds credentials server-side, or use integrated/short-lived credentials rather than a static secret shipped to every install.",
+    "Log full technical detail only to a secured, access-controlled diagnostic sink, and redact secrets and personal data from those logs.",
+    "Use parameterized queries and a data-access layer that does not echo the failing statement, so that even induced errors do not reveal SQL or schema.",
+    "Store any necessary configuration secrets encrypted (DPAPI/OS keystore) rather than in cleartext config files that a leaked error might point to.",
+    "Add negative-input and failure-mode tests (bad input, unreachable DB, wrong credentials) to the release process asserting that no sensitive detail reaches the user or an unprotected log."
+   ],
+   "mitigationClientFacing": "When your application runs into a problem talking to its database or backend, it shows the user the raw technical error. Those errors can include the address of your database and even the username and password used to reach it, as well as the internal structure of your data and the exact queries the app runs. An attacker can deliberately provoke these errors and use what they reveal to connect to your database directly, bypassing the application, or to plan an attack on your data. The fix is to show users only a simple 'that didn't work' message, keep the detailed error information in a protected place for your engineers, and make sure database credentials are never carried inside the application in the first place. This closes a direct route to your data.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-209",
+    "tools": [
+     "dnSpy/ILSpy",
+     "Process Monitor",
+     "Ghidra",
+     "Wireshark"
+    ],
+    "links": [
+     "CWE-211 (Externally-Generated Error Message Containing Sensitive Information)",
+     "OWASP WSTG-ERRH-01 (Testing for Improper Error Handling)",
+     "MITRE ATT&CK T1005 (Data from Local System)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1204",
+     "name": "User Execution",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-040",
+   "domain": "THICK",
+   "title": "License/Update Integrity Check Bypassed via Induced Exception",
+   "sequence": 636,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-755",
+   "prerequisites": "A local installation of the target thick-client application on a test machine you control. A disassembler/decompiler (dnSpy/ILSpy for .NET, Ghidra/IDA for native) and Frida for runtime hooking. A debugger (x64dbg) and Process Monitor/API Monitor to observe the check's behavior. The ability to induce faults (block a licensing/update server, corrupt a signature, remove a file). Authorization to reverse-engineer and fault-inject against the test installation.",
+   "whatItIs": "The app's license validation or update-integrity/signature check is written so that if the check itself throws an exception, the app proceeds as though it passed — treating an error as 'valid'. Force the check to fail unexpectedly (block its server, corrupt the signature or license file, trigger a parse error) and the guard is skipped: the unlicensed app runs fully, or an unsigned/tampered update is accepted. This is a fail-open in an integrity control rather than in authentication.",
+   "rootCause": "As with authentication fail-open, defensive coding conflates 'don't break the app on error' with 'don't enforce the check on error'. Licensing and update checks touch fragile things — network calls to a license server, signature math, file parsing — so developers wrap them in try/catch and, wanting the product to keep working through transient glitches, default the catch path to 'assume licensed'/'assume valid'. The exception path is rarely tested and the safe default ends up being 'allow' rather than 'block'.",
+   "impact": "Bypassing the license check yields unlicensed use, feature unlocking, or trial-limit evasion — a direct revenue/IP impact. Bypassing the update-integrity/signature check is more serious: it lets an attacker feed the app an unsigned or tampered update by forcing the verification to throw, which can lead to code execution with the app's (often elevated) privileges and turn the update channel into a malware-delivery path. Because the failure is attacker-inducible on demand, the control provides no real assurance.",
+   "realWorldContext": "Fail-open integrity checks sit behind both software-piracy techniques and serious supply-chain risks. On the licensing side, a common crack is simply to block the app's license server or corrupt the license file so the validation throws and the catch block grants a full license — the app 'fails open' to licensed. On the far more dangerous update side, the industry has learned from incidents like the SolarWinds and NotPetya (M.E.Doc updater) supply-chain compromises that the update channel is a prime target; an update routine that treats a signature-verification exception as success lets a tampered package through, which is exactly the failure integrity checks exist to prevent. In thick-client engagements the reproduction is to interrupt the verification (unreachable server, malformed signature) and watch the app accept what it should reject. The stakes range from lost license revenue to attacker code execution via a poisoned update.",
+   "difficulty": "Advanced",
+   "timeEstimate": "2-4 hours",
+   "stepsToIdentify": [
+    "Decompile the client and locate the license-validation and update-integrity/signature-verification routines, then read their try/catch/error handling to see what an exception in the check produces.",
+    "Flag any handler that, on error, defaults to 'licensed'/'valid'/'trusted' or continues past the enforcement point instead of blocking.",
+    "Determine what can make each check throw: an unreachable license/update server, a corrupt or missing license file, a malformed signature/certificate, a hash mismatch handled as an error, or a parse failure.",
+    "Instrument with Frida to observe the check's return value and confirm the app enters the catch path and proceeds under an induced fault.",
+    "Induce each fault (block the server via hosts/firewall, corrupt the license file or update signature) and observe whether the app runs licensed or accepts a tampered update.",
+    "Confirm enforcement is purely client-side (no server-side re-validation), so forcing the error yields the bypass with no backend approval."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes reverse engineering, fault injection, and license/update-bypass testing against the test installation.",
+    "Identify the specific exception that routes the license or update check into a fail-open handler.",
+    "For licensing: induce the fault (block the license server or corrupt the license file) and confirm the app runs as fully licensed without a valid license.",
+    "For updates: prepare a benign, clearly-marked test package with an invalid/corrupt signature, induce the verification error, and confirm the app accepts the unsigned/tampered package (using a harmless payload only).",
+    "If needed, use Frida/debugger to deterministically throw at the check to prove the bypass is reliable.",
+    "Document the exact routine, the exception trigger, the fail-open handler, and the outcome (unlicensed use or tampered-update acceptance), and restore any modified host/network/file state afterward."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Locate the license/signature check and its error path (.NET)",
+     "command": "dnSpy target_app.exe  # find ValidateLicense()/VerifySignature() and inspect the catch block; grep decompiled export for 'catch' near 'License'/'Verify'/'Signature'"
+    },
+    {
+     "label": "Block the license server to force the check to throw",
+     "command": "echo 127.0.0.1 license.example.test >> %SystemRoot%\\System32\\drivers\\etc\\hosts   # or firewall the endpoint, then launch and observe licensed behavior"
+    },
+    {
+     "label": "Corrupt the license file to induce a parse exception",
+     "command": "copy license.dat license.bak & echo @@corrupt@@ > license.dat & target_app.exe   # observe whether the app fails open to 'licensed'"
+    },
+    {
+     "label": "Frida: force the signature check to throw and watch update accepted",
+     "command": "frida -f target_app.exe -l throw_in_verify.js  # Interceptor.attach(verifyUpdateSignature, { onEnter(){ throw new Error('induced'); } }) then trigger update"
+    },
+    {
+     "label": "Observe the verify routine's return under an induced fault (x64dbg)",
+     "command": "x64dbg target_app.exe  # bp at the signature-verify call, corrupt the input, step over, and check the return value / branch taken (pass vs block)"
+    }
+   ],
+   "variants": [
+    "License check fails open — an unreachable license server or corrupt license file causes the catch path to grant a full/unlimited license.",
+    "Update signature verification fails open — a verification exception is treated as 'trusted', so an unsigned or tampered update is accepted.",
+    "Trial/entitlement enforcement that throws on a missing/invalid state and defaults to the unlocked/premium tier.",
+    "Hash/checksum mismatch during update handled as an error rather than an explicit rejection, so a modified package passes when the comparison throws."
+   ],
+   "mitigation": [
+    "Make license and integrity checks fail closed: any exception in validation or signature verification must result in the app refusing to run/refusing the update, never in a default-valid outcome.",
+    "Separate error handling from the security verdict — catch to log and show a controlled failure, but return an explicit invalid/untrusted result rather than a success or permissive default.",
+    "For updates, verify the package signature and hash before use and reject on any failure or error; pin the signing key/certificate and treat a verification exception identically to a verification failure.",
+    "Re-validate licensing/entitlement server-side for anything of value so that blocking the client's checks or corrupting local files cannot grant unlicensed access.",
+    "Initialize `isValid`/`isTrusted`/`isLicensed` to false and set them true only on the explicit success path, so an exception cannot leave them permissively set.",
+    "Add fault-injection tests that force each license and update check to throw (server down, corrupt file, malformed signature) and assert the app blocks rather than proceeds."
+   ],
+   "mitigationClientFacing": "The checks your application uses to confirm it is properly licensed, and that an update genuinely came from you and has not been tampered with, can be defeated by causing them to error out. When one of these checks hits an unexpected problem — the licensing server is unreachable, a file is corrupt, a signature won't verify — the application currently assumes everything is fine and carries on. For licensing that means the software can be used without a valid license; far more seriously, for updates it means an attacker could get a tampered update accepted and run their own code on your users' machines. The fix is a firm rule that if any of these checks cannot complete successfully, the safe response is to stop — refuse to run unlicensed and refuse an update that cannot be verified. This protects both your revenue and your users from a poisoned update.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-755",
+    "tools": [
+     "dnSpy/ILSpy",
+     "Frida",
+     "x64dbg/WinDbg",
+     "API Monitor"
+    ],
+    "links": [
+     "CWE-636 (Not Failing Securely - Failing Open)",
+     "OWASP WSTG-BUSL-09 (Test Upload of Malicious Files)",
+     "MITRE ATT&CK T1195.002 (Supply Chain Compromise: Compromise Software Supply Chain)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-041",
+   "domain": "THICK",
+   "title": "Resource-Exhaustion Crash via Malformed Input (Client DoS)",
+   "sequence": 637,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-755",
+   "prerequisites": "A local installation of the target thick-client application on a test machine you control. Sources of malformed/oversized/recursive input for the app's parsers (files it opens, import formats, IPC/named-pipe messages, network responses). A debugger (x64dbg/WinDbg) and a memory/CPU monitor (Task Manager/Process Explorer) to observe exhaustion. Optionally a fuzzer. Authorization to crash and stress the test installation.",
+   "whatItIs": "The application fails to bound the resources it consumes when handling input, so a crafted input drives it to exhaust memory, CPU, stack, or handles until it hangs or crashes. Examples: a decompression 'zip bomb' or a wildly oversized field that allocates gigabytes, a deeply nested or self-referential document (XML/JSON) that recurses until the stack overflows, or an unbounded loop triggered by malformed data. The exceptional condition (running out of a resource) is not handled, so the app dies instead of rejecting the input.",
+   "rootCause": "Input handlers assume well-formed, reasonably-sized data and impose no limits on allocation size, recursion depth, decompression ratio, or iteration count, and they lack graceful handling for the resulting resource-exhaustion errors (OutOfMemory, StackOverflow). Parsers and importers are written for the happy path; the failure mode of 'too big / too deep / too many' was never treated as an expected exceptional condition to detect and reject cleanly.",
+   "impact": "An attacker who can get the app to process a malicious input — a booby-trapped file, an import, a crafted IPC or server message — can reliably crash or hang the client, a denial of service against the user's workflow and any unsaved work. Where the app is a shared or kiosk client, or processes files automatically, the DoS is more disruptive. Resource-exhaustion faults can also cause secondary effects: partial writes/corruption on crash, or a crash dump that leaks memory (compounding with the crash-dump disclosure finding). Repeatable, low-effort crashes undermine availability and can mask or accompany other attacks.",
+   "realWorldContext": "Resource-exhaustion-by-input is a well-understood class with named exemplars: the classic 'zip bomb' (a tiny archive that expands to petabytes) and the XML 'billion laughs' entity-expansion attack both crash naive parsers by exhausting memory, and unbounded recursion on nested JSON/XML routinely overflows the stack. Thick clients that open documents, import data, or parse server responses are prime targets, and engagements frequently reproduce this by handing the app a deeply nested or hugely oversized input and watching memory climb until it dies. While often 'just' a denial of service, it matters because these clients hold unsaved user work and because a crash can spill memory into a dump; the mitigation — bounding size, depth, and expansion and failing cleanly — is the same lesson those historical attacks taught. The impact is lost availability and work, at low attacker effort.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate the app's input surfaces that parse or transform data: file open/import formats, decompression, XML/JSON/document parsing, IPC/named-pipe messages, and parsing of network/server responses.",
+    "Decompile relevant parsers and check for missing bounds — no cap on allocation size, no recursion-depth limit, no decompression-ratio limit, no iteration ceiling, and no handling for OutOfMemory/StackOverflow.",
+    "Craft resource-exhaustion inputs (oversized field, high-ratio compressed 'bomb', deeply nested/recursive document, self-referential entity) and feed each to the matching surface while monitoring memory/CPU/handles.",
+    "Observe whether the app hangs or crashes rather than detecting the abusive input and rejecting it, and record the resource that gets exhausted.",
+    "Attach a debugger to confirm the failure type (OutOfMemory, StackOverflow, unbounded loop) and whether it is unhandled, and check whether a crash dump is produced.",
+    "Assess reliability and reach — whether the input can arrive remotely (a server response, a shared/opened file) versus only via a local user action, which affects severity."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes denial-of-service and resource-exhaustion testing against the test installation, and that crashing it is acceptable.",
+    "Select an input surface and craft a matching exhaustion input (e.g. a nested-entity XML, a high-ratio zip, or an oversized/recursive JSON), clearly marked as a benign test artifact.",
+    "Feed the input and monitor process memory/CPU/handles to demonstrate the app driving a resource toward exhaustion.",
+    "Confirm the app hangs or crashes rather than rejecting the input, and note whether unsaved state is lost or a dump is written.",
+    "Repeat to show the crash is reliable and low-effort, and note whether the input could be delivered remotely (server response, shared file) rather than only locally.",
+    "Document the input surface, the crafted input (with a safe reproduction recipe), the resource exhausted, the failure type, and the availability impact; restore/clean up any test artifacts."
+   ],
+   "examplePayloads": [
+    {
+     "label": "XML entity-expansion (billion laughs) input",
+     "command": "python3 -c 'print(\"<!DOCTYPE l [\"+\"\".join(f\\'<!ENTITY e{i} \\\"{\\\"&e\"+str(i-1)+\";\"*10 if i else \\\"x\\\"}\\\">\\' for i in range(10))+\"]><l>&e9;</l>\")' > bomb.xml && target_app.exe --import bomb.xml"
+    },
+    {
+     "label": "Decompression bomb for an import feature",
+     "command": "python3 -c 'import zipfile;z=zipfile.ZipFile(\"bomb.zip\",\"w\",zipfile.ZIP_DEFLATED);z.writestr(\"a.txt\",b\"0\"*(1024*1024*200));z.close()' && target_app.exe --open bomb.zip"
+    },
+    {
+     "label": "Deeply nested JSON to overflow the parser stack",
+     "command": "python3 -c 'open(\"deep.json\",\"w\").write(\"[\"*200000 + \"]\"*200000)' && target_app.exe --import deep.json"
+    },
+    {
+     "label": "Monitor resource exhaustion while processing",
+     "command": "# Open Process Explorer / Task Manager on the process and watch Private Bytes / CPU climb as the crafted input is parsed until the app dies"
+    },
+    {
+     "label": "Confirm the failure type in a debugger",
+     "command": "windbg -o target_app.exe  # feed the input, then on the fault: .exr -1 to see OutOfMemory/StackOverflow, and confirm no graceful handler caught it"
+    }
+   ],
+   "variants": [
+    "Decompression bomb: a small compressed input that expands to exhaust memory or disk during an import/open.",
+    "XML/JSON entity-expansion or deep-nesting input that recurses until the stack overflows or memory is exhausted.",
+    "An unbounded loop or unbounded allocation driven by a malformed length/count field in a parsed format.",
+    "A resource-exhaustion input delivered via a server response or a shared/opened file (remote reach) rather than only through a local user action."
+   ],
+   "mitigation": [
+    "Impose hard bounds on every parser: maximum input/allocation size, maximum recursion/nesting depth, maximum decompression ratio and output size, and maximum iteration/element counts, rejecting anything over the limit.",
+    "Disable dangerous parser features that enable amplification (e.g. XML external entities and DTD/entity expansion) and use hardened, streaming parsers rather than loading whole structures into memory.",
+    "Handle resource-exhaustion exceptions gracefully (catch OutOfMemory/StackOverflow-class conditions where the platform permits) and fail with a controlled 'input rejected' rather than an unhandled crash.",
+    "Validate structural properties (size, depth, counts) before allocating or processing, so abusive input is rejected early rather than after consuming resources.",
+    "Isolate risky parsing in a sandboxed/limited component or a separate process with resource quotas, so exhaustion cannot take down the whole app or the machine.",
+    "Add fuzzing and resource-exhaustion test cases (bombs, deep nesting, oversized fields) to the release process, and treat any hang/crash as a defect to fix before shipping."
+   ],
+   "mitigationClientFacing": "Your application can be crashed or frozen by feeding it a specially crafted file or message — for example one that is small on disk but expands enormously, or that is nested so deeply the application runs out of memory trying to read it. Because the application does not put limits on how much work such input can demand, it keeps going until it dies, taking any unsaved user work with it, and this can be triggered reliably with very little effort. The fix is to set sensible limits on the size, depth, and complexity of anything the application reads, and to have it politely reject input that exceeds those limits instead of trying to process it and collapsing. This keeps the application available and protects users' work.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-755",
+    "tools": [
+     "x64dbg/WinDbg",
+     "Process Monitor",
+     "Ghidra",
+     "dnSpy"
+    ],
+    "links": [
+     "CWE-400 (Uncontrolled Resource Consumption)",
+     "CWE-674 (Uncontrolled Recursion)",
+     "MITRE ATT&CK T1499 (Endpoint Denial of Service)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1499",
+     "name": "Endpoint Denial of Service",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-042",
+   "domain": "THICK",
+   "title": "Sensitive Configuration Stored in Cleartext Config Files",
+   "sequence": 741,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-260",
+   "prerequisites": "Access to the installed thick-client application's files and authorization to inspect them. File-system and text tools.",
+   "whatItIs": "Thick-client applications store configuration in files (INI, XML, JSON, registry) that frequently contain sensitive data — database connection strings with credentials, API keys, service passwords — in cleartext. Anyone with file-system access can read them. This tests for sensitive data in cleartext configuration.",
+   "rootCause": "Config files are a convenient place for connection details, and encrypting them adds friction, so credentials are stored in cleartext. Local file access then exposes them.",
+   "impact": "Cleartext config credentials grant an attacker direct access to databases, services, and APIs the app uses — often with the app's (sometimes elevated) privileges — a fast path to backend compromise.",
+   "realWorldContext": "Cleartext connection strings and API keys in thick-client config files are one of the most reliable findings in a desktop-app assessment — a single config file often yields database or service credentials. Protecting these with the platform's secure storage is the fix.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Locate the app's configuration files and registry entries.",
+    "Search them for connection strings, credentials, API keys, and secrets.",
+    "Assess whether sensitive values are cleartext or protected.",
+    "Validate a discovered credential against its service (in scope).",
+    "Assess the access each credential grants.",
+    "Document the cleartext-config exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to inspect the app's files and registry.",
+    "Enumerate config files and registry entries.",
+    "Search for cleartext credentials and secrets.",
+    "Validate a discovered credential against its backend (in scope).",
+    "Assess the privileges obtained.",
+    "Document the cleartext-configuration finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Find config files",
+     "command": "dir /s /b \"%APPDATA%\\<app>\\*.config\" \"%PROGRAMFILES%\\<app>\\*.xml\" \"*.ini\""
+    },
+    {
+     "label": "Search for credentials",
+     "command": "findstr /si /c:\"password\" /c:\"connectionString\" /c:\"apikey\" *.config *.xml *.ini"
+    },
+    {
+     "label": "Check registry for secrets",
+     "command": "reg query HKLM\\SOFTWARE\\<vendor> /s | findstr /i \"password key token\""
+    },
+    {
+     "label": "Validate a credential (in scope)",
+     "command": "# connect to the DB/service with the recovered connection string/credential"
+    }
+   ],
+   "variants": [
+    "Database connection string with credentials in cleartext.",
+    "API key in an XML/JSON config.",
+    "Service password in the registry.",
+    "Secrets in an .ini file world-readable."
+   ],
+   "mitigation": [
+    "Encrypt sensitive configuration (e.g. DPAPI/protected config sections).",
+    "Store secrets in the OS credential store / a secrets manager, not flat files.",
+    "Restrict file/registry permissions on config holding secrets.",
+    "Avoid embedding backend credentials in the client; use per-user auth.",
+    "Rotate any credential found in cleartext.",
+    "Review configuration handling as part of hardening."
+   ],
+   "mitigationClientFacing": "Desktop applications keep their settings in files that often contain database passwords and API keys in plain text, readable by anyone who can access the computer's files. The fix is to encrypt sensitive settings, store secrets in the operating system's secure credential store rather than plain files, restrict who can read those files, and change any password found exposed. The result is that credentials and secrets are not left sitting in the application where anyone with the installer could extract them.",
+   "reference": {
+    "standard": "A02:2025 - Security Misconfiguration",
+    "cwe": "CWE-260",
+    "tools": [
+     "Process Monitor",
+     "findstr",
+     "regedit",
+     "dnSpy"
+    ],
+    "links": [
+     "A02:2025 - Security Misconfiguration",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "OWASP MASVS-STORAGE"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A02",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V6",
+     "name": "Authentication"
+    }
+   ]
+  },
+  {
+   "id": "THICK-043",
+   "domain": "THICK",
+   "title": "Insecure DLL Search Order Enables Hijacking",
+   "sequence": 742,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-427",
+   "prerequisites": "The installed application, a test environment, and analysis tools (Process Monitor). Authorization to test.",
+   "whatItIs": "Windows thick-client apps load DLLs, and if they load by name without a fully-qualified path, Windows searches a defined order of directories. If an attacker can place a malicious DLL earlier in that order (e.g. the app's directory or the current working directory), it is loaded instead of the legitimate one — running attacker code in the app's context. This tests for DLL search-order hijacking.",
+   "rootCause": "Apps load DLLs by name expecting the system to find the right one, but the search order can be abused when a writable directory precedes the legitimate location, and manifests/safe-loading are not enforced.",
+   "impact": "A hijacked DLL runs code with the app's privileges (sometimes elevated), enabling persistence, privilege escalation, and full compromise of the application and potentially the host.",
+   "realWorldContext": "DLL search-order hijacking is a well-worn Windows technique for code execution and privilege escalation, and thick-client apps that load DLLs insecurely are prime candidates. Loading DLLs from fully-qualified, protected paths is the fix.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Monitor the app's DLL loading (Process Monitor) for name-based loads and missing-DLL probes.",
+    "Identify DLLs searched in writable/attacker-controllable directories.",
+    "Assess whether the app uses safe DLL loading (fully-qualified paths, SetDllDirectory, manifests).",
+    "Place a benign proxy DLL in an earlier search location and observe loading.",
+    "Assess the privilege context of the loaded DLL.",
+    "Document the DLL-hijacking exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test DLL loading.",
+    "Capture DLL-load behaviour with Process Monitor.",
+    "Identify a hijackable DLL loaded from a writable/searched location.",
+    "Place a benign test DLL there and confirm it is loaded and executed.",
+    "Assess the privilege context and impact.",
+    "Document the search-order hijacking finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Monitor DLL loads",
+     "command": "# Process Monitor: filter Operation=Load Image / Path ends with .dll and Result=NAME NOT FOUND"
+    },
+    {
+     "label": "Identify hijackable DLLs",
+     "command": "# note DLLs probed in the app dir / CWD / writable PATH entries before the real location"
+    },
+    {
+     "label": "Place a benign proxy DLL (in scope)",
+     "command": "# put a benign test DLL (logging a marker) in an earlier search location"
+    },
+    {
+     "label": "Confirm load and context",
+     "command": "# confirm the test DLL loads and note the privilege level of the process"
+    }
+   ],
+   "variants": [
+    "DLL loaded from the current working directory.",
+    "Writable PATH/app directory preceding the system location.",
+    "Missing DLL probed and hijackable.",
+    "Elevated process loading a hijackable DLL (privilege escalation)."
+   ],
+   "mitigation": [
+    "Load DLLs from fully-qualified, protected paths.",
+    "Use safe DLL search (SetDefaultDllDirectories/LOAD_LIBRARY_SEARCH_SYSTEM32, SetDllDirectory).",
+    "Sign DLLs and verify signatures where feasible.",
+    "Restrict write permissions on the app directory and search locations.",
+    "Use application manifests to constrain loading.",
+    "Test for DLL hijacking as part of hardening."
+   ],
+   "mitigationClientFacing": "Windows programs load helper files (DLLs), and if a program looks for them by name in a predictable order, an attacker can place a malicious file earlier in that search — making the program run the attacker's code. The fix is to make the program load its helper files only from specific, protected locations, verify they're genuine, and prevent attackers from writing files into those locations.",
+   "reference": {
+    "standard": "A02:2025 - Security Misconfiguration",
+    "cwe": "CWE-427",
+    "tools": [
+     "Process Monitor",
+     "x64dbg",
+     "dnSpy"
+    ],
+    "links": [
+     "A02:2025 - Security Misconfiguration",
+     "MITRE ATT&CK T1574.001 (DLL Search Order Hijacking)",
+     "OWASP MASVS-CODE"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A02",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1574",
+     "name": "Hijack Execution Flow",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "THICK-044",
+   "domain": "THICK",
+   "title": "Weak File/Registry Permissions on Application Resources",
+   "sequence": 743,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-732",
+   "prerequisites": "The installed application and authorization to inspect permissions. Windows permission tools (icacls, AccessChk).",
+   "whatItIs": "Thick-client apps install files, directories, services, and registry keys. If these are given weak permissions (writable by standard users), a low-privilege attacker can modify executables, config, or service binaries — leading to code execution or privilege escalation, especially if the app or a service runs elevated. This tests for weak permissions on application resources.",
+   "rootCause": "Installers set overly-permissive ACLs (writable by Users) for convenience, and permissions are not reviewed, so standard users can modify app resources.",
+   "impact": "Weak permissions let a standard user replace an executable or service binary that runs with higher privileges, achieving privilege escalation, or modify config to alter app behaviour — a common local-privilege-escalation path.",
+   "realWorldContext": "Weak file and service permissions are a classic Windows privilege-escalation vector: a standard user overwrites an executable or service binary that SYSTEM later runs. Reviewing and tightening ACLs on installed resources is the fix, and permissive installers make it a recurring finding.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate the app's files, directories, services, and registry keys.",
+    "Check permissions for standard-user write access (icacls/AccessChk).",
+    "Identify writable executables, service binaries, and config.",
+    "Assess whether the app/service runs with higher privileges.",
+    "Test whether modifying a writable resource affects an elevated process.",
+    "Document the weak-permission exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to inspect and test permissions.",
+    "Enumerate installed resources and their ACLs.",
+    "Identify resources writable by standard users.",
+    "For a writable resource used by an elevated app/service, demonstrate (benignly, in scope) that modification would run with higher privilege.",
+    "Assess the privilege-escalation impact.",
+    "Document the weak-permission finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check file/dir permissions",
+     "command": "icacls \"%PROGRAMFILES%\\<app>\" /t | findstr /i \"(F) (M) (W)\" | findstr /i \"Users Everyone\""
+    },
+    {
+     "label": "Check service binary permissions",
+     "command": "accesschk.exe -uwcqv \"Users\" *   # writable services; accesschk -l on the service binary"
+    },
+    {
+     "label": "Check writable executables",
+     "command": "accesschk.exe -uwqs Users \"%PROGRAMFILES%\\<app>\\*.exe\""
+    },
+    {
+     "label": "Check registry key permissions",
+     "command": "accesschk.exe -uwqk Users HKLM\\SOFTWARE\\<vendor>"
+    }
+   ],
+   "variants": [
+    "App executable writable by standard users.",
+    "Service binary writable, running as SYSTEM.",
+    "Config writable, altering elevated app behaviour.",
+    "Registry key writable, controlling privileged behaviour."
+   ],
+   "mitigation": [
+    "Set least-privilege ACLs on installed files, services, and registry keys.",
+    "Prevent standard users from writing to executables and service binaries.",
+    "Install to protected locations (Program Files) with correct permissions.",
+    "Review installer-set permissions before release.",
+    "Run services with least privilege.",
+    "Audit permissions on application resources periodically."
+   ],
+   "mitigationClientFacing": "Desktop apps install files and services, and if those are set so any user can modify them, a low-privilege attacker can replace a file that later runs with higher privileges — taking over the computer. The fix is to make sure only administrators can modify the app's programs, services, and important settings, and to install into protected locations with the right permissions.",
+   "reference": {
+    "standard": "A02:2025 - Security Misconfiguration",
+    "cwe": "CWE-732",
+    "tools": [
+     "AccessChk",
+     "icacls",
+     "Process Monitor"
+    ],
+    "links": [
+     "A02:2025 - Security Misconfiguration",
+     "MITRE ATT&CK T1574.010 (Services File Permissions Weakness)",
+     "MITRE ATT&CK T1548 (Abuse Elevation Control)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A02",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1068",
+     "name": "Exploitation for Privilege Escalation",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V8",
+     "name": "Authorization"
+    }
+   ]
+  },
+  {
+   "id": "THICK-045",
+   "domain": "THICK",
+   "title": "Vulnerable Third-Party Library Bundled with Thick Client",
+   "sequence": 744,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "The installed application and dependency-analysis tools. Authorization to analyze the app.",
+   "whatItIs": "Thick-client apps bundle third-party libraries (DLLs, JARs, frameworks). If a bundled library has known vulnerabilities, the app inherits them, and the library often runs with the app's privileges. This tests for vulnerable bundled libraries in the thick-client supply chain.",
+   "rootCause": "Libraries are bundled and rarely updated, and there is often no inventory of components or versions, so vulnerable versions ship and persist.",
+   "impact": "A vulnerable bundled library can expose the app to code execution, memory corruption, or data disclosure within the app's context — a supply-chain compromise the app owner may be unaware of.",
+   "realWorldContext": "Vulnerable bundled libraries (an outdated framework, a flawed parser DLL) are a common thick-client finding, and high-profile library vulnerabilities repeatedly affect every app that ships them. Inventorying and updating bundled components is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate bundled libraries (DLLs, JARs, frameworks) and their versions.",
+    "Cross-reference versions against known vulnerabilities.",
+    "Identify vulnerable or outdated libraries.",
+    "Assess how each library is used and its exposure.",
+    "Validate a high-impact issue where safe and in scope.",
+    "Document the vulnerable-library exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to analyze the app's dependencies.",
+    "Extract bundled libraries and versions (file metadata, manifests).",
+    "Match versions to advisories/CVEs.",
+    "Assess the impact of a vulnerable library in the app context.",
+    "Validate a known issue where safe and in scope.",
+    "Document the findings and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate bundled libraries",
+     "command": "dir /s /b \"%PROGRAMFILES%\\<app>\\*.dll\" \"*.jar\" && powershell \"gci -r *.dll | % { $_.VersionInfo }\""
+    },
+    {
+     "label": "Identify versions",
+     "command": "# read file/version metadata and manifests for each bundled component"
+    },
+    {
+     "label": "Cross-check CVEs",
+     "command": "# map each library+version to known advisories/CVEs"
+    },
+    {
+     "label": "Assess usage/exposure",
+     "command": "# how is the vulnerable library invoked; is the flaw reachable?"
+    }
+   ],
+   "variants": [
+    "Outdated framework with a known RCE.",
+    "Vulnerable parser/library DLL bundled.",
+    "Known-vulnerable JAR shipped.",
+    "Library flaw reachable via app input."
+   ],
+   "mitigation": [
+    "Inventory bundled libraries and their versions.",
+    "Update or replace vulnerable/outdated libraries.",
+    "Monitor advisories and maintain a patch cadence.",
+    "Vet libraries before bundling.",
+    "Scan builds for known-vulnerable components in CI.",
+    "Minimize bundled dependencies."
+   ],
+   "mitigationClientFacing": "Desktop apps bundle third-party code libraries, and if any has a known security flaw, the app inherits it. The fix is to keep a list of the libraries your app ships, update or replace vulnerable ones, watch for security advisories, and scan your builds for known-bad components. With this in place, the application verifies who it is talking to, so a fake server cannot impersonate your service and harvest data.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-1104",
+    "tools": [
+     "dependency scanners",
+     "PE analysis",
+     "dnSpy"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1195 (Supply Chain Compromise)",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "THICK-046",
+   "domain": "THICK",
+   "title": "Unsigned Application Binaries and Updates",
+   "sequence": 745,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-347",
+   "prerequisites": "The application and its update mechanism, and authorization to test. Code-signing verification tools (signtool).",
+   "whatItIs": "Thick-client executables and updates should be code-signed so users and the OS can verify authenticity. If binaries are unsigned, or updates are not signature-verified before applying, an attacker who tampers with the binary or intercepts an update can deliver malicious code. This tests binary/update signing integrity.",
+   "rootCause": "Code signing and update verification are omitted or improperly implemented, so tampered or malicious binaries are accepted without proof of authenticity.",
+   "impact": "Unsigned/unverified binaries and updates let an attacker replace the executable or deliver a malicious update, achieving code execution with the app's privileges and undermining trust in the software.",
+   "realWorldContext": "Unsigned binaries and insecure update mechanisms have enabled malicious-code delivery and are a recognized supply-chain risk. Code-signing all binaries and verifying update signatures before applying is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Check whether application binaries are code-signed and the signatures are valid.",
+    "Assess the update mechanism's signature verification.",
+    "Attempt to tamper with a binary and see whether it still runs/is trusted.",
+    "Intercept an update and attempt to modify it.",
+    "Assess the code-execution impact of a malicious binary/update.",
+    "Document the signing/verification gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test binary/update integrity.",
+    "Verify code signatures on binaries.",
+    "Tamper with a binary and observe whether it is rejected.",
+    "Intercept and modify an update; observe whether it is verified.",
+    "Demonstrate benign code execution from a tampered binary/update (in scope).",
+    "Document the signing/verification gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Verify binary signatures",
+     "command": "signtool verify /pa /v \"%PROGRAMFILES%\\<app>\\app.exe\""
+    },
+    {
+     "label": "Tamper and re-run",
+     "command": "# modify a byte in the binary; does it still run / stay trusted?"
+    },
+    {
+     "label": "Intercept and modify an update",
+     "command": "# proxy the update download; alter the payload and forward it"
+    },
+    {
+     "label": "Check update verification",
+     "command": "# does the app verify the update signature before applying it?"
+    }
+   ],
+   "variants": [
+    "Unsigned application executable.",
+    "Update applied without signature verification.",
+    "Tampered binary still trusted/executed.",
+    "Update fetched over an interceptable channel."
+   ],
+   "mitigation": [
+    "Code-sign all application binaries with a trusted certificate.",
+    "Verify update signatures before applying them.",
+    "Fetch updates over TLS with certificate validation/pinning.",
+    "Reject unsigned or tampered binaries/updates.",
+    "Protect signing keys and the update infrastructure.",
+    "Test binary/update integrity as part of release security."
+   ],
+   "mitigationClientFacing": "Desktop programs and their updates should be digitally signed so the computer can confirm they're genuine. If they aren't, an attacker who alters the program or intercepts an update can run their own code. The fix is to digitally sign all your program files, verify update signatures before installing them, download updates over a secure connection, and reject anything that fails the check.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-347",
+    "tools": [
+     "signtool",
+     "x64dbg",
+     "mitmproxy"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)",
+     "MITRE ATT&CK T1574 (Hijack Execution Flow)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1550",
+     "name": "Use Alternate Authentication Material",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V9",
+     "name": "Self-contained Tokens"
+    }
+   ]
+  },
+  {
+   "id": "THICK-047",
+   "domain": "THICK",
+   "title": "Insecure Auto-Update Mechanism Over Cleartext or Unverified Channel",
+   "sequence": 746,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-494",
+   "prerequisites": "The application's auto-update feature, a proxy, and authorization to test. mitmproxy/Burp.",
+   "whatItIs": "Thick clients with auto-update fetch update metadata and payloads from an update server. If this happens over cleartext, without certificate validation, or without payload signature verification, an attacker in a position to intercept can serve a malicious update. This tests the security of the auto-update channel.",
+   "rootCause": "Auto-update is built for convenience and its channel security (TLS, cert validation, payload signing) is weak or missing, so a man-in-the-middle can deliver a malicious update.",
+   "impact": "A compromised auto-update channel delivers attacker code to all users as a trusted update — a high-impact supply-chain attack yielding code execution with the app's privileges at scale.",
+   "realWorldContext": "Insecure auto-update mechanisms have been abused to push malware as legitimate updates, and update-channel security is a recognized supply-chain concern. Securing the channel (TLS + cert validation) and signing the payload is what prevents update hijacking.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify the auto-update mechanism, its server, and transport.",
+    "Assess TLS use and certificate validation on the update channel.",
+    "Assess payload signature verification.",
+    "Intercept the update check and payload; attempt to serve a modified update.",
+    "Observe whether the malicious update is accepted and applied.",
+    "Assess the code-execution impact."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the auto-update mechanism.",
+    "Capture the update check and payload download.",
+    "Assess transport security and payload verification.",
+    "Attempt a man-in-the-middle to serve a benign modified update.",
+    "Observe whether it is accepted and executed.",
+    "Document the auto-update security gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Capture the update flow",
+     "command": "# proxy the app; capture the update-check and payload-download requests"
+    },
+    {
+     "label": "Assess transport",
+     "command": "# is the update fetched over TLS with certificate validation?"
+    },
+    {
+     "label": "Serve a modified update (in scope)",
+     "command": "# via the proxy, replace the update payload with a benign modified one"
+    },
+    {
+     "label": "Check payload signing",
+     "command": "# does the app verify the payload signature before applying?"
+    }
+   ],
+   "variants": [
+    "Update fetched over cleartext HTTP.",
+    "No certificate validation on the update channel.",
+    "Payload applied without signature verification.",
+    "Update metadata tamperable to point at a malicious payload."
+   ],
+   "mitigation": [
+    "Fetch updates over TLS with strict certificate validation/pinning.",
+    "Sign update payloads and verify signatures before applying.",
+    "Protect update metadata integrity.",
+    "Reject any update that fails transport or signature checks.",
+    "Secure the update server and signing keys.",
+    "Test the update channel end-to-end for tampering."
+   ],
+   "mitigationClientFacing": "Apps that update themselves download updates from a server, and if that download isn't secured and verified, an attacker who intercepts it can deliver a malicious update to everyone. The fix is to download updates only over a secure, verified connection, digitally sign the updates and check the signature before installing, and protect the update server itself. The payoff is that the app trusts only signed, verified updates, closing off a common route for slipping malicious code onto a machine.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-494",
+    "tools": [
+     "mitmproxy",
+     "Burp Suite",
+     "signtool"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)",
+     "MITRE ATT&CK T1071 (Application Layer Protocol)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195",
+     "name": "Supply Chain Compromise",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "THICK-048",
+   "domain": "THICK",
+   "title": "Application Loads Plugins/Modules Without Verification",
+   "sequence": 747,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-829",
+   "prerequisites": "The application's plugin/module mechanism and authorization to test. Analysis tools.",
+   "whatItIs": "Thick clients that support plugins or load modules must verify their authenticity and integrity. If the app loads plugins/modules from a location an attacker can write to, or without signature verification, malicious modules can run in the app's context. This tests plugin/module loading integrity.",
+   "rootCause": "Plugin support is added for extensibility, but the loading path trusts modules from writable locations without signature/integrity verification, so a malicious module is loaded.",
+   "impact": "A malicious plugin/module runs code with the app's privileges, enabling data theft, persistence, and compromise — a supply-chain attack via the extension mechanism.",
+   "realWorldContext": "Plugin and module loading without verification is an extensibility-driven supply-chain risk: an attacker drops a malicious module in the plugin directory and the app runs it. Verifying plugin signatures and loading only from protected locations is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify the plugin/module mechanism and where modules are loaded from.",
+    "Assess whether the load location is writable by standard users.",
+    "Assess whether modules are signature/integrity-verified.",
+    "Place a benign test module and observe whether it is loaded and executed.",
+    "Assess the privilege context of loaded modules.",
+    "Document the plugin-loading integrity gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test plugin/module loading.",
+    "Locate the plugin directory and loading logic.",
+    "Assess write permissions and verification on the load path.",
+    "Place a benign test module and confirm it loads and runs.",
+    "Assess the impact of a malicious module.",
+    "Document the verification gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Locate the plugin directory",
+     "command": "# identify where the app loads plugins/modules from and its permissions"
+    },
+    {
+     "label": "Check write permissions",
+     "command": "accesschk.exe -uwqs Users \"<plugin-dir>\""
+    },
+    {
+     "label": "Place a benign test module (in scope)",
+     "command": "# drop a benign module (logging a marker) in the plugin directory"
+    },
+    {
+     "label": "Confirm load and verification",
+     "command": "# does the app load/run it, and does it verify a signature first?"
+    }
+   ],
+   "variants": [
+    "Plugin loaded from a user-writable directory.",
+    "Module loaded without signature verification.",
+    "Malicious module running in the app context.",
+    "Plugin path controllable via config."
+   ],
+   "mitigation": [
+    "Verify plugin/module signatures before loading.",
+    "Load modules only from protected, non-writable locations.",
+    "Validate module integrity and authenticity.",
+    "Restrict who can install plugins/modules.",
+    "Sandbox or limit plugin privileges where feasible.",
+    "Test plugin loading for verification and location security."
+   ],
+   "mitigationClientFacing": "Apps that support add-ons or plugins must check that those modules are genuine before running them. If they load modules from a folder an attacker can write to, or without verifying them, a malicious module runs inside the app. The fix is to verify plugins are digitally signed before loading, load them only from protected folders, and control who can install them.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-829",
+    "tools": [
+     "AccessChk",
+     "Process Monitor",
+     "dnSpy"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1129 (Shared Modules)",
+     "MITRE ATT&CK T1574 (Hijack Execution Flow)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195",
+     "name": "Supply Chain Compromise",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "THICK-049",
+   "domain": "THICK",
+   "title": "SQL Injection in Thick-Client Database Queries",
+   "sequence": 748,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-89",
+   "prerequisites": "The thick-client application, a database it connects to, and a proxy or traffic capture. Authorization to test.",
+   "whatItIs": "Thick clients that build SQL queries from user input and send them to a database (directly or via a service) are vulnerable to SQL injection if input is concatenated rather than parameterized. Because thick clients often connect with broad database privileges, injection can be especially damaging. This tests for SQL injection in thick-client queries.",
+   "rootCause": "Developers concatenate user input into SQL in the client or middle tier, and the client's database account often has broad privileges, so injection has wide impact.",
+   "impact": "SQL injection from a thick client can read/modify/delete data, and with broad client DB privileges can reach other data, run stored procedures, or (via features like xp_cmdshell) execute commands — a severe compromise.",
+   "realWorldContext": "Thick-client SQL injection remains common because desktop apps frequently build queries directly and connect with powerful DB accounts. Assessors capture the client-to-DB traffic, inject, and often reach command execution via over-privileged connections — parameterized queries and least-privilege DB accounts are the fix.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify inputs that reach database queries (forms, search, filters).",
+    "Capture the client-to-database (or client-to-service) traffic.",
+    "Test injection with classic probes (quotes, comments, boolean/UNION).",
+    "Assess the client's database privileges.",
+    "Test for stored-procedure/command execution where privileges allow.",
+    "Document the injection and its impact."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the client's database interactions.",
+    "Map inputs to database queries.",
+    "Confirm injection with boolean/error/UNION probes.",
+    "Extract data beyond the intended scope.",
+    "Where the DB account allows, test command execution safely and in scope.",
+    "Document the injection, data/impact, and parameterization gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Capture client-DB traffic",
+     "command": "# proxy/capture the query traffic (e.g. TDS for SQL Server) to see the built query"
+    },
+    {
+     "label": "Boolean-based injection probe",
+     "command": "# in an input field: value' AND '1'='1   vs   value' AND '1'='2"
+    },
+    {
+     "label": "UNION extraction",
+     "command": "# value' UNION SELECT username,password FROM users--"
+    },
+    {
+     "label": "Assess command execution (in scope)",
+     "command": "# if the DB account allows: '; EXEC xp_cmdshell 'whoami'--   (SQL Server)"
+    }
+   ],
+   "variants": [
+    "UNION-based data extraction.",
+    "Boolean/time-based blind injection.",
+    "Stored-procedure abuse via injection.",
+    "OS command execution via over-privileged DB account (xp_cmdshell)."
+   ],
+   "mitigation": [
+    "Use parameterized queries / prepared statements everywhere; never concatenate input.",
+    "Apply least privilege to the client's database account.",
+    "Disable dangerous features (xp_cmdshell) unless required.",
+    "Validate and constrain input types.",
+    "Route DB access through a service with server-side authorization where feasible.",
+    "Test all inputs for injection."
+   ],
+   "mitigationClientFacing": "Desktop apps that build database searches from what users type can be tricked with injected commands if they don't handle the input safely — and because these apps often connect with powerful database accounts, the damage can be severe, sometimes reaching command execution. The fix is to build queries safely with parameters, give the app's database account only minimal permissions, and turn off dangerous database features.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-89",
+    "tools": [
+     "Wireshark",
+     "x64dbg",
+     "sqlmap",
+     "Echo Mirage"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "OWASP WSTG-INPV-05 (SQL Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V2",
+     "name": "Validation and Business Logic"
+    }
+   ]
+  },
+  {
+   "id": "THICK-050",
+   "domain": "THICK",
+   "title": "Command Injection via Thick-Client Input Passed to Shell",
+   "sequence": 749,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-78",
+   "prerequisites": "The thick-client application and authorization to test. Analysis and monitoring tools (Process Monitor).",
+   "whatItIs": "Thick clients that pass user input into OS commands (invoking external tools, shell operations, file operations) without sanitization are vulnerable to command injection. An attacker can inject shell metacharacters to run arbitrary commands in the app's context. This tests for command injection in thick-client operations.",
+   "rootCause": "Developers build command lines by concatenating user input to invoke external tools, trusting the input, so shell metacharacters inject additional commands.",
+   "impact": "Command injection runs arbitrary commands with the app's privileges (sometimes elevated), enabling full host compromise, data theft, and persistence from a desktop application.",
+   "realWorldContext": "Command injection where a thick client shells out with user input is a high-impact finding — a filename or parameter field carrying `; command` yields code execution with the app's privileges. Avoiding shell invocation with untrusted input, or using safe APIs, is the fix.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify features where the app invokes external commands/tools with user input.",
+    "Monitor process creation (Process Monitor) to see the built command lines.",
+    "Inject shell metacharacters into input reaching those commands.",
+    "Observe whether injected commands execute.",
+    "Assess the privilege context.",
+    "Document the command-injection exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app's command execution.",
+    "Map inputs that reach OS command invocation.",
+    "Inject a benign command via metacharacters and confirm execution (output/marker).",
+    "Assess the privilege context of the executed command.",
+    "Demonstrate impact safely and in scope.",
+    "Document the command-injection finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Monitor process creation",
+     "command": "# Process Monitor: filter Operation=Process Create to see command lines built from input"
+    },
+    {
+     "label": "Inject a benign command",
+     "command": "# in an input field: filename.txt & whoami   (or ; id on *nix)"
+    },
+    {
+     "label": "Confirm execution",
+     "command": "# observe the injected command running (output, spawned process, marker file)"
+    },
+    {
+     "label": "Assess privilege",
+     "command": "# note the privilege level of the app/spawned process"
+    }
+   ],
+   "variants": [
+    "Metacharacter injection in a filename/parameter field.",
+    "Argument injection into an invoked tool.",
+    "Injection via a config value passed to a shell.",
+    "Elevated app enabling privileged command execution."
+   ],
+   "mitigation": [
+    "Avoid invoking the shell with untrusted input; use safe APIs with argument arrays.",
+    "Validate and allow-list input; reject shell metacharacters.",
+    "Never concatenate user input into command lines.",
+    "Run the app with least privilege.",
+    "Use parameterized process invocation, not string command lines.",
+    "Test all input reaching command execution."
+   ],
+   "mitigationClientFacing": "Desktop apps that run system commands using what a user types can be tricked into running extra commands if the input isn't handled safely — giving an attacker control of the computer with the app's privileges. The fix is to avoid running system commands with user input, or to use safe methods that keep the input as data rather than commands, and to strictly check and limit what the input can contain.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-78",
+    "tools": [
+     "Process Monitor",
+     "x64dbg",
+     "API Monitor"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1059 (Command and Scripting Interpreter)",
+     "OWASP WSTG-INPV-12 (Command Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1059",
+     "name": "Command and Scripting Interpreter",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V2",
+     "name": "Validation and Business Logic"
+    }
+   ]
+  },
+  {
+   "id": "THICK-051",
+   "domain": "THICK",
+   "title": "Authentication Logic Bypassable via Client-Side Patching",
+   "sequence": 750,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-602",
+   "prerequisites": "The thick-client application and reverse-engineering/debugging tools (x64dbg, dnSpy, Frida). Authorization to test.",
+   "whatItIs": "Thick clients that perform authentication or license checks in the client — comparing credentials locally, gating features on a client-side flag — can be bypassed by patching the binary or manipulating runtime state, because the attacker controls the executable. This tests for client-side authentication/authorization that can be patched out.",
+   "rootCause": "Authentication/authorization decisions are made in the client for offline capability or convenience, but the client is attacker-controlled, so the check can be patched or its result flipped at runtime.",
+   "impact": "Bypassing client-side authentication grants access to protected functionality or data without valid credentials, and can unlock licensed features or admin functions — defeating the intended access control.",
+   "realWorldContext": "Patching out a client-side authentication or license check (flipping a conditional jump, forcing a success return) is a standard reverse-engineering exercise, and thick clients that decide access locally are routinely bypassed. Server-side enforcement is the only real fix.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify authentication/authorization/license checks performed in the client.",
+    "Locate the decision logic via reverse engineering/debugging.",
+    "Patch the binary or manipulate runtime state to bypass the check.",
+    "Observe whether protected functionality/data becomes accessible.",
+    "Assess whether the backend re-verifies (it should).",
+    "Document the client-side authentication weakness."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to reverse-engineer and test the app.",
+    "Locate the client-side authentication/authorization logic.",
+    "Patch or hook the check to force success.",
+    "Confirm access to protected functionality/data.",
+    "Assess whether server-side enforcement would have prevented it.",
+    "Document the client-side auth bypass."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Locate the auth check",
+     "command": "# in x64dbg/dnSpy, find the credential/license comparison and its conditional branch"
+    },
+    {
+     "label": "Patch the conditional",
+     "command": "# flip the jump / force the success path (e.g. JZ->JNZ or return true)"
+    },
+    {
+     "label": "Hook at runtime with Frida",
+     "command": "frida -f <app> -l bypass.js   # override the auth function to return success"
+    },
+    {
+     "label": "Confirm access",
+     "command": "# verify protected features/data are now accessible without valid credentials"
+    }
+   ],
+   "variants": [
+    "Local credential comparison patched to always succeed.",
+    "License/feature flag flipped at runtime.",
+    "Admin gate bypassed by patching.",
+    "Auth result overridden via Frida hook."
+   ],
+   "mitigation": [
+    "Enforce authentication and authorization server-side; never rely on client-side checks.",
+    "Treat the client as untrusted and tamperable.",
+    "Do not gate access on client-side flags alone.",
+    "Use server-validated tokens for feature/licensing decisions.",
+    "Add anti-tampering as defense-in-depth, not as the sole control.",
+    "Test by patching/hooking the client, not just normal use."
+   ],
+   "mitigationClientFacing": "Desktop apps that check your login or license inside the program can be bypassed, because the attacker controls the program and can edit it to skip the check. The fix is to make the real decision on the server, not in the app — so even a modified app can't access anything without the server's approval — and treat the app itself as untrusted.",
+   "reference": {
+    "standard": "A07:2025 - Authentication Failures",
+    "cwe": "CWE-602",
+    "tools": [
+     "x64dbg",
+     "dnSpy",
+     "Frida",
+     "Ghidra"
+    ],
+    "links": [
+     "A07:2025 - Authentication Failures",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP MASVS-AUTH"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A07",
+   "categoryName": "Authentication Failures",
+   "attack": [
+    {
+     "id": "T1204",
+     "name": "User Execution",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V2",
+     "name": "Validation and Business Logic"
+    }
+   ]
+  },
+  {
+   "id": "THICK-052",
+   "domain": "THICK",
+   "title": "Credentials Cached Insecurely for Offline Authentication",
+   "sequence": 751,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-522",
+   "prerequisites": "The installed application, a test device, and analysis tools. Authorization to test.",
+   "whatItIs": "Thick clients that support offline authentication often cache credentials or authentication material locally. If this cache is stored insecurely — cleartext, weak encryption, or recoverable hashes — an attacker with file-system access can recover credentials or authenticate offline. This tests for insecure credential caching.",
+   "rootCause": "Offline auth requires local credential material, and it is cached insecurely (cleartext, weak/hardcoded-key encryption, crackable hashes) for simplicity, so it is recoverable.",
+   "impact": "Recovered cached credentials let an attacker authenticate (offline or online), impersonate the user, and reach backend systems — a credential-theft path from local access.",
+   "realWorldContext": "Insecurely cached offline credentials — cleartext, weakly encrypted, or as crackable hashes — are a recurring thick-client finding that turns local file access into credential theft. Using the platform's secure storage and strong, salted hashing is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify whether the app caches credentials for offline authentication.",
+    "Locate the cache (files, registry, protected storage).",
+    "Assess how it is protected (cleartext, weak encryption, hashes).",
+    "Attempt to recover credentials or crack cached hashes.",
+    "Assess whether recovered material enables authentication.",
+    "Document the insecure-caching exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test credential caching.",
+    "Locate and analyze the offline credential cache.",
+    "Assess its protection and recover material where possible.",
+    "Crack cached hashes or decrypt weakly-protected credentials (in scope).",
+    "Demonstrate authentication with recovered material.",
+    "Document the insecure-credential-caching finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Locate the credential cache",
+     "command": "# search app data/registry for cached credentials/auth material"
+    },
+    {
+     "label": "Assess protection",
+     "command": "# is it cleartext, weakly encrypted (hardcoded key), or a crackable hash?"
+    },
+    {
+     "label": "Recover/crack material (in scope)",
+     "command": "hashcat -m <mode> cached_hashes.txt <wordlist>   # if hashes are cached"
+    },
+    {
+     "label": "Test authentication with recovered material",
+     "command": "# authenticate using the recovered credential/material"
+    }
+   ],
+   "variants": [
+    "Cleartext cached credentials.",
+    "Weak/hardcoded-key encryption of the cache.",
+    "Crackable password hashes cached locally.",
+    "Reusable token/material recoverable from the cache."
+   ],
+   "mitigation": [
+    "Store cached credentials in the OS secure store (DPAPI/Keychain/Keystore).",
+    "Use strong, salted, slow hashing where verification is local.",
+    "Avoid caching reusable secrets; prefer short-lived tokens.",
+    "Bind cached material to the device/user where possible.",
+    "Restrict permissions on any credential cache.",
+    "Review offline-auth credential handling."
+   ],
+   "mitigationClientFacing": "Apps that let you log in offline store some login information on the computer, and if that's kept insecurely — in plain text, weakly encrypted, or as crackable password hashes — an attacker with access to the computer can recover it. The fix is to store any cached login data in the operating system's secure storage, use strong password hashing, and prefer short-lived tokens over reusable secrets.",
+   "reference": {
+    "standard": "A07:2025 - Authentication Failures",
+    "cwe": "CWE-522",
+    "tools": [
+     "x64dbg",
+     "hashcat",
+     "Process Monitor",
+     "dnSpy"
+    ],
+    "links": [
+     "A07:2025 - Authentication Failures",
+     "MITRE ATT&CK T1555 (Credentials from Password Stores)",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A07",
+   "categoryName": "Authentication Failures",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V6",
+     "name": "Authentication"
+    }
+   ]
+  },
+  {
+   "id": "THICK-053",
+   "domain": "THICK",
+   "title": "No Logging of Security-Relevant Thick-Client Events",
+   "sequence": 752,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "The thick-client application and access to review its logging (or absence), and authorization for the review.",
+   "whatItIs": "Thick clients perform security-relevant actions — authentication, privileged operations, configuration changes, data access — that should be logged for detection and forensics. If these are not logged (client-side and/or server-side), malicious use goes unrecorded. This tests for missing security logging in the thick client.",
+   "rootCause": "Logging is treated as optional or is only implemented server-side for some actions, so client-initiated security events are not recorded or centralized.",
+   "impact": "Without logging, an attacker's authentication attempts, privileged actions, and data access via the client leave no trace, defeating detection and forensic investigation.",
+   "realWorldContext": "Thick-client actions frequently bypass the logging that web apps get by default, so misuse via the desktop client goes unrecorded. Logging security-relevant client actions (ideally server-side and centralized) is what restores detection and accountability.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify security-relevant actions the client performs.",
+    "Assess whether these are logged (client-side and/or server-side).",
+    "Check whether logs capture identity, action, and time, and are centralized.",
+    "Perform benign security-relevant actions and check logging.",
+    "Assess whether malicious use would be recorded.",
+    "Document the logging gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the client's logging.",
+    "Enumerate security-relevant client actions.",
+    "Perform benign actions and check whether they are logged.",
+    "Assess log content, centralization, and retention.",
+    "Show that malicious use would be unrecorded.",
+    "Document the logging gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Identify security-relevant actions",
+     "command": "# list auth, privileged ops, config changes, and data access performed by the client"
+    },
+    {
+     "label": "Check logging of a benign action",
+     "command": "# perform a benign privileged action and check client/server logs"
+    },
+    {
+     "label": "Assess log content",
+     "command": "# do logs capture identity, action, and timestamp?"
+    },
+    {
+     "label": "Check centralization",
+     "command": "# are client-security events forwarded to a central log/SIEM?"
+    }
+   ],
+   "variants": [
+    "Authentication events not logged.",
+    "Privileged actions unrecorded.",
+    "Configuration changes not logged.",
+    "Data access via the client untracked."
+   ],
+   "mitigation": [
+    "Log security-relevant client actions with identity, action, and time.",
+    "Prefer server-side logging (client logs are tamperable) and centralize.",
+    "Forward events to a SIEM and build detection use-cases.",
+    "Log authentication, privileged operations, and data access.",
+    "Ensure adequate retention for investigation.",
+    "Review logging coverage as part of security testing."
+   ],
+   "mitigationClientFacing": "Desktop apps do important things — logins, privileged actions, data access — that should be recorded so misuse can be spotted and investigated, but often none of it is logged. The fix is to log security-relevant actions with who did what and when, do it on the server side (since the app itself can be tampered with), send those logs to central monitoring, and keep them long enough to investigate.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "Process Monitor",
+     "log review",
+     "dnSpy"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1070 (Indicator Removal)",
+     "OWASP WSTG-CONF (Configuration)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-054",
+   "domain": "THICK",
+   "title": "Sensitive Data Written to Thick-Client Logs",
+   "sequence": 753,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-532",
+   "prerequisites": "The installed application, a test device, and file/log access. Authorization to test.",
+   "whatItIs": "Thick clients often write local log/debug files. If these logs include sensitive data — credentials, tokens, PII, connection strings — anyone with file-system access can read them. This tests for sensitive data written to thick-client logs.",
+   "rootCause": "Verbose/debug logging captures request/response and internal data without redaction, and logs persist locally, so sensitive values end up readable on disk.",
+   "impact": "Sensitive data in local logs grants an attacker credentials, tokens, and PII directly from the file system, enabling account access and data exposure with no other attack.",
+   "realWorldContext": "Credentials and tokens written to local debug logs are a common thick-client finding — a log file yields a password or session token in cleartext. Redacting sensitive data and controlling log storage is the fix.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Locate the app's local log/debug files.",
+    "Search them for credentials, tokens, PII, and connection strings.",
+    "Trigger actions (login, data operations) and check what is logged.",
+    "Assess log verbosity and whether sensitive data is redacted.",
+    "Assess file permissions and retention.",
+    "Document the sensitive-data-in-logs exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to inspect the app's logs.",
+    "Locate local log/debug files.",
+    "Search for sensitive values and trigger actions to observe logging.",
+    "Assess redaction, permissions, and retention.",
+    "Show that recoverable sensitive data provides value to an attacker.",
+    "Document the finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Locate log files",
+     "command": "dir /s /b \"%APPDATA%\\<app>\\*.log\" \"%LOCALAPPDATA%\\<app>\\*.txt\" \"%TEMP%\\<app>*\""
+    },
+    {
+     "label": "Search logs for secrets",
+     "command": "findstr /si /c:\"password\" /c:\"token\" /c:\"Authorization\" /c:\"ssn\" *.log"
+    },
+    {
+     "label": "Trigger and observe logging",
+     "command": "# perform a login/data action and check what appears in the logs"
+    },
+    {
+     "label": "Assess permissions/retention",
+     "command": "# who can read the logs, and how long are they retained?"
+    }
+   ],
+   "variants": [
+    "Credentials/tokens written to a debug log.",
+    "PII logged without redaction.",
+    "Connection strings in logs.",
+    "Full request/response logging including secrets."
+   ],
+   "mitigation": [
+    "Never log credentials, tokens, or sensitive PII; redact sensitive fields.",
+    "Reduce log verbosity in production builds.",
+    "Restrict permissions on and retention of local logs.",
+    "Prefer secure, centralized logging over local files for sensitive events.",
+    "Review logging output for sensitive data.",
+    "Rotate/purge logs and any exposed credentials."
+   ],
+   "mitigationClientFacing": "Desktop apps often write log files, and if those logs contain passwords, tokens, or personal data, anyone who can read the computer's files can grab them. The fix is to never log sensitive information (and redact it if needed), keep production logging minimal, restrict who can read the logs, and change any password found in them. This ensures the application enforces its access rules on the server, where a user cannot simply edit the client to grant themselves more.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-532",
+    "tools": [
+     "findstr",
+     "Process Monitor",
+     "log review"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "OWASP MASVS-STORAGE"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V14",
+     "name": "Data Protection"
+    }
+   ]
+  },
+  {
+   "id": "THICK-055",
+   "domain": "THICK",
+   "title": "No Tamper Protection or Integrity Checking on Logs",
+   "sequence": 754,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-778",
+   "prerequisites": "The thick-client application and its logs, and authorization to test. File access.",
+   "whatItIs": "If a thick client's logs (especially local ones) can be modified or deleted by the user/attacker without detection, an attacker can erase evidence of their actions. Logs used for security must be tamper-resistant or forwarded to a protected store. This tests log integrity and tamper protection.",
+   "rootCause": "Local logs are ordinary files the user can edit/delete, and without forwarding to a protected store or integrity protection, tampering is undetectable.",
+   "impact": "Tamperable logs let an attacker delete or alter records of their activity, defeating forensics and detection — the logs cannot be trusted as evidence.",
+   "realWorldContext": "Attackers routinely clear or edit local logs to cover their tracks, and thick-client logs that live as plain local files are trivially tampered. Forwarding security logs to a protected, central store (and detecting tampering) is what preserves them as evidence.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Locate the app's security-relevant logs and where they are stored.",
+    "Assess whether local logs can be modified/deleted by the user.",
+    "Assess whether logs are forwarded to a protected central store.",
+    "Attempt to tamper with a local log and check for detection.",
+    "Assess integrity protection (signing, append-only, forwarding).",
+    "Document the log-tampering exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test log integrity.",
+    "Locate security-relevant logs and their storage.",
+    "Attempt to modify/delete a local log entry.",
+    "Check whether the tampering is detected or the record survives centrally.",
+    "Assess integrity/forwarding controls.",
+    "Document the tamper-protection gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Assess log writability",
+     "command": "icacls \"<log-path>\"   # can standard users modify/delete the logs?"
+    },
+    {
+     "label": "Attempt tampering (in scope)",
+     "command": "# modify/delete a benign log entry and check whether it is detected"
+    },
+    {
+     "label": "Check central forwarding",
+     "command": "# are security logs forwarded to a protected central store the user cannot alter?"
+    },
+    {
+     "label": "Assess integrity protection",
+     "command": "# are logs signed/append-only, or plain editable files?"
+    }
+   ],
+   "variants": [
+    "Local logs freely editable/deletable.",
+    "No forwarding to a protected central store.",
+    "No integrity protection on logs.",
+    "Tampering undetectable."
+   ],
+   "mitigation": [
+    "Forward security logs to a protected, central store the user cannot alter.",
+    "Apply integrity protection (signing, append-only) to logs.",
+    "Restrict permissions on local logs.",
+    "Detect and alert on log tampering/clearing.",
+    "Do not rely solely on tamperable local logs for security.",
+    "Review log integrity as part of security testing."
+   ],
+   "mitigationClientFacing": "If a desktop app's logs can be edited or deleted by whoever uses the computer, an attacker can erase evidence of what they did. The fix is to send security logs to a central, protected place the user can't change, protect them from tampering, and detect when someone tries to clear them — so the logs can be trusted. The result is that sensitive data the app stores locally stays protected even if the machine it runs on is compromised.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "icacls",
+     "log review",
+     "SIEM"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1070.001 (Clear Windows Event Logs)",
+     "MITRE ATT&CK T1565 (Data Manipulation)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "THICK-056",
+   "domain": "THICK",
+   "title": "No Alerting on Suspicious Thick-Client Activity",
+   "sequence": 755,
+   "severity": "low",
+   "severityLabel": "Low",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to review alerting on thick-client security events (or absence), and authorization for the review.",
+   "whatItIs": "Even where thick-client actions are logged, logs without alerting mean suspicious activity — repeated failed logins, privilege misuse, abnormal data access — is not surfaced in time to respond. This tests whether suspicious thick-client activity generates alerts.",
+   "rootCause": "Logging is implemented but alerting/detection use-cases are not built on top, so suspicious activity sits in logs unreviewed until an incident forces a look.",
+   "impact": "Without alerting, an attacker's suspicious activity via the client (brute force, privilege misuse, mass data access) proceeds unnoticed, extending dwell time and delaying response.",
+   "realWorldContext": "Logs without alerting are a common half-measure: the data exists but no one is watching, so suspicious thick-client activity goes unnoticed until damage is done. Building detection use-cases and alerts on the logged events is what enables timely response.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Assess whether thick-client security events feed detection/alerting.",
+    "Check for detection use-cases (failed-login bursts, privilege misuse, abnormal data access).",
+    "Assess whether alerts reach a monitored channel.",
+    "Test whether a benign suspicious pattern would alert.",
+    "Assess response integration.",
+    "Document the alerting gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review alerting.",
+    "Review whether logged client events drive alerts.",
+    "Assess coverage of suspicious patterns.",
+    "Generate a benign suspicious pattern (e.g. repeated failed logins) and check for an alert.",
+    "Assess whether alerts would enable timely response.",
+    "Document the alerting gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review detection use-cases",
+     "command": "# are there alerts for failed-login bursts, privilege misuse, abnormal data access?"
+    },
+    {
+     "label": "Generate a benign suspicious pattern (in scope)",
+     "command": "# e.g. repeated failed logins via the client; check for an alert"
+    },
+    {
+     "label": "Check alert delivery",
+     "command": "# do alerts reach a monitored channel (SIEM/SOC)?"
+    },
+    {
+     "label": "Assess response integration",
+     "command": "# is there a response playbook for client-security alerts?"
+    }
+   ],
+   "variants": [
+    "Failed-login bursts not alerting.",
+    "Privilege misuse via the client unnoticed.",
+    "Abnormal/mass data access not flagged.",
+    "Alerts not reaching a monitored channel."
+   ],
+   "mitigation": [
+    "Build detection use-cases and alerts on logged client security events.",
+    "Alert on failed-login bursts, privilege misuse, and abnormal data access.",
+    "Route alerts to a monitored channel (SIEM/SOC) with response playbooks.",
+    "Tune alerts to balance noise and coverage.",
+    "Test detection with benign suspicious patterns.",
+    "Review alerting coverage periodically."
+   ],
+   "mitigationClientFacing": "Even when a desktop app's actions are logged, no one notices suspicious activity unless there are alerts — so things like repeated failed logins or unusual data access go unseen until it's too late. The fix is to set up alerts on the logged events for suspicious patterns, send those alerts to a monitored security team, and have a plan to respond.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "SIEM",
+     "log review",
+     "detection engineering"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1110 (Brute Force)",
+     "OWASP WSTG-CONF (Configuration)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
   }
  ]
 }

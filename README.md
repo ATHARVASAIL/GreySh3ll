@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://readme-typing-svg.demolab.com/?font=Fira+Code&size=32&pause=1200&color=2F8CFF&center=true&vCenter=true&width=650&lines=GreySh3ll;VAPT+Assessment+Console;577+Test+Cases+%C2%B7+10+Domains;Zero+Backend+%C2%B7+100%25+Client-Side" alt="GreySh3ll" />
+<img src="https://readme-typing-svg.demolab.com/?font=Fira+Code&size=32&pause=1200&color=2F8CFF&center=true&vCenter=true&width=650&lines=GreySh3ll;VAPT+Assessment+Console;817+Test+Cases+%C2%B7+10+Domains;Zero+Backend+%C2%B7+100%25+Client-Side" alt="GreySh3ll" />
 
 **A multi-page, offline-first penetration-testing checklist & assessment console.**
 
@@ -8,7 +8,7 @@
 
 [![Deploy Status](https://img.shields.io/github/actions/workflow/status/ATHARVASAIL/GreySh3ll/deploy.yml?branch=main&label=deploy&logo=github&style=flat-square)](../../actions/workflows/deploy.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-2f8cff.svg?style=flat-square)](LICENSE)
-[![Version](https://img.shields.io/badge/version-1.2-blueviolet?style=flat-square)](#-changelog)
+[![Version](https://img.shields.io/badge/version-1.15-blueviolet?style=flat-square)](#-changelog)
 [![Backend](https://img.shields.io/badge/backend-none-informational?style=flat-square)](#)
 [![Stack](https://img.shields.io/badge/stack-HTML·CSS·vanilla_JS-2f8cff?style=flat-square)](#)
 [![Last Commit](https://img.shields.io/github/last-commit/ATHARVASAIL/GreySh3ll?style=flat-square&color=2f8cff)](../../commits/main)
@@ -19,7 +19,7 @@
 
 <div align="center">
 
-**577 test cases · 10 domains · real payloads · zero backend**
+**817 test cases · 10 domains · real payloads · zero backend**
 
 </div>
 
@@ -54,7 +54,7 @@
 ## 🧠 What is GreySh3ll
 
 **GreySh3ll** is a terminal-styled, gamified checklist for running
-structured penetration tests. It walks a tester through **577 test
+structured penetration tests. It walks a tester through **817 test
 cases across 10 domains** — in the order a real engagement actually
 runs: recon first, then application layers, then the human layer last.
 
@@ -80,20 +80,22 @@ progress, notes, and flags to your browser's `localStorage`.
 
 | # | Domain | Cases | Focus |
 |:-:|---|:-:|---|
-| 01 | **NET** | 150 | Network & infrastructure recon, protocol, and configuration testing |
-| 02 | **WEB** | 146 | Web application — auth, access control, injection, business logic |
-| 03 | **API** | 41 | REST/GraphQL authorization & OWASP API Security Top 10 |
-| 04 | **LLM** | 24 | LLM/AI application security — OWASP Top 10 for LLM Apps (2025) |
-| 05 | **CLOUD** | 39 | Cloud IAM, storage, and container/orchestration misconfiguration |
-| 06 | **MOBILE** | 39 | iOS/Android local storage, binary protection, network communication |
-| 07 | **THICK** | 36 | Desktop/native client binaries, local storage, IPC |
-| 08 | **WIFI** | 33 | Wi-Fi & short-range RF layer attacks |
-| 09 | **SRC** | 41 | White-box source code review |
-| 10 | **SOCIAL** | 28 | Human-layer & physical security — phishing, vishing, BEC/invoice fraud, pretexting, physical access |
+| 01 | **NET** | 182 | Network & infrastructure recon, protocol, and configuration testing |
+| 02 | **WEB** | 156 | Web application — auth, access control, injection, business logic |
+| 03 | **API** | 55 | REST/GraphQL authorization & OWASP API Security Top 10 |
+| 04 | **LLM** | 50 | LLM/AI application security — OWASP Top 10 for LLM Apps (2025 → 2026) |
+| 05 | **CLOUD** | 60 | Cloud IAM, storage, and container/orchestration misconfiguration |
+| 06 | **MOBILE** | 59 | iOS/Android local storage, binary protection, network communication |
+| 07 | **THICK** | 56 | Desktop/native client binaries, local storage, IPC |
+| 08 | **WIFI** | 72 | Wi-Fi & short-range RF layer attacks |
+| 09 | **SRC** | 59 | White-box source code review |
+| 10 | **SOCIAL** | 68 | Human-layer & physical security — phishing, vishing, BEC/invoice fraud, pretexting, physical access |
 
-> Every domain has now had an expansion pass: LLM (16 → 24),
-> SOCIAL (21 → 28), WIFI (27 → 33), THICK (29 → 36), CLOUD (32 → 39),
-> MOBILE (33 → 39), API (35 → 41) and SRC (35 → 41). See the
+> Every category in every domain now carries at least five test cases —
+> the empty and thin categories have been filled so no standard bucket is
+> left blank. The latest pass also raised LLM (24 → 50), WIFI (33 → 72),
+> SOCIAL (28 → 68), CLOUD (39 → 60), SRC (41 → 59), MOBILE (39 → 59),
+> THICK (36 → 56), API (41 → 55), WEB and NET. See the
 > [Changelog](#-changelog).
 
 ---
@@ -163,7 +165,7 @@ GreySh3ll is two pages, not one long scroll:
 | Page | What it's for |
 |---|---|
 | **`index.html`** — Dashboard | Your identity, overall coverage, severity breakdown, and a card per domain. This is where you land and decide what to work on. |
-| **`assessment.html`** — Workspace | The actual full-screen checklist — search, filters, the 577 test cases, and every modal (Toolkit/Badges/Stats/Command Palette). |
+| **`assessment.html`** — Workspace | The actual full-screen checklist — search, filters, the 817 test cases, and every modal (Toolkit/Badges/Stats/Command Palette). |
 
 ### 1. The Dashboard
 
@@ -181,7 +183,7 @@ run it locally — see [below](#-running-it-locally)). On first load:
    you left off, or the **search box** to jump straight to a specific
    test case, or click any category card to open the Workspace
    pre-filtered to that domain (`assessment.html?domain=WEB`).
-4. Your progress starts at **0 / 577** — everything else is ready to go.
+4. Your progress starts at **0 / 817** — everything else is ready to go.
 
 ### 2. Dashboard analytics
 
@@ -261,12 +263,12 @@ leaving the app:
 - **OSCP-style Drills** — short practice scenarios to sharpen specific
   techniques between real engagements.
 - **Scan Import** — paste raw Nmap/Nuclei/Burp output; it's parsed and
-  matched against the 577 test cases by port/service and finding-name
+  matched against the 817 test cases by port/service and finding-name
   keywords, ranked by confidence, with a one-click "Add as evidence."
 - **Attack Chains** — link findings that chain together ("A enables
   B"), with multi-hop sequences auto-grouped for the report.
 - **Custom Cases** — add your own test cases alongside the built-in
-  577, scoped to the current engagement.
+  817, scoped to the current engagement.
 
 ### 7. Remediation & retest tracking
 
@@ -387,7 +389,7 @@ data.
 
 ```
 index.html                     Dashboard — identity, coverage, category cards
-assessment.html                Workspace — full-screen checklist, all 577 cases
+assessment.html                Workspace — full-screen checklist, all 817 cases
 
 css/
   base.css                     design tokens (:root), reset, base type
@@ -480,6 +482,39 @@ ones: 6 identification steps, 6 exploitation steps, 6 labeled payloads,
 ---
 
 ## 📋 Changelog
+
+- **v1.15 — every category filled to a floor of five, and three
+  engagement fields added to every case (577 → 817).**
+
+  *A category picker is only honest if its buckets are populated.* The
+  standards-based taxonomy meant some categories — an OWASP entry, a NIST
+  control family — carried no cases at all, and others carried one or two.
+  An empty bucket is useful information when the corpus genuinely has nothing
+  there, but here it was a coverage gap, not a finding. So every category in
+  every domain was brought to **at least five cases**, placed by merit rather
+  than by quota: well-covered categories keep their existing depth (NET/IA at
+  67, WEB/A01 at 34), and only the thin and empty ones were topped up. 240
+  new cases were written to do it, taking the corpus from 577 to **817**, and
+  sequence numbers were rebuilt to a contiguous 1–817.
+
+  Placement is enforced, not hoped for. A handful of cases belong in a
+  category their CWE alone would not select — a Subresource-Integrity gap is
+  a supply-chain finding by intent, though its CWE maps elsewhere — so
+  `tools/map-categories.py` now carries an authoritative per-case pin table
+  that wins over every heuristic, and a dry-run check confirms every new case
+  lands where it was authored. The LLM additions route through the same
+  verified 2025→2026 bridge as the rest of that domain.
+
+  *Each case now also carries three fields aimed at the person actually
+  running it:* a **real-world context** paragraph that frames why the finding
+  matters (the incident pattern it enabled, the business consequence), a
+  **difficulty** rating (Beginner → Expert), and a **time estimate**. These
+  render as a colour-coded strip and a callout in the detail panel, both held
+  to the same WCAG AA contrast bar as the rest of the UI in both themes.
+
+  Every gate was re-green after the expansion: the 152-test harness, the
+  field audit at **817/817**, category/attack/framework/ sync checks, the
+  contrast audit, and the 18-viewport responsive sweep.
 
 - **v1.14 — LLM taxonomy corrected to the 2026 edition, and MITRE ATT&CK
   mapped across the corpus.**
@@ -979,11 +1014,11 @@ and looked fine on a desktop:
 
 ## Content quality standard
 
-All 577 cases are held to a measured standard rather than a subjective one:
+All 817 cases are held to a measured standard rather than a subjective one:
 
 - **Technical completeness** — every case carries a CWE, reference links,
   recommended tools, example payloads, identification steps, exploitation
-  steps and mitigations. Verified at 577/577 on each.
+  steps and mitigations. Verified at 817/817 on each.
 - **Readability** — prose fields are checked for average sentence length.
   Current figures: prerequisites 19.5 words/sentence, impact 21.5,
   rootCause 29.1, whatItIs 29.9. No item in whatItIs, rootCause or impact

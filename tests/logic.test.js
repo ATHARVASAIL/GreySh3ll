@@ -58,7 +58,7 @@ S.test('CVSS severity bands follow the 3.1 boundaries', async () => {
 S.test('coverage is 0% before anything is tested', async () => {
   const w = await app();
   const cov = w.$fn('computeCoverage')();
-  eq(cov.overallPct, 0, 'pct'); eq(cov.applicable, 577, 'applicable');
+  eq(cov.overallPct, 0, 'pct'); eq(cov.applicable, 817, 'applicable');
 });
 
 S.test('coverage reaches 100% when every case is tested', async () => {
@@ -71,7 +71,7 @@ S.test('cases marked N/A leave the denominator instead of counting as tested', a
   const w = await app();
   w.__eval("allData.slice(0,24).forEach(d=>d.status='not-applicable');");
   const cov = w.$fn('computeCoverage')();
-  eq(cov.applicable, 553, 'applicable excludes N/A');
+  eq(cov.applicable, 793, 'applicable excludes N/A');
   eq(cov.overallPct, 0, 'N/A must not inflate coverage');
 });
 
@@ -131,15 +131,15 @@ S.test('the risk band follows the score thresholds and is a known value', async 
 /* ---------- filters ---------- */
 S.test('with no filters every case matches', async () => {
   const w = await app();
-  eq(count(w), 577, 'unfiltered');
+  eq(count(w), 817, 'unfiltered');
 });
 
 S.test('the domain filter narrows to that domain only', async () => {
   const w = await app();
   w.__eval("state.activeDomain='WIFI';");
-  eq(count(w), 33, 'WIFI');
+  eq(count(w), 72, 'WIFI');
   w.__eval("state.activeDomain='LLM';");
-  eq(count(w), 24, 'LLM');
+  eq(count(w), 50, 'LLM');
 });
 
 S.test('the severity filter matches the underlying severity counts', async () => {
@@ -155,7 +155,7 @@ S.test('each status chip selects what its label promises', async () => {
   w.__eval("allData.slice(0,5).forEach(d=>d.status='tested-pass');");
   eq(count(w), 5, 'done = passed');
   w.__eval("state.status='open';");
-  eq(count(w), 572, 'open excludes resolved and N/A');
+  eq(count(w), 812, 'open excludes resolved and N/A');
   w.__eval("allData.slice(5,7).forEach(d=>d.flagged=true); state.status='flagged';");
   eq(count(w), 2, 'flagged');
 });

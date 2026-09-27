@@ -23,9 +23,9 @@ async function booted(opts){
 /* A domain now opens into its standard's categories, and the case rows live
    one level in. Chunking applies to the rows, so these tests select a
    category first. NET/IA is the largest (67 cases, well over a chunk);
-   NET/SI is deliberately tiny (3) for the small-section case. */
+   NET/SI is deliberately tiny (5) for the small-section case. */
 const BIG = { domain: 'NET', cat: 'IA', size: 67 };
-const SMALL = { domain: 'NET', cat: 'SI', size: 3 };
+const SMALL = { domain: 'NET', cat: 'SI', size: 5 };
 function openCategory(w, domain, cat){
   w.__eval(`state.activeCategory.set(${JSON.stringify(domain)}, ${JSON.stringify(cat)});`);
   w.$fn('renderResults')();
@@ -40,11 +40,12 @@ S.test('CATEGORY_CHUNK_SIZE is 30', async () => {
   eq(w.$('CATEGORY_CHUNK_SIZE'), 30, 'chunk size');
 });
 
-S.test('the two large domains are genuinely larger than one chunk', async () => {
+S.test('the big category exceeds one chunk while a small one fits', async () => {
   const w = await app();
-  const n = c => w.$(`allData.filter(d=>d.domain==='${c}').length`);
-  ok(n('NET') > 30 && n('WEB') > 30, 'NET and WEB exceed the chunk size');
-  ok(n('LLM') <= 30, 'LLM fits in one chunk');
+  const catCount = (dom, cat) =>
+    w.$(`allData.filter(d=>d.domain==='${dom}' && d.categoryCode==='${cat}').length`);
+  ok(catCount(BIG.domain, BIG.cat) > 30, 'the large category exceeds the chunk size');
+  ok(catCount(SMALL.domain, SMALL.cat) <= 30, 'the small category fits in one chunk');
 });
 
 /* ---------- collapsed default ---------- */

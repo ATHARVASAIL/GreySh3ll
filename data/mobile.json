@@ -3784,6 +3784,1959 @@
      "name": "Data Storage"
     }
    ]
+  },
+  {
+   "id": "MOBILE-040",
+   "domain": "MOBILE",
+   "title": "PII Leaked to Third-Party Analytics/Ad SDKs Without Consent",
+   "sequence": 628,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-359",
+   "prerequisites": "The target application's APK/IPA and a rooted/jailbroken test device or emulator. A network intercepting proxy (Burp Suite/mitmproxy) with the CA installed and any certificate pinning bypassed (objection/Frida) so third-party SDK traffic is visible. A decompiler (jadx) and MobSF for static SDK inventory. Authorization to intercept and inspect the app's outbound traffic on a test account.",
+   "whatItIs": "The app bundles third-party analytics and advertising SDKs (e.g. Facebook, Firebase/Google Analytics, AppsFlyer, Adjust, a crash reporter) and hands them personal data — email, phone number, precise location, device identifiers, or in-app behavior — before the user has consented, or beyond what they agreed to. The data leaves the app to servers the developer does not control, often on app launch, so the user has no visibility into who receives it or why.",
+   "rootCause": "SDKs are dropped in for growth analytics, attribution, and monetization, and their default configuration is deliberately data-hungry: many auto-collect identifiers and events the moment they initialize. Developers wire user attributes into these SDKs for segmentation without gating the calls behind a consent check, and initialization frequently happens in Application.onCreate before any consent screen is shown. No one audits what actually goes over the wire versus what the privacy policy claims.",
+   "impact": "Personal data is disclosed to third parties without a lawful basis, which is both a privacy harm and a regulatory exposure (GDPR, CCPA, India's DPDP Act). An attacker or malicious partner receiving the feed can correlate a real identity to behavior; a network attacker who sees the requests can harvest the same PII. Because collection fires before consent, the app is non-compliant from first launch, and the data cannot be recalled once transmitted.",
+   "realWorldContext": "This is one of the most common privacy findings in real mobile engagements, and it has driven enforcement rather than just crashes. Regulators fined multiple health and menstruation-tracking apps after they were found forwarding intimate user data to Facebook's SDK via automatic app events, and a wave of GDPR complaints targeted apps that initialized Google and Facebook SDKs before showing a consent banner. On engagements you typically see it as an app that fires an analytics 'user_properties' or 'app_open' event carrying the logged-in email and precise GPS on launch, long before the cookie/consent dialog appears. The business consequence is regulatory fines and app-store policy takedowns, not a technical exploit.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Run MobSF or `jadx` over the APK and inventory bundled analytics/ad SDKs (grep for `com.facebook`, `com.google.android.gms.analytics`, `com.appsflyer`, `com.adjust`, `io.branch`, crash reporters) to know which third parties are in scope.",
+    "Proxy the app through Burp/mitmproxy with pinning bypassed and capture all traffic from a cold launch through login, noting every distinct third-party host contacted before any consent prompt is accepted.",
+    "Inspect the payloads to those hosts for PII: email, phone, name, precise latitude/longitude, advertising ID (AAID/IDFA), Android ID, or hashed-but-linkable identifiers, and record which fields go where.",
+    "Decline or ignore the app's consent/privacy prompt (or use a fresh install) and confirm whether analytics/ad calls still fire — pre-consent transmission is the core of the finding.",
+    "Cross-reference the observed data flows against the app's own privacy policy and store listing (Apple Privacy Nutrition Label / Google Data Safety section) to identify undeclared collection or sharing.",
+    "Check SDK initialization in decompiled code (`Application.onCreate`, Firebase `setUserProperty`, `AppEventsLogger`) to confirm the calls are unconditional rather than gated on a stored consent flag."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes traffic interception and PII-flow analysis against the test installation and test account.",
+    "Perform a clean install, launch the app, and observe outbound requests before touching any consent control — capture the first analytics/attribution beacons.",
+    "Log in with the test account and trigger location-using and profile screens, then identify each request that carries user PII or a persistent identifier to a third-party domain.",
+    "Decode and document the specific fields leaked per recipient (e.g. Facebook `custom_events` with `em` hashed email, Firebase `up.email`, AppsFlyer `device.gaid` + `customer_user_id`).",
+    "Demonstrate the pre-consent nature by repeating the launch with consent explicitly declined and showing the same beacons still transmit.",
+    "Document each third-party recipient, the exact PII sent, whether it preceded consent, and the mismatch against the stated privacy policy / store data-safety declaration."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inventory bundled analytics/ad SDKs from the APK",
+     "command": "jadx -d out target_app.apk && grep -rniE 'com.facebook|google.*analytics|appsflyer|com.adjust|io.branch|amplitude|mixpanel' out/sources/ | cut -d/ -f1-4 | sort -u"
+    },
+    {
+     "label": "Capture third-party hosts contacted before consent (mitmproxy)",
+     "command": "mitmdump -s <(echo 'def response(f):\\n  print(f.request.host, f.request.path)') --set block_global=false  # launch app cold, note hosts hit pre-consent"
+    },
+    {
+     "label": "Burp filter to isolate PII in outbound SDK traffic",
+     "command": "# Burp > HTTP history > filter 'Show only in-scope', then search responses/requests for the test email, phone, and AAID string across graph.facebook.com, app-measurement.com, *.appsflyer.com"
+    },
+    {
+     "label": "Decode a Firebase Analytics measurement payload",
+     "command": "curl -s 'https://app-measurement.com/a' --data-binary @captured_body.bin -o /dev/null -v  # inspect the 'up.' user-property and 'ep.' event-param keys carrying email/location in the captured body"
+    },
+    {
+     "label": "Frida hook to log values passed into the Facebook events SDK",
+     "command": "frida -U -n com.target.app -e 'Java.perform(function(){var L=Java.use(\"com.facebook.appevents.AppEventsLogger\");L.logEvent.overload(\"java.lang.String\",\"android.os.Bundle\").implementation=function(n,b){console.log(\"[FB]\",n,b?b.toString():\"\");return this.logEvent(n,b);};});'"
+    }
+   ],
+   "variants": [
+    "Consent is collected but ignored — the SDK initializes and transmits regardless of the stored consent flag, so the toggle is cosmetic.",
+    "PII is 'hashed' (e.g. SHA-256 email for Facebook Advanced Matching) but sent anyway, which is still identifiable linkage and undeclared sharing rather than true anonymization.",
+    "A crash-reporting SDK (Crashlytics/Sentry) attaches the logged-in user's email and last-viewed screen content to every crash report as breadcrumbs, leaking PII through the error channel.",
+    "Attribution SDKs collect the Android AAID / iOS IDFA plus install referrer and forward them to an ad network before the ATT/consent prompt is answered."
+   ],
+   "mitigation": [
+    "Defer all analytics/ad/attribution SDK initialization until after the user has granted explicit, granular consent, and never call SDK init in `Application.onCreate` unconditionally.",
+    "Gate every `logEvent`/`setUserProperty`/attribution call behind a persisted consent state, and provide a genuine opt-out that stops transmission rather than only hiding a toggle.",
+    "Stop passing PII into analytics/ad SDKs entirely — use non-identifying, app-generated pseudonymous IDs for analytics, and disable SDK auto-collection features (Firebase `firebase_analytics_collection_enabled=false` by default, Facebook `AutoLogAppEventsEnabled=false`).",
+    "Data-minimize: collect only fields with a defined purpose, disable precise-location and advertising-ID collection unless essential, and honor platform signals (iOS ATT, Android AD_ID permission).",
+    "Reconcile the app's actual data flows with its privacy policy and the store data-safety/nutrition-label declarations, and add a release-gate traffic review so undeclared PII egress fails the build.",
+    "Prefer server-side or first-party analytics for sensitive contexts so raw PII never leaves the developer's trust boundary to a third party."
+   ],
+   "mitigationClientFacing": "Your app shares users' personal information — things like their email, location, or a device advertising ID — with outside analytics and advertising companies, and in some cases it does so the moment the app opens, before the user has agreed to anything. Users cannot see this happening and did not choose it, which is both a trust problem and, in most regions, a legal one. The fix is to hold off on starting these third-party tools until the user has genuinely consented, to stop feeding them personal details at all where you can, and to make sure what your app actually sends matches what your privacy policy and app-store listing promise. This matters because once data has left to a third party you can no longer control or recall it.",
+   "reference": {
+    "standard": "M6:2024 - Inadequate Privacy Controls",
+    "cwe": "CWE-359",
+    "tools": [
+     "jadx",
+     "MobSF",
+     "Burp Suite/mitmproxy",
+     "Frida/objection"
+    ],
+    "links": [
+     "OWASP MASVS-PRIVACY (MASVS-PRIVACY-1: Data Collection Minimization)",
+     "OWASP MASTG-TEST-0206 (Testing for Sensitive Data in Network Traffic)",
+     "MITRE ATT&CK T1437 (Application Layer Protocol)"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M6",
+   "categoryName": "Inadequate Privacy Controls",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-041",
+   "domain": "MOBILE",
+   "title": "Over-Collection of Data via Excessive Permissions",
+   "sequence": 629,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-359",
+   "prerequisites": "The target application's APK/IPA and a decompiler (jadx/apktool for Android, class-dump/Info.plist inspection for iOS). A test device or emulator to observe runtime permission prompts and actual data access. Optionally Frida to trace which APIs are actually called. Authorization to review the app's manifest, entitlements, and runtime behavior.",
+   "whatItIs": "The app requests far more access than its features justify — reading all contacts, precise background location, the full photo library, SMS, call logs, or the microphone — and then collects the data those permissions unlock even where the feature does not need it. A weather app asking for the contact list, or a flashlight-style utility requesting location, is the recognizable shape: the permission grant becomes a standing licence to harvest personal data.",
+   "rootCause": "Permissions accrete over an app's life as features are added and rarely removed when features are cut, and SDKs sometimes declare permissions the host app never intended. Product teams request broad access 'to be safe' or to enable future functionality, and coarse-grained platform permissions (a single CONTACTS grant exposes the entire address book) mean a small feature can demand disproportionate access. There is often no periodic audit tying each declared permission to a live, necessary feature.",
+   "impact": "Once granted, the permission lets the app read and potentially exfiltrate large volumes of personal data — every contact, continuous location history, all photos with their embedded GPS metadata — well beyond what the user reasonably expected when they tapped Allow. This expands the app's data footprint and breach blast radius, creates regulatory exposure for collecting data without a purpose, and hands any compromise of the app (or a bundled malicious SDK) access to the user's entire address book or movements.",
+   "realWorldContext": "Excessive-permission over-collection is the pattern behind a long line of app-store purges and enforcement actions: Google and Apple have repeatedly pulled apps that requested contacts, SMS, or call-log access unrelated to their function, and the notorious 'flashlight app wants your location and contacts' meme is a real permission-abuse category. In engagements the classic finding is a utility or content app that declares READ_CONTACTS and ACCESS_BACKGROUND_LOCATION, uploads the full address book on first launch 'to find friends', and keeps precise location running in the background for ad targeting. The consequence is usually a compliance and reputational hit — regulators treat purposeless collection as unlawful even when nothing is 'hacked'.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Decompile the APK and list every permission in `AndroidManifest.xml` (or the iOS `Info.plist` usage-description keys and entitlements), separating dangerous/runtime permissions from normal ones.",
+    "Map each declared dangerous permission to a concrete, user-visible feature that requires it, flagging any permission with no corresponding feature (e.g. READ_SMS, READ_CALL_LOG, ACCESS_BACKGROUND_LOCATION, READ_CONTACTS in an app that never displays them).",
+    "Identify permissions pulled in transitively by third-party SDKs via merged-manifest analysis, since these are often broader than the app itself needs.",
+    "On device, exercise the app's features while monitoring which protected APIs are actually invoked (Frida trace, or Android 12+ permission-usage/Privacy Dashboard) to distinguish declared-but-unused from actively-used permissions.",
+    "For location specifically, determine whether the app requests precise (FINE) where coarse would suffice, and whether it requests background access for a foreground-only feature.",
+    "Confirm whether granting a permission triggers bulk collection — e.g. the entire contact list uploaded on grant rather than a single contact chosen via a picker."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes permission and data-collection review against the test installation.",
+    "Enumerate the declared permission set and produce the permission-to-feature justification map, listing each unjustified or over-broad permission.",
+    "Grant the questionable permissions on the test device and observe, via proxy and Frida, what data the app reads and whether it transmits it (e.g. POST of the full contacts array to a backend on grant).",
+    "For location, verify the app collects precise/background location and quantify how often and to where it is sent versus what the feature needs.",
+    "Demonstrate the gap between least-privilege alternatives (contact picker, coarse location, scoped photo access) and the app's chosen broad grant.",
+    "Document each excessive permission, the data it exposes, whether that data is actively collected/transmitted, and the least-privilege alternative that would satisfy the feature."
+   ],
+   "examplePayloads": [
+    {
+     "label": "List all declared permissions from the APK",
+     "command": "aapt dump permissions target_app.apk  # or: apktool d target_app.apk -o out && grep -i 'uses-permission' out/AndroidManifest.xml"
+    },
+    {
+     "label": "Read iOS purpose strings and entitlements",
+     "command": "plutil -p Payload/TargetApp.app/Info.plist | grep -iE 'UsageDescription|Location|Contacts|Photo' ; codesign -d --entitlements :- Payload/TargetApp.app"
+    },
+    {
+     "label": "Trace actual contacts access at runtime with Frida",
+     "command": "frida-trace -U -n com.target.app -j '*ContentResolver!query'  # observe queries against ContactsContract to see if the full address book is read"
+    },
+    {
+     "label": "Capture bulk contact upload on permission grant",
+     "command": "# Burp: after tapping Allow on the contacts prompt, look for a POST (e.g. /v1/contacts/sync) whose body contains the device's full contact list"
+    },
+    {
+     "label": "Inspect merged manifest for SDK-injected permissions (Android)",
+     "command": "grep -rn 'uses-permission' app/build/outputs/logs/manifest-merger-*-report.txt  # or review AndroidManifest.xml in the built APK and attribute each permission to its source"
+    }
+   ],
+   "variants": [
+    "Background location requested for a feature that only needs location while the app is open (foreground), enabling continuous movement tracking.",
+    "Full photo-library access requested where the platform's scoped/limited photo picker would let the user share only the specific images needed.",
+    "A dangerous permission declared only because a bundled SDK requires it, collecting data on the SDK's behalf that the host app has no feature for.",
+    "Coarse feature, precise data: requesting FINE location or full-contact read when the feature would work with COARSE location or a single user-picked contact."
+   ],
+   "mitigation": [
+    "Audit every declared permission against a concrete live feature and remove any permission with no current justification, including ones inherited from SDKs (use `tools:node=\"remove\"` in the manifest for SDK-injected permissions).",
+    "Adopt least privilege at the API level: use the system contact picker and Android Photo Picker / iOS limited-library selection so the app touches only the item the user chose rather than the whole collection.",
+    "Request the narrowest capability that works — COARSE instead of FINE location, foreground-only instead of background — and justify each with a clear in-context rationale prompt.",
+    "Request permissions just-in-time at the point of use rather than up front, so users can tie the grant to a feature and deny access to unrelated ones.",
+    "Data-minimize collection behind a granted permission: read only what the feature needs at the moment, avoid bulk sync of entire address books or photo sets, and set retention limits.",
+    "Add a periodic permission review to the release process and keep the store data-safety/privacy-label declaration in sync with the actual, minimized permission set."
+   ],
+   "mitigationClientFacing": "Your app asks for access to more of the user's personal information than its features actually use — for example the whole contact list, all photos, or the user's location at all times — and in some cases collects that data even though nothing in the app needs it. Users tend to grant these requests without realizing how much they are handing over, which enlarges the amount of personal data you hold and are responsible for protecting. The fix is to ask only for what each feature genuinely requires, to ask at the moment the feature is used so the request makes sense, and to take only the specific item the user picked rather than sweeping up everything. This reduces both your privacy risk and the damage if the app is ever compromised.",
+   "reference": {
+    "standard": "M6:2024 - Inadequate Privacy Controls",
+    "cwe": "CWE-359",
+    "tools": [
+     "jadx/apktool",
+     "aapt",
+     "Frida",
+     "MobSF"
+    ],
+    "links": [
+     "OWASP MASVS-PRIVACY (MASVS-PRIVACY-1: Data Collection Minimization)",
+     "OWASP MASTG-TEST-0250 (Testing App Permissions)",
+     "MITRE ATT&CK T1426 (System Information Discovery)"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M6",
+   "categoryName": "Inadequate Privacy Controls",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-STORAGE",
+     "name": "Data Storage"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-042",
+   "domain": "MOBILE",
+   "title": "Advertising/Tracking Identifier Leakage Enabling Cross-App Profiling",
+   "sequence": 630,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-359",
+   "prerequisites": "The target application's APK/IPA on a rooted/jailbroken device or emulator, with a network proxy (Burp/mitmproxy) and certificate pinning bypassed to read outbound traffic. jadx/MobSF for static analysis of identifier-collection code. On iOS, the ability to observe ATT (App Tracking Transparency) prompt behavior. Authorization to intercept traffic on a test account.",
+   "whatItIs": "The app collects persistent tracking identifiers — the Google Advertising ID (AAID), Apple's IDFA, the Android ID (SSAID), or hardware identifiers — and sends them to advertising, attribution, or analytics endpoints, often bundled with other data, without proper consent or in a way the user cannot reset. Because these identifiers are stable across sessions and shared across apps and networks, leaking them lets third parties link a person's activity across many different apps into a single profile.",
+   "rootCause": "Advertising IDs exist to enable attribution and ad targeting, and SDKs read them by default. The problems arise when the app transmits the AAID/IDFA before consent (or without the required iOS ATT authorization), pairs it with other PII so it stops being pseudonymous, or falls back to non-resettable identifiers (Android ID, IMEI-derived values, MAC-based fingerprints) precisely so tracking survives a user resetting their advertising ID. Platform rules that forbid this are not enforced in the app's own code.",
+   "impact": "A resettable advertising ID that is transmitted alongside an email or account ID becomes a permanent, identity-linked tracker, defeating the user's ability to opt out or reset it. Multiple apps and ad networks receiving the same identifier can merge behavior into a cross-app profile, and a network attacker who observes the traffic can single out and follow a specific device. Where non-resettable identifiers are used as a fallback, the tracking cannot be escaped at all, which violates platform policy and privacy law and risks app-store removal.",
+   "realWorldContext": "Identifier leakage is the mechanism that makes cross-app ad tracking work, and it is exactly what Apple's App Tracking Transparency and Google's move to restrict the AAID were designed to curb. Security researchers regularly find apps that keep transmitting the IDFA after the user chose 'Ask App Not to Track', or that quietly build a device fingerprint (Android ID + build props + install list) so a reset advertising ID no longer breaks the link — a technique that got several SDKs banned from the App Store. On engagements the tell-tale finding is an attribution beacon carrying the AAID plus the logged-in customer ID to an ad network on launch, sometimes with a non-resettable Android ID as a 'backup key'. The stakes are platform-policy takedowns and privacy fines.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Statically search decompiled code for identifier-collection APIs: `AdvertisingIdClient.getAdvertisingIdInfo` (AAID), `Settings.Secure.ANDROID_ID`, `getDeviceId`/IMEI, `Build.SERIAL`, and iOS `ASIdentifierManager.advertisingIdentifier` / `identifierForVendor`.",
+    "Proxy the app and capture outbound requests, searching payloads for the device's actual AAID/IDFA value and any Android ID / hardware identifier to see which endpoints receive them.",
+    "Check whether the identifier is sent together with PII (email, account ID, phone) in the same request or session, which converts a pseudonymous ID into an identity-linked tracker.",
+    "On iOS, respond 'Ask App Not to Track' to the ATT prompt (or verify no prompt is shown) and confirm whether the IDFA is still transmitted despite the denied authorization.",
+    "Look for a fingerprinting fallback: collection of stable, non-resettable signals (Android ID, installed-package list, build fingerprint, screen metrics) used to re-identify the device after an advertising-ID reset.",
+    "Reset the advertising ID on the device and repeat capture to confirm whether tracking genuinely resets or the app re-links via a stored/fallback identifier."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes traffic interception and identifier-flow analysis against the test installation and test account.",
+    "Record the device's real AAID/IDFA (Settings > Google/Privacy) as a search string, then capture app traffic from cold launch through login.",
+    "Locate every request carrying that identifier, note the recipient hosts, and flag any that are third-party ad/attribution domains.",
+    "Show identity linkage by finding a request where the advertising ID and an account-level PII field travel together.",
+    "On iOS, deny ATT and demonstrate continued IDFA transmission if present; on Android, reset the AAID and show the app re-identifies the device via a fallback identifier.",
+    "Document each identifier collected, its resettability, the recipients, whether transmission respected consent/ATT, and any PII pairing that defeats pseudonymity."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Find identifier-collection calls in decompiled code",
+     "command": "jadx -d out target_app.apk && grep -rniE 'getAdvertisingIdInfo|ANDROID_ID|getDeviceId|Build.SERIAL|advertisingIdentifier|identifierForVendor' out/sources/"
+    },
+    {
+     "label": "Search intercepted traffic for the device advertising ID",
+     "command": "# Burp/mitmproxy: search all requests for the device's real AAID/IDFA string to enumerate every endpoint it is sent to"
+    },
+    {
+     "label": "Frida hook to log AAID reads and their callers (Android)",
+     "command": "frida-trace -U -n com.target.app -j 'com.google.android.gms.ads.identifier.AdvertisingIdClient$Info!getId'"
+    },
+    {
+     "label": "Detect non-resettable Android ID usage",
+     "command": "frida -U -n com.target.app -e 'Java.perform(function(){var S=Java.use(\"android.provider.Settings$Secure\");S.getString.implementation=function(r,k){var v=this.getString(r,k);if(k==\"android_id\")console.log(\"[ANDROID_ID read]\",v);return v;};});'"
+    },
+    {
+     "label": "Confirm IDFA still sent after ATT denial (iOS)",
+     "command": "# Deny the ATT prompt, then in the proxy confirm whether the (should-be-zeroed) IDFA is still populated and transmitted to attribution hosts"
+    }
+   ],
+   "variants": [
+    "IDFA transmitted despite the user selecting 'Ask App Not to Track' in the iOS ATT prompt, violating the platform tracking policy.",
+    "Advertising ID paired with a hashed email or account ID in the same beacon, making the 'resettable, pseudonymous' identifier permanently identity-linked.",
+    "Device-fingerprinting fallback (Android ID + install list + build fingerprint) used to re-link the device after an advertising-ID reset, defeating the reset control.",
+    "Use of the non-resettable Android ID (SSAID) or a hardware identifier as the primary tracking key instead of the resettable advertising ID."
+   ],
+   "mitigation": [
+    "Do not collect or transmit advertising identifiers until the user has consented, and on iOS gate all IDFA use on a granted ATT authorization; treat a denied/undetermined status as no tracking.",
+    "Never pair the advertising ID with account-level PII; keep advertising-context data pseudonymous and separate from identity data.",
+    "Do not use non-resettable identifiers (Android ID, IMEI, serial, MAC) for tracking or as a fallback re-identification key — respect the user's ability to reset their advertising ID.",
+    "Remove device-fingerprinting logic and configure SDKs to disable identifier auto-collection where not strictly required (and honor Android's `com.google.android.gms.permission.AD_ID` gating).",
+    "Encrypt all traffic and pin certificates so identifiers cannot be harvested by a network observer, and minimize which endpoints receive any identifier at all.",
+    "Keep the store data-safety/privacy-label 'tracking' declarations accurate and add a traffic review to the release gate to catch identifier leakage before shipping."
+   ],
+   "mitigationClientFacing": "Your app collects the kind of identifier that advertising and analytics companies use to follow a device from app to app, and it shares that identifier in ways the user has not agreed to — in some cases even after they asked not to be tracked, and in some cases using an identifier the user cannot reset. Combined with the user's email or account, this turns an ID that is supposed to be anonymous and resettable into a permanent tag tied to a real person. The fix is to only use these identifiers after genuine consent, to never combine them with personal details, and to never fall back to identifiers the user cannot clear. This keeps you within Apple's and Google's rules and out of privacy-enforcement trouble.",
+   "reference": {
+    "standard": "M6:2024 - Inadequate Privacy Controls",
+    "cwe": "CWE-359",
+    "tools": [
+     "jadx",
+     "Burp Suite/mitmproxy",
+     "Frida",
+     "MobSF"
+    ],
+    "links": [
+     "OWASP MASVS-PRIVACY (MASVS-PRIVACY-2: Prevent Identification of the User)",
+     "OWASP MASTG-TEST-0206 (Testing for Sensitive Data in Network Traffic)",
+     "MITRE ATT&CK T1422 (System Network Configuration Discovery)"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M6",
+   "categoryName": "Inadequate Privacy Controls",
+   "attack": [
+    {
+     "id": "T1550.001",
+     "name": "Application Access Token",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-043",
+   "domain": "MOBILE",
+   "title": "PII in Unencrypted Local Storage Extractable via Backups",
+   "sequence": 631,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-359",
+   "prerequisites": "The target application installed on a test device with a test account holding representative PII. For Android: `adb` and (for `allowBackup=true` apps) `adb backup`/Android Backup Extractor, or filesystem access on a rooted device. For iOS: a local unencrypted iTunes/Finder backup and a backup browser, or filesystem access on a jailbroken device. jadx/apktool to review the manifest backup flags. Authorization to extract and inspect app data.",
+   "whatItIs": "The app writes personal data — names, email/phone, addresses, date of birth, government IDs, message history, precise location, or profile details — into local files (SharedPreferences, plists, SQLite databases, JSON caches) in plaintext, and does not exclude that data from device backups. Because Android's `allowBackup` and iOS's default backup behavior copy app data off the device, the PII ends up in unencrypted backups on a computer or in the cloud, where it can be extracted without ever unlocking the app.",
+   "rootCause": "Local storage is treated as private and therefore 'safe enough', so developers store PII in the clear rather than encrypting it, and leave `android:allowBackup` at its permissive default (or omit the iOS 'do not back up' / Data Protection attributes). The threat model overlooks that backups, a lost/stolen unlocked device, another app with storage access, or a rooted/jailbroken phone can all reach that data outside the app's own access controls.",
+   "impact": "Anyone who can obtain a device backup — a shared or compromised computer, an attacker with brief physical access via `adb backup`, or access to an unencrypted cloud backup — can extract the user's full PII without the app's authentication ever coming into play. On a lost, stolen, or malware-infected device the plaintext files are directly readable. This exposes exactly the sensitive personal data users trust the app to safeguard, with regulatory consequences where the data includes identity documents or health-adjacent details.",
+   "realWorldContext": "Plaintext PII in backups is a recurring high-impact finding because it bypasses every in-app protection at once. The classic Android case is an app shipping `android:allowBackup=\"true\"` (still the default on older target SDKs) so that a simple `adb backup` over USB — no root needed — yields a `.ab` archive containing the user's profile database in the clear. On iOS, apps that store PII in an unencrypted plist without the appropriate Data Protection class have had that data pulled straight out of an unencrypted iTunes backup. Forensic and law-enforcement tooling is built precisely around harvesting app data from device backups, and engagements routinely surface names, emails, tokens, and even ID-document scans sitting unencrypted in `shared_prefs` or a SQLite file. The consequence is mass PII exposure from a single backup, not a live exploit.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Decompile the APK and check `AndroidManifest.xml` for `android:allowBackup` (true or unset on older targets) and the presence/contents of any `fullBackupContent`/`dataExtractionRules` XML that should exclude sensitive files.",
+    "Populate a test account with representative PII, exercise the app, then enumerate the app's data directory (`/data/data/<pkg>/` on a rooted device or emulator) and grep files for the known PII values in cleartext.",
+    "On Android with `allowBackup` enabled, run `adb backup` for the package, unpack the archive, and confirm which PII-bearing files are captured in the backup.",
+    "On iOS, create a local unencrypted backup and browse it (or inspect the app container on a jailbroken device) for plists/SQLite/JSON files containing PII, and check whether files use an appropriate Data Protection class.",
+    "Inspect SharedPreferences/plist/SQLite contents specifically for high-sensitivity fields (auth tokens, DOB, government ID, address, location history) stored without encryption.",
+    "Determine whether any at-rest encryption exists and, if so, whether the key is derived from user authentication or is a static/hardcoded key retrievable from the app (which is no better than plaintext)."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes local-storage extraction and backup analysis against the test installation and test account.",
+    "Seed the test account with identifiable PII and use the app so the data is written locally.",
+    "Extract the app's stored data via the lowest-privilege path that works — `adb backup` for a backup-enabled app, otherwise filesystem read on a rooted/jailbroken device or emulator.",
+    "Locate the PII in the extracted files and demonstrate that it is readable in cleartext without the app's login being involved.",
+    "If the app claims encryption, show the data is either unencrypted or protected by a key recoverable from the binary/device, so the protection is ineffective.",
+    "Document each PII field found, its storage location and format, the extraction path used (backup vs. device), and the manifest/entitlement flags that permitted backup capture."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check the backup flag and rules in the manifest",
+     "command": "apktool d target_app.apk -o out && grep -iE 'allowBackup|fullBackupContent|dataExtractionRules' out/AndroidManifest.xml"
+    },
+    {
+     "label": "Extract app data via adb backup (Android, allowBackup=true)",
+     "command": "adb backup -f app.ab -noapk com.target.app && dd if=app.ab bs=1 skip=24 | openssl zlib -d > app.tar 2>/dev/null; tar xvf app.tar"
+    },
+    {
+     "label": "Grep the app data directory for PII in cleartext (rooted/emulator)",
+     "command": "adb shell run-as com.target.app grep -rniE 'email|phone|dob|aadhaar|passport|@example.test' shared_prefs/ databases/ files/"
+    },
+    {
+     "label": "Inspect a SharedPreferences / plist file for stored PII",
+     "command": "adb shell run-as com.target.app cat shared_prefs/user_profile.xml   # iOS: plutil -p <backup>/AppDomain-com.target.app/Library/Preferences/com.target.app.plist"
+    },
+    {
+     "label": "Dump a local SQLite database for personal records",
+     "command": "adb shell run-as com.target.app sqlite3 databases/app.db '.tables' && adb shell run-as com.target.app sqlite3 databases/app.db 'SELECT * FROM users LIMIT 5;'"
+    }
+   ],
+   "variants": [
+    "`android:allowBackup=\"true\"` allows `adb backup` extraction of the full app data set over USB with no root required.",
+    "iOS PII stored in an unencrypted plist/SQLite without a Data Protection class, extractable from an unencrypted iTunes/Finder backup.",
+    "Data 'encrypted' with a hardcoded or app-derivable static key, so the ciphertext is trivially decryptable once the file is obtained.",
+    "Sensitive files written to shared/external storage or a cache that is world-readable or captured by cloud backup, exposing PII to other apps and to the cloud."
+   ],
+   "mitigation": [
+    "Set `android:allowBackup=\"false\"` for sensitive apps, or use precise `dataExtractionRules`/`fullBackupContent` to exclude every file containing PII or secrets from both cloud and device-to-device backups.",
+    "Encrypt PII at rest with keys held in the Android Keystore / iOS Keychain-Secure Enclave, bound to user authentication where appropriate, never with a static or hardcoded key.",
+    "On iOS, apply an appropriate Data Protection class (e.g. NSFileProtectionComplete) and mark files not needing backup with the do-not-back-up attribute; store secrets in the Keychain, not plists.",
+    "Data-minimize local persistence: store only what the app must cache, avoid keeping government IDs / full profiles on device, and purge sensitive caches on logout.",
+    "Use platform secure-storage abstractions (Android EncryptedSharedPreferences/Jetpack Security, iOS Keychain) rather than plaintext SharedPreferences/plists for any sensitive value.",
+    "Verify at-rest protection as a release gate by attempting a backup/filesystem extraction of a seeded test account and confirming no PII is recoverable in cleartext."
+   ],
+   "mitigationClientFacing": "Your app saves users' personal information on the device in plain, readable form and does not stop it from being copied into device backups. That means the data can be pulled out of a backup on a computer or in the cloud, or read directly off a lost or stolen phone, without anyone ever logging into the app. In other words, all of your app's own protections are bypassed the moment the data leaves through a backup. The fix is to encrypt sensitive information on the device using the phone's secure hardware, to keep it out of backups, and to store as little of it locally as possible. This matters because the data at risk is exactly the personal information users trust you to keep safe.",
+   "reference": {
+    "standard": "M6:2024 - Inadequate Privacy Controls",
+    "cwe": "CWE-359",
+    "tools": [
+     "adb/Android Backup Extractor",
+     "jadx/apktool",
+     "sqlite3",
+     "MobSF"
+    ],
+    "links": [
+     "OWASP MASVS-STORAGE (MASVS-STORAGE-1: Secure Sensitive Data Storage)",
+     "OWASP MASTG-TEST-0004 (Testing Backups for Sensitive Data)",
+     "MITRE ATT&CK T1409 (Stored Application Data)"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M6",
+   "categoryName": "Inadequate Privacy Controls",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-STORAGE",
+     "name": "Data Storage"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-044",
+   "domain": "MOBILE",
+   "title": "Sensitive Screens Captured in Task Switcher and Media Cache",
+   "sequence": 632,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-359",
+   "prerequisites": "The target application installed on a test device or emulator with a test account. Filesystem access to the app's snapshot/cache directory (rooted/jailbroken device or emulator recommended). The ability to background the app and open the OS task switcher/app-switcher. Authorization to inspect on-device cached images and screenshots.",
+   "whatItIs": "When the user backgrounds the app, both Android and iOS take a screenshot of the current screen to show a preview in the recent-apps/task switcher, and they save that image to disk. If a sensitive screen — account details, a statement, an OTP, a scanned ID, personal messages — is on display, the OS caches a picture of that PII. The same happens where the app itself writes screenshots or lets sensitive screens be captured, leaving personal data in image files any process or person with device access can read.",
+   "rootCause": "The task-switcher snapshot is a platform convenience the OS performs automatically, and apps must explicitly opt out of it (FLAG_SECURE on Android, or obscuring the UI on `applicationDidEnterBackground` on iOS). Developers focus on the app's own storage and network and overlook that the OS is caching a rendered image of whatever is on screen. Combined with not marking sensitive activities as secure and not blocking manual screenshots, this leaves rendered PII sitting in the snapshot cache.",
+   "impact": "The cached snapshot preserves whatever PII was on screen — balances, personal identifiers, one-time codes, message content — in an image file that survives after the app is closed and is readable via device access, another app with storage permission, a backup, or forensic tooling. On a shared, lost, or stolen device the previews can reveal sensitive information without unlocking the app, and where the app permits screenshots of sensitive flows, users or malware can capture and exfiltrate that PII as images.",
+   "realWorldContext": "The task-switcher snapshot leak is a staple of mobile banking and healthcare assessments and has driven concrete guidance: OWASP MASVS explicitly requires that sensitive screens are not exposed via the app-switcher, and banking apps that failed to set FLAG_SECURE have been flagged in audits for caching account balances into the recents preview. The recognizable finding is backgrounding an app on the account-summary or OTP screen and then pulling the cached PNG from the app's snapshot directory to reveal the balance or code in clear image form. On iOS the equivalent is a snapshot of the sensitive view written to the app's `Library/Caches/Snapshots` (or `SplashBoard`) directory. The impact is real-world shoulder-surfing-at-scale plus recoverable image evidence of PII on the device.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify the app's sensitive screens (account/profile details, statements, OTP entry, ID capture, private messages) and log in with a test account so representative PII is displayed.",
+    "Display a sensitive screen, background the app (Home), and open the task switcher — observe whether the preview shows the real PII or a masked/blank placeholder.",
+    "On a rooted/jailbroken device or emulator, locate the OS snapshot cache and pull the most recent image, confirming whether it contains the sensitive screen's PII (Android: app snapshot cache; iOS: `Library/Caches/Snapshots`/`SplashBoard`).",
+    "Attempt a manual screenshot on each sensitive screen to determine whether screen capture is blocked (Android FLAG_SECURE) or permitted, and check for screen-recording exposure.",
+    "Review decompiled code for `WindowManager.LayoutParams.FLAG_SECURE` usage (Android) or an `applicationDidEnterBackground` overlay/`isProtectedDataAvailable` handling (iOS) to see whether sensitive screens are protected.",
+    "Check any app-generated image caches (e.g. cached ID-document scans, downloaded statement thumbnails) for PII stored as images beyond the OS snapshot."
+   ],
+   "exploitationSteps": [
+    "Confirm scope authorizes on-device cache inspection and screenshot testing against the test installation and test account.",
+    "Log in and navigate to a sensitive PII screen, then background the app to trigger the OS snapshot.",
+    "Retrieve the cached snapshot image from the app's snapshot/cache directory and open it to show the PII is preserved in cleartext image form.",
+    "Demonstrate the task-switcher preview itself rendering the sensitive data to anyone with brief device access.",
+    "Where manual screenshots are allowed on sensitive screens, capture one to show the app does not prevent user/malware capture of PII.",
+    "Document each sensitive screen affected, the cached image location and its PII contents, and whether screenshots/recording were preventable but not prevented."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Pull the OS task-switcher snapshot cache (Android, rooted)",
+     "command": "adb shell 'ls -t /data/system_ce/0/snapshots/ 2>/dev/null; ls -t /data/data/com.target.app/cache/' && adb pull /data/system_ce/0/snapshots/ ./snaps/"
+    },
+    {
+     "label": "Locate iOS background snapshots of the app",
+     "command": "find /var/mobile/Containers/Data/Application/*/Library/Caches/Snapshots -iname '*com.target.app*' -o -path '*SplashBoard*'  # on a jailbroken device"
+    },
+    {
+     "label": "Check whether sensitive activities set FLAG_SECURE (Android)",
+     "command": "jadx -d out target_app.apk && grep -rn 'FLAG_SECURE\\|setFlags\\|addFlags' out/sources/  # confirm sensitive Activities apply it"
+    },
+    {
+     "label": "Verify screenshots are blocked on a sensitive screen",
+     "command": "# On the sensitive screen: adb shell input keyevent 120  (SYSRQ/screenshot). If a screenshot is produced rather than blocked, FLAG_SECURE is missing."
+    },
+    {
+     "label": "Frida check for iOS background-obscuring logic",
+     "command": "frida-trace -U -n TargetApp -m '-[AppDelegate applicationDidEnterBackground:]'  # observe whether a masking/blur view is installed on backgrounding"
+    }
+   ],
+   "variants": [
+    "Task-switcher/recents preview exposing account balances or personal data because FLAG_SECURE (Android) or a background overlay (iOS) is missing on sensitive activities.",
+    "Manual screenshots and screen recording permitted on sensitive screens, letting the user or on-device malware capture PII as images.",
+    "App-generated image caches (cached statement thumbnails, retained ID-document scans) storing PII as picture files beyond the OS snapshot.",
+    "Snapshot of a screen showing a one-time passcode or transaction confirmation cached to disk, exposing a transient secret after it should have gone."
+   ],
+   "mitigation": [
+    "Apply `FLAG_SECURE` to every activity that renders sensitive data on Android, which both blocks screenshots/recording and prevents the screen appearing in the recents snapshot.",
+    "On iOS, obscure sensitive content when entering the background (install a blank/blur overlay in `applicationDidEnterBackground`/`sceneWillResignActive`) so the cached snapshot contains no PII.",
+    "Do not display more sensitive data on screen than necessary, and mask high-sensitivity fields (full account numbers, OTPs, ID numbers) by default with reveal-on-demand.",
+    "Avoid persisting rendered PII as images in app caches; purge any sensitive image caches (ID scans, statement thumbnails) promptly and store them encrypted while retained.",
+    "Prevent screen recording where the platform allows (Android detect/secure, iOS `UIScreen.isCaptured` handling) for the most sensitive flows.",
+    "Add a task-switcher and screenshot check to the release/QA process for each sensitive screen so a regression that re-exposes PII in the snapshot is caught before shipping."
+   ],
+   "mitigationClientFacing": "When a user switches away from your app, the phone automatically takes a picture of whatever is on screen to show a thumbnail in the recent-apps view, and it saves that picture on the device. If a screen showing personal information — an account balance, a one-time code, an ID scan — is visible at that moment, that personal data is captured into an image that stays on the device and can be recovered later or simply seen by anyone glancing at the recent-apps list. The fix is to tell the phone to protect your sensitive screens so they are hidden in that preview and cannot be screenshotted, and to hide sensitive content the instant the app goes to the background. This closes an easy way for personal data to leak from a shared, lost, or stolen phone.",
+   "reference": {
+    "standard": "M6:2024 - Inadequate Privacy Controls",
+    "cwe": "CWE-359",
+    "tools": [
+     "adb",
+     "jadx",
+     "Frida/objection",
+     "MobSF"
+    ],
+    "links": [
+     "OWASP MASVS-PLATFORM (MASVS-PLATFORM-3: Sensitive Data in the UI)",
+     "OWASP MASTG-TEST-0009 (Testing for Sensitive Data Disclosure Through the UI)",
+     "MITRE ATT&CK T1513 (Screen Capture)"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M6",
+   "categoryName": "Inadequate Privacy Controls",
+   "attack": [
+    {
+     "id": "T1592",
+     "name": "Gather Victim Host Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-STORAGE",
+     "name": "Data Storage"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-045",
+   "domain": "MOBILE",
+   "title": "Hardcoded API Keys and Secrets in Mobile App Binary",
+   "sequence": 728,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-798",
+   "prerequisites": "The app's APK/IPA and static-analysis tools (jadx, apktool, strings, MobSF). Authorization to reverse-engineer the app.",
+   "whatItIs": "Mobile apps frequently ship with API keys, secrets, and credentials hardcoded in the binary — in code, resources, or config. Because the app runs on a device the attacker controls, these can be extracted by anyone. This tests for hardcoded credentials in the mobile binary.",
+   "rootCause": "Developers embed keys for convenience during development and ship them, assuming the compiled binary hides them. But decompilation and string extraction reveal them trivially.",
+   "impact": "Extracted keys/secrets can grant access to backend APIs, third-party services, and cloud resources with the app's privileges — enabling data access, abuse of paid services, and backend compromise.",
+   "realWorldContext": "Hardcoded secrets in mobile apps are found constantly — cloud keys, API tokens, and even backend admin credentials extracted from the binary. Because the attacker owns the device, no client-side obfuscation truly hides them; secrets simply do not belong in the app.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Decompile the APK/IPA and extract strings and resources.",
+    "Search for API keys, secrets, tokens, and credentials (patterns, high-entropy strings).",
+    "Check code, resource files, config, and native libraries.",
+    "Validate any discovered key against its service.",
+    "Assess the access each key grants.",
+    "Check for secrets in the app's embedded config/manifests."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to reverse-engineer the app.",
+    "Decompile and search the binary for credential patterns.",
+    "Extract candidate keys/secrets from code and resources.",
+    "Validate a discovered key against its backend/service (in scope).",
+    "Assess the privileges the key grants.",
+    "Document the hardcoded-credential exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Extract strings from the APK",
+     "command": "apktool d app.apk -o out && grep -rniE 'api[_-]?key|secret|token|password|AKIA' out/"
+    },
+    {
+     "label": "Decompile and search code",
+     "command": "jadx -d src app.apk && grep -rniE 'apikey|secret|Bearer |AKIA[0-9A-Z]{16}' src/"
+    },
+    {
+     "label": "Automated secret scan",
+     "command": "# run MobSF on the APK/IPA and review the hardcoded-secrets findings"
+    },
+    {
+     "label": "Validate a discovered key (in scope)",
+     "command": "curl -s https://<service-api>/ -H 'Authorization: Bearer <extracted-token>'"
+    }
+   ],
+   "variants": [
+    "Cloud provider key (AWS/GCP) in the binary.",
+    "Third-party API secret hardcoded.",
+    "Backend credential in a resource/config file.",
+    "Signing/encryption key embedded in the app."
+   ],
+   "mitigation": [
+    "Never hardcode secrets in the mobile binary.",
+    "Fetch short-lived, scoped credentials at runtime after authentication.",
+    "Keep secrets server-side; have the app call your backend, not third parties directly.",
+    "Rotate any secret found in a shipped binary.",
+    "Scan builds for secrets in CI before release.",
+    "Scope any necessary client keys to least privilege and restrict by app/referrer."
+   ],
+   "mitigationClientFacing": "Mobile apps often have passwords and keys built into them, and because the app runs on a phone the attacker controls, those secrets can be pulled straight out. The fix is to never build secrets into the app — keep them on your server and have the app request short-lived, limited access after logging in — and to change any secret that has shipped in an app.",
+   "reference": {
+    "standard": "M1:2024 - Improper Credential Usage",
+    "cwe": "CWE-798",
+    "tools": [
+     "jadx",
+     "apktool",
+     "MobSF",
+     "strings"
+    ],
+    "links": [
+     "M1:2024 - Improper Credential Usage",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "OWASP MASVS-STORAGE"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M1",
+   "categoryName": "Improper Credential Usage",
+   "attack": [
+    {
+     "id": "T1634",
+     "name": "Credentials from Password Store",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-046",
+   "domain": "MOBILE",
+   "title": "Vulnerable Third-Party SDK Bundled in the App",
+   "sequence": 729,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "The APK/IPA and dependency-analysis tools (jadx, MobSF, dependency scanners). Authorization to analyze the app.",
+   "whatItIs": "Mobile apps bundle many third-party SDKs (analytics, ads, crash reporting, payments). If a bundled SDK has known vulnerabilities, the whole app inherits them. This tests for vulnerable third-party SDKs in the mobile supply chain.",
+   "rootCause": "SDKs are added for features and rarely updated, and there is often no inventory of bundled components or their versions. Vulnerable versions ship and persist.",
+   "impact": "A vulnerable bundled SDK can expose the app to data leakage, code execution, or malicious behaviour within the app's context — a supply-chain compromise the app owner may not even know about.",
+   "realWorldContext": "Vulnerable and even malicious mobile SDKs have caused mass data leakage and compromise across thousands of apps that bundled them. Because apps rarely inventory or update their SDKs, a flaw in one component silently affects every app that ships it.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate bundled third-party SDKs and their versions.",
+    "Cross-reference SDK versions against known vulnerabilities.",
+    "Assess SDK permissions and data access within the app.",
+    "Identify vulnerable or outdated SDKs.",
+    "Check for known-malicious SDKs.",
+    "Document the SDK supply-chain exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to analyze the app's dependencies.",
+    "Extract the list of bundled SDKs and versions.",
+    "Match versions to advisories/CVEs and known-malicious lists.",
+    "Assess the impact of a vulnerable SDK within the app context.",
+    "Validate a high-impact issue where safe and in scope.",
+    "Document the vulnerable-SDK findings."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate bundled SDKs",
+     "command": "jadx -d src app.apk && ls src/  # identify third-party package namespaces and versions"
+    },
+    {
+     "label": "Automated dependency scan",
+     "command": "# run MobSF and review its third-party component / SDK findings"
+    },
+    {
+     "label": "Cross-check CVEs",
+     "command": "# map each SDK+version to known advisories/CVEs"
+    },
+    {
+     "label": "Assess SDK permissions/data access",
+     "command": "# what device data and permissions does each SDK use?"
+    }
+   ],
+   "variants": [
+    "Outdated SDK with a known vulnerability.",
+    "Known-malicious/ad-fraud SDK bundled.",
+    "SDK over-collecting device data.",
+    "Vulnerable native library shipped with an SDK."
+   ],
+   "mitigation": [
+    "Inventory all bundled SDKs and their versions.",
+    "Update or remove vulnerable and outdated SDKs.",
+    "Vet SDKs for security and data practices before adoption.",
+    "Monitor SDK advisories and maintain a patch cadence.",
+    "Scan builds for known-vulnerable/malicious components in CI.",
+    "Minimize the number of third-party SDKs."
+   ],
+   "mitigationClientFacing": "Mobile apps include lots of third-party building blocks (SDKs) for things like analytics and ads, and if any has a known security flaw, the whole app inherits it. The fix is to keep a list of the SDKs your app uses, update or remove vulnerable ones, vet new SDKs before adding them, and scan your builds for known-bad components. The benefit is that data left on a lost or stolen phone stays unreadable, rather than handing its contents to whoever finds the device.",
+   "reference": {
+    "standard": "M2:2024 - Inadequate Supply Chain Security",
+    "cwe": "CWE-1104",
+    "tools": [
+     "jadx",
+     "MobSF",
+     "dependency scanners"
+    ],
+    "links": [
+     "M2:2024 - Inadequate Supply Chain Security",
+     "MITRE ATT&CK T1195 (Supply Chain Compromise)",
+     "OWASP MASVS-CODE"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M2",
+   "categoryName": "Inadequate Supply Chain Security",
+   "attack": [
+    {
+     "id": "T1474",
+     "name": "Supply Chain Compromise",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CODE",
+     "name": "Code Quality"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-047",
+   "domain": "MOBILE",
+   "title": "App Accepts Unsigned or Improperly-Verified Updates",
+   "sequence": 730,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-494",
+   "prerequisites": "The app and its update mechanism, and authorization to test update integrity. A proxy (Burp/mitmproxy).",
+   "whatItIs": "Apps that update themselves or download code/modules at runtime must verify the integrity and authenticity of what they fetch. If an app accepts unsigned or improperly-verified updates/modules, an attacker who intercepts the download (or compromises the source) can deliver malicious code. This tests update/module integrity in the mobile supply chain.",
+   "rootCause": "Dynamic update/module loading is added for flexibility, but signature/integrity verification is weak or missing, so fetched code is trusted without proof of authenticity.",
+   "impact": "An attacker delivering a malicious update/module gains code execution within the app, enabling data theft, credential capture, and persistent compromise on the device.",
+   "realWorldContext": "Insecure in-app update and dynamic-code-loading mechanisms have enabled malicious-code delivery, and app-store and update-channel compromises are a recognized supply-chain risk. Verifying signatures on anything the app fetches and runs is what stops a hijacked download from becoming code execution.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify whether the app updates itself or loads code/modules at runtime.",
+    "Assess whether fetched content is signature/integrity-verified.",
+    "Intercept the update/module download and attempt to modify it.",
+    "Observe whether modified/unsigned content is accepted and executed.",
+    "Test the transport security of the update channel.",
+    "Assess the code-execution impact of a malicious update."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the update mechanism.",
+    "Locate the update/module download and its verification.",
+    "Intercept and modify the fetched content via a proxy.",
+    "Observe whether the app accepts and runs the modified content.",
+    "Demonstrate benign code execution from a malicious update (in scope).",
+    "Document the integrity-verification gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Intercept the update download",
+     "command": "# proxy the app; capture the update/module fetch request and response"
+    },
+    {
+     "label": "Modify the fetched content",
+     "command": "# alter the update/module body via the proxy and forward it"
+    },
+    {
+     "label": "Check signature verification",
+     "command": "# does the app reject the modified/unsigned content, or run it?"
+    },
+    {
+     "label": "Assess transport security",
+     "command": "# is the update fetched over TLS with certificate validation?"
+    }
+   ],
+   "variants": [
+    "Unsigned update accepted and executed.",
+    "Signature verification bypassable.",
+    "Update fetched over cleartext/interceptable channel.",
+    "Dynamic module loaded without integrity check."
+   ],
+   "mitigation": [
+    "Cryptographically sign updates/modules and verify the signature before use.",
+    "Fetch updates only over TLS with certificate validation/pinning.",
+    "Reject unsigned or improperly-verified content.",
+    "Avoid dynamic code loading; prefer store-delivered updates.",
+    "Protect the update source and signing keys.",
+    "Test update integrity as part of release security."
+   ],
+   "mitigationClientFacing": "If an app downloads updates or extra code while running, it must prove that code is genuine before using it. If it doesn't, an attacker who intercepts the download can slip in malicious code. The fix is to digitally sign anything the app downloads and run it only if the signature checks out, always download over a secure verified connection, and avoid loading code on the fly where possible.",
+   "reference": {
+    "standard": "M2:2024 - Inadequate Supply Chain Security",
+    "cwe": "CWE-494",
+    "tools": [
+     "mitmproxy",
+     "Burp Suite",
+     "jadx"
+    ],
+    "links": [
+     "M2:2024 - Inadequate Supply Chain Security",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)",
+     "OWASP MASVS-RESILIENCE"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M2",
+   "categoryName": "Inadequate Supply Chain Security",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-048",
+   "domain": "MOBILE",
+   "title": "Build Pipeline Injects Unvetted Code or Resources",
+   "sequence": 731,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1357",
+   "prerequisites": "Access to review the mobile build/release pipeline and its inputs, and authorization for the review. The app for comparison.",
+   "whatItIs": "The mobile build pipeline pulls in dependencies, build tools, scripts, and resources. If any of these are unvetted or fetched insecurely, malicious code or resources can be injected into the shipped app. This tests the integrity of the mobile build supply chain.",
+   "rootCause": "Build pipelines fetch dependencies and tools from various sources without pinning or verification, and build scripts may run unvetted code, so a compromised input taints the build.",
+   "impact": "Injected code/resources in the build produce a compromised app shipped to all users — a high-impact supply-chain attack that bypasses the app's own defenses because it is baked in.",
+   "realWorldContext": "Build-pipeline compromises (poisoned dependencies, malicious build scripts) have produced trojanized apps at scale. Securing the mobile build — pinned, verified dependencies and controlled build steps — is what stops the app from being compromised before it ever ships.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review the build pipeline's dependency sources and whether they are pinned/verified.",
+    "Assess build scripts and tools for unvetted code execution.",
+    "Check whether resources are fetched securely and verified.",
+    "Assess access controls on the pipeline and signing keys.",
+    "Compare the shipped app to expected build outputs for injected content.",
+    "Document the build supply-chain gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the build pipeline.",
+    "Map dependency and resource sources and their verification.",
+    "Assess build-script and tool integrity.",
+    "Identify unpinned/unverified inputs that could inject code.",
+    "Assess pipeline access controls and signing-key protection.",
+    "Document the build supply-chain weaknesses."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review dependency pinning",
+     "command": "# are dependencies pinned to versions/hashes and fetched from trusted registries?"
+    },
+    {
+     "label": "Assess build-script trust",
+     "command": "# do build scripts run unvetted third-party code?"
+    },
+    {
+     "label": "Check resource fetch security",
+     "command": "# are build-time resources fetched over TLS and verified?"
+    },
+    {
+     "label": "Compare shipped app to build",
+     "command": "# diff the shipped artifact against a reproducible build for injected content"
+    }
+   ],
+   "variants": [
+    "Unpinned dependency allowing a poisoned version.",
+    "Build script running unvetted third-party code.",
+    "Resource fetched insecurely at build time.",
+    "Weak pipeline/signing-key access control."
+   ],
+   "mitigation": [
+    "Pin and verify dependencies (versions/hashes) from trusted registries.",
+    "Vet and control build scripts and tools.",
+    "Fetch build resources securely and verify integrity.",
+    "Protect the pipeline and signing keys with strict access control.",
+    "Use reproducible builds to detect injected content.",
+    "Scan build inputs and outputs for tampering."
+   ],
+   "mitigationClientFacing": "The system that builds your mobile app pulls in code, tools, and files from various places. If any of those aren't checked, malicious content can be baked into the app before it ships. The fix is to lock dependencies to trusted, verified versions, control what build scripts can do, protect the build system and signing keys, and check that the shipped app matches what you expected to build.",
+   "reference": {
+    "standard": "M2:2024 - Inadequate Supply Chain Security",
+    "cwe": "CWE-1357",
+    "tools": [
+     "pipeline review",
+     "dependency scanners",
+     "reproducible builds"
+    ],
+    "links": [
+     "M2:2024 - Inadequate Supply Chain Security",
+     "MITRE ATT&CK T1195.002 (Compromise Software Supply Chain)",
+     "OWASP MASVS-CODE"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M2",
+   "categoryName": "Inadequate Supply Chain Security",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-RESILIENCE",
+     "name": "Resilience Against Reverse Engineering"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-049",
+   "domain": "MOBILE",
+   "title": "Authorization Enforced Only Client-Side in Mobile App",
+   "sequence": 732,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-602",
+   "prerequisites": "The app and a proxy (Burp/mitmproxy), and authorization to test. A valid low-privilege account.",
+   "whatItIs": "Mobile apps sometimes enforce authorization in the client — hiding features, checking roles locally — while the backend does not re-verify. Because the client runs on an attacker-controlled device, these checks are bypassable by tampering with the app or calling the API directly. This tests for client-side-only authorization.",
+   "rootCause": "Authorization is implemented in the app UI/logic for responsiveness, but the backend trusts the client and does not re-enforce it, so bypassing the client bypasses authorization.",
+   "impact": "Bypassing client-side authorization lets a low-privilege user access admin features or other users' data by tampering with the app or calling the backend directly — a privilege-escalation and data-access flaw.",
+   "realWorldContext": "Client-side-only authorization is a recurring mobile flaw: the app hides admin features, but the backend serves them to anyone who asks. Because the attacker controls the device, only server-side authorization is real — the client's checks are advisory at best.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify authorization decisions made in the app (hidden features, local role checks).",
+    "Intercept API calls and assess whether the backend re-enforces authorization.",
+    "Call privileged endpoints directly with a low-privilege account.",
+    "Tamper with the app (Frida/objection) to unlock restricted features.",
+    "Observe whether the backend honours the bypassed restrictions.",
+    "Assess the privilege-escalation/data-access impact."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test with a low-privilege account.",
+    "Map client-side authorization checks.",
+    "Call restricted endpoints directly and observe backend enforcement.",
+    "Use runtime tampering to unlock restricted features and see if the backend complies.",
+    "Demonstrate access beyond the account's privileges.",
+    "Document the client-side-only authorization flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Call a restricted endpoint directly",
+     "command": "curl -s https://<target>/api/v1/admin/data -H 'Authorization: Bearer <lowpriv-token>'"
+    },
+    {
+     "label": "Bypass client checks with Frida/objection",
+     "command": "objection -g <app> explore   # then bypass local role/feature checks"
+    },
+    {
+     "label": "Unlock hidden features",
+     "command": "# tamper with the app to reveal admin-only screens; does the backend serve them?"
+    },
+    {
+     "label": "Assess backend enforcement",
+     "command": "# does the API return 403 for out-of-role requests, or serve them?"
+    }
+   ],
+   "variants": [
+    "Hidden admin feature served by the backend when called directly.",
+    "Local role check bypassed via Frida.",
+    "Restricted data returned to a low-privilege token.",
+    "Backend trusting a client-supplied role flag."
+   ],
+   "mitigation": [
+    "Enforce all authorization server-side; never trust client-side checks.",
+    "Re-verify user role/permissions for every request at the backend.",
+    "Treat the mobile client as untrusted and tamperable.",
+    "Do not rely on hiding features in the UI for security.",
+    "Log and alert on out-of-role backend requests.",
+    "Test authorization by calling the API directly, not just via the app."
+   ],
+   "mitigationClientFacing": "Some apps decide what you're allowed to do inside the app itself — hiding admin buttons or checking your role on the phone — but the server doesn't re-check. Since the attacker controls the phone, they can bypass those checks. The fix is to enforce all permission checks on the server for every request, treating the app as untrusted, rather than relying on the app to hide things.",
+   "reference": {
+    "standard": "M3:2024 - Insecure Authentication/Authorization",
+    "cwe": "CWE-602",
+    "tools": [
+     "Frida",
+     "objection",
+     "Burp Suite",
+     "mitmproxy"
+    ],
+    "links": [
+     "M3:2024 - Insecure Authentication/Authorization",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP MASVS-AUTH"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M3",
+   "categoryName": "Insecure Authentication/Authorization",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-AUTH",
+     "name": "Authentication and Authorization"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-050",
+   "domain": "MOBILE",
+   "title": "Missing Certificate Pinning Enables MITM Interception",
+   "sequence": 733,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-295",
+   "prerequisites": "The app, a test device (rooted/jailbroken or emulator), and an intercepting proxy with its CA installed. Authorization to test.",
+   "whatItIs": "Mobile apps that use TLS but do not pin the server certificate/public key will trust any certificate the device accepts — including one from an attacker's proxy on a device where a CA can be installed. Without pinning, an attacker in a position to intercept can read and modify the app's traffic. This tests for missing certificate pinning.",
+   "rootCause": "Apps rely on the device's trust store for TLS validation and skip pinning for simplicity, so on a device where an attacker can add a CA (or via a compromised CA), interception succeeds.",
+   "impact": "Without pinning, an attacker who can install a CA or intercept traffic can read and modify all app communications — credentials, tokens, and data — a full man-in-the-middle compromise of the app's traffic.",
+   "realWorldContext": "Missing certificate pinning is one of the most common mobile findings, and it is what lets assessors (and attackers with a foothold) intercept and modify app traffic with a proxy. Pinning the server's certificate or key is the control that makes such interception fail even when a rogue CA is present.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Set up an intercepting proxy and install its CA on the test device.",
+    "Route the app's traffic through the proxy and observe whether it is intercepted.",
+    "Determine whether the app pins the certificate/public key (traffic fails when pinned).",
+    "If interception succeeds, inspect and modify traffic (credentials, tokens, data).",
+    "Test pinning-bypass resistance (does the app detect the proxy CA?).",
+    "Assess the confidentiality/integrity impact."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app's communications.",
+    "Configure the proxy and trust its CA on the test device.",
+    "Route app traffic through the proxy and check for interception.",
+    "If pinning is absent, capture and modify sensitive traffic.",
+    "Demonstrate credential/token/data exposure or manipulation.",
+    "Document the missing-pinning exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Route app traffic through a proxy",
+     "command": "# configure the device proxy to Burp/mitmproxy and install the proxy CA"
+    },
+    {
+     "label": "Observe interception",
+     "command": "# is the app's TLS traffic readable in the proxy (no pinning), or does it fail (pinned)?"
+    },
+    {
+     "label": "Capture sensitive data",
+     "command": "# extract credentials/tokens/data from the intercepted traffic"
+    },
+    {
+     "label": "Modify traffic",
+     "command": "# alter a response to test integrity handling by the app"
+    }
+   ],
+   "variants": [
+    "No pinning; traffic fully readable via proxy CA.",
+    "Weak pinning bypassable at runtime.",
+    "Sensitive data/credentials captured in transit.",
+    "Response manipulation accepted by the app."
+   ],
+   "mitigation": [
+    "Implement certificate or public-key pinning for backend connections.",
+    "Validate certificates strictly; reject unexpected CAs.",
+    "Combine pinning with TLS best practices (modern versions, strong ciphers).",
+    "Plan for pin rotation to avoid breakage.",
+    "Detect and respond to interception attempts where feasible.",
+    "Do not disable certificate validation in production builds."
+   ],
+   "mitigationClientFacing": "Apps that use encryption but don't 'pin' the server's certificate will trust any certificate the phone accepts — so on a device where an attacker can add their own, they can read and change the app's traffic. The fix is to pin the app to your specific server certificate or key, so it refuses connections through an attacker's proxy even if a fake certificate is trusted by the phone.",
+   "reference": {
+    "standard": "M5:2024 - Insecure Communication",
+    "cwe": "CWE-295",
+    "tools": [
+     "Burp Suite",
+     "mitmproxy",
+     "Frida",
+     "objection"
+    ],
+    "links": [
+     "M5:2024 - Insecure Communication",
+     "MITRE ATT&CK T1557 (Adversary-in-the-Middle)",
+     "OWASP MASVS-NETWORK"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M5",
+   "categoryName": "Insecure Communication",
+   "attack": [
+    {
+     "id": "T1521",
+     "name": "Encrypted Channel",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-051",
+   "domain": "MOBILE",
+   "title": "Exported Android Components Accessible to Other Apps",
+   "sequence": 734,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-926",
+   "prerequisites": "The APK, a test device, and analysis tools (jadx, drozer, adb). Authorization to test.",
+   "whatItIs": "Android components (activities, services, broadcast receivers, content providers) can be 'exported', making them callable by other apps on the device. If sensitive components are unintentionally exported without permission checks, a malicious app can invoke them to access data or functionality. This tests for insecurely-exported components.",
+   "rootCause": "Components are exported explicitly or implicitly (e.g. by declaring an intent filter) without adding permission checks, so other apps can reach them.",
+   "impact": "A malicious app can invoke an exported component to read/write data, trigger privileged actions, or bypass authentication — cross-app attacks that compromise the target app's data and functionality.",
+   "realWorldContext": "Insecurely-exported components are a classic Android finding: an exported content provider leaking data, or an exported activity bypassing login, reachable by any installed app. Restricting exports and adding permission checks is what prevents a malicious app from reaching internal functionality.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Analyze the manifest for exported components (android:exported=true or implicit).",
+    "Identify sensitive components lacking permission protection.",
+    "Invoke exported components from a test app / drozer / adb.",
+    "Test exported content providers for data access.",
+    "Test exported activities for authentication bypass.",
+    "Assess what a malicious app could achieve."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app's components.",
+    "Enumerate exported components from the manifest.",
+    "Invoke exported activities/services/receivers and query content providers.",
+    "Demonstrate data access or a privileged action via an exported component.",
+    "Assess permission protection (or its absence).",
+    "Document the insecure-export exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "List exported components",
+     "command": "jadx -d out app.apk && grep -A3 'android:exported=\"true\"' out/resources/AndroidManifest.xml"
+    },
+    {
+     "label": "Query an exported content provider",
+     "command": "adb shell content query --uri content://<authority>/<path>"
+    },
+    {
+     "label": "Invoke an exported activity",
+     "command": "adb shell am start -n <package>/.<ExportedActivity>   # bypass login?"
+    },
+    {
+     "label": "Use drozer to attack components",
+     "command": "drozer console connect   # run app.provider/app.activity modules against <package>"
+    }
+   ],
+   "variants": [
+    "Exported content provider leaking data.",
+    "Exported activity bypassing authentication.",
+    "Exported service performing a privileged action.",
+    "Broadcast receiver triggerable by any app."
+   ],
+   "mitigation": [
+    "Set android:exported=false for components that need not be exported.",
+    "Add permission checks (signature-level where appropriate) to exported components.",
+    "Validate the calling app's identity/permission for exported functionality.",
+    "Avoid exposing sensitive data via content providers.",
+    "Review manifest exports as part of build hardening.",
+    "Test components with drozer before release."
+   ],
+   "mitigationClientFacing": "On Android, parts of an app can be made accessible to other apps on the phone. If sensitive parts are exposed by mistake without proper checks, a malicious app can call them to steal data or trigger actions. The fix is to keep internal components private, add permission checks to any that must be shared, and verify which app is calling before doing anything sensitive.",
+   "reference": {
+    "standard": "M8:2024 - Security Misconfiguration",
+    "cwe": "CWE-926",
+    "tools": [
+     "jadx",
+     "drozer",
+     "adb",
+     "MobSF"
+    ],
+    "links": [
+     "M8:2024 - Security Misconfiguration",
+     "MITRE ATT&CK T1626 (Abuse Elevation Control)",
+     "OWASP MASVS-PLATFORM"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M8",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1626",
+     "name": "Abuse Elevation Control Mechanism",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-052",
+   "domain": "MOBILE",
+   "title": "Debuggable Flag or Debug Features Enabled in Release Build",
+   "sequence": 735,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-489",
+   "prerequisites": "The APK/IPA and analysis tools (aapt, jadx, codesign). Authorization to test.",
+   "whatItIs": "Release builds should have debugging disabled, but apps sometimes ship with android:debuggable=true, iOS get-task-allow entitlements, verbose logging, or hidden debug menus. These let an attacker attach a debugger, read logs, or reach test functionality on a shipped app. This tests for debug features in release builds.",
+   "rootCause": "Debug settings are useful during development and the step to disable them before release is missed or not enforced, so a debug-enabled build reaches production.",
+   "impact": "Debug-enabled builds let an attacker attach a debugger to inspect/modify runtime behaviour (defeating client-side checks), read verbose logs (leaking data), and reach hidden test functionality.",
+   "realWorldContext": "Shipping a debuggable release is a recurring misconfiguration that hands attackers a debugger foothold — trivially disabling root/pinning checks and reading sensitive logs. Ensuring release builds disable all debug features is basic release hardening.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Check the manifest/entitlements for debug flags (android:debuggable, get-task-allow).",
+    "Assess whether verbose logging is present in the release build.",
+    "Look for hidden debug menus or test functionality.",
+    "Attempt to attach a debugger to the running app.",
+    "Read device logs for sensitive output.",
+    "Document the debug-feature exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app.",
+    "Inspect the manifest/entitlements for debug flags.",
+    "Attempt to attach a debugger to the release build.",
+    "Read logs for sensitive information.",
+    "Reach any hidden debug/test functionality.",
+    "Document the debug misconfiguration."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check Android debuggable flag",
+     "command": "aapt dump badging app.apk | grep -i debuggable ; grep debuggable out/resources/AndroidManifest.xml"
+    },
+    {
+     "label": "Check iOS debug entitlement",
+     "command": "codesign -d --entitlements :- app.app 2>/dev/null | grep -i get-task-allow"
+    },
+    {
+     "label": "Read device logs",
+     "command": "adb logcat | grep -iE 'password|token|key|<package>'"
+    },
+    {
+     "label": "Attempt debugger attach",
+     "command": "# with debuggable=true, attach a debugger and inspect/modify runtime state"
+    }
+   ],
+   "variants": [
+    "android:debuggable=true in a release APK.",
+    "iOS get-task-allow entitlement in a release build.",
+    "Verbose logging leaking sensitive data.",
+    "Hidden debug menu reachable in production."
+   ],
+   "mitigation": [
+    "Ensure release builds disable debugging (debuggable=false, no get-task-allow).",
+    "Remove verbose logging and debug menus from release builds.",
+    "Enforce build-configuration checks in CI before release.",
+    "Strip or gate any test/debug functionality.",
+    "Verify entitlements/flags as part of release sign-off.",
+    "Detect debugger attachment where anti-tampering is warranted."
+   ],
+   "mitigationClientFacing": "Apps should have their debugging features turned off before release, but sometimes they ship with them on — letting an attacker attach debugging tools, read detailed logs, or reach hidden test screens. The fix is to make sure release builds have all debug settings and menus turned off, remove detailed logging, and check this automatically before every release. This ensures the app cannot be quietly repackaged with malicious changes and passed off to your users as the genuine article.",
+   "reference": {
+    "standard": "M8:2024 - Security Misconfiguration",
+    "cwe": "CWE-489",
+    "tools": [
+     "aapt",
+     "jadx",
+     "adb",
+     "codesign"
+    ],
+    "links": [
+     "M8:2024 - Security Misconfiguration",
+     "MITRE ATT&CK T1622 (Debugger Evasion)",
+     "OWASP MASVS-RESILIENCE"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M8",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1629",
+     "name": "Impair Defenses",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-STORAGE",
+     "name": "Data Storage"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-053",
+   "domain": "MOBILE",
+   "title": "Insecure Network Security Configuration Allows Cleartext",
+   "sequence": 736,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-319",
+   "prerequisites": "The APK and analysis tools (jadx, aapt), a test device, and a proxy. Authorization to test.",
+   "whatItIs": "Android's Network Security Configuration (and iOS App Transport Security) controls whether an app allows cleartext traffic and which CAs it trusts. A misconfiguration — allowing cleartext, trusting user-added CAs, or disabling ATS — weakens the app's communications. This tests the app's network security configuration.",
+   "rootCause": "Developers relax network security config for testing (allowing cleartext or user CAs) and ship the relaxed config, or never harden it, so the app permits insecure communication.",
+   "impact": "A permissive network config lets the app send cleartext traffic (interceptable) or trust user-added CAs (enabling MITM), exposing communications to interception and modification.",
+   "realWorldContext": "Misconfigured network security config — cleartext allowed, or user CAs trusted — is a common mobile finding that directly undermines transport security and makes interception easy. Hardening the config to require TLS and trust only system CAs is straightforward and important.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Extract and review the Network Security Configuration (Android) / ATS settings (iOS).",
+    "Check whether cleartext traffic is allowed (cleartextTrafficPermitted, NSAllowsArbitraryLoads).",
+    "Check whether user-added CAs are trusted.",
+    "Test whether the app sends cleartext or trusts a user CA (via proxy).",
+    "Assess the interception exposure.",
+    "Document the network-config misconfiguration."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app's network configuration.",
+    "Extract and review the network security config / ATS settings.",
+    "Identify cleartext allowances and user-CA trust.",
+    "Test interception via a proxy with a user-added CA.",
+    "Demonstrate cleartext or MITM exposure.",
+    "Document the misconfiguration."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Extract Android network security config",
+     "command": "jadx -d out app.apk && cat out/resources/res/xml/network_security_config.xml"
+    },
+    {
+     "label": "Check cleartext permission",
+     "command": "grep -i cleartextTrafficPermitted out/resources/res/xml/*.xml ; grep -i NSAllowsArbitraryLoads Info.plist"
+    },
+    {
+     "label": "Check user-CA trust",
+     "command": "grep -A3 'trust-anchors' out/resources/res/xml/network_security_config.xml"
+    },
+    {
+     "label": "Test interception",
+     "command": "# with a user CA installed, does the app's traffic get intercepted (user CA trusted)?"
+    }
+   ],
+   "variants": [
+    "cleartextTrafficPermitted=true allowing HTTP.",
+    "User-added CAs trusted (MITM enabler).",
+    "iOS ATS disabled (NSAllowsArbitraryLoads).",
+    "Domain-specific relaxations left from testing."
+   ],
+   "mitigation": [
+    "Disallow cleartext traffic (cleartextTrafficPermitted=false; keep ATS enabled).",
+    "Trust only system CAs; do not trust user-added CAs in production.",
+    "Remove testing relaxations before release.",
+    "Require TLS with modern versions and strong ciphers.",
+    "Combine with certificate pinning for sensitive connections.",
+    "Review network config as part of build hardening."
+   ],
+   "mitigationClientFacing": "Mobile apps have a setting that controls whether they allow unencrypted connections and which security certificates they trust. If it's misconfigured — allowing unencrypted traffic or trusting user-added certificates — the app's communications can be intercepted. The fix is to require encryption, trust only the system's built-in certificates, and remove any relaxed settings left over from testing. The result is that even if someone tampers with the installed app, it detects the change and refuses to run rather than trusting the modified code.",
+   "reference": {
+    "standard": "M8:2024 - Security Misconfiguration",
+    "cwe": "CWE-319",
+    "tools": [
+     "jadx",
+     "aapt",
+     "mitmproxy",
+     "MobSF"
+    ],
+    "links": [
+     "M8:2024 - Security Misconfiguration",
+     "MITRE ATT&CK T1557 (Adversary-in-the-Middle)",
+     "OWASP MASVS-NETWORK"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M8",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1521",
+     "name": "Encrypted Channel",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-NETWORK",
+     "name": "Network Communication"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-054",
+   "domain": "MOBILE",
+   "title": "Weak or Hardcoded Encryption Keys in Mobile App",
+   "sequence": 737,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-321",
+   "prerequisites": "The APK/IPA and analysis tools (jadx, apktool), a test device. Authorization to reverse-engineer.",
+   "whatItIs": "Apps that encrypt local data must protect the encryption key. If the key is hardcoded in the binary, derived from a predictable value, or stored insecurely, an attacker can recover it and decrypt the protected data. This tests for weak or hardcoded encryption keys.",
+   "rootCause": "Developers hardcode or trivially-derive keys for simplicity, and because the app runs on a controlled device, the key is recoverable — defeating the encryption entirely.",
+   "impact": "A recovered key lets an attacker decrypt all data the app 'protected', exposing credentials, tokens, and sensitive local data — making the encryption effectively useless.",
+   "realWorldContext": "Hardcoded and predictably-derived encryption keys are a common mobile crypto failure: the data is encrypted, but the key is right there in the binary. Deriving keys from user secrets and storing them in the platform keystore is what makes local encryption meaningful.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify where the app encrypts local data and which key it uses.",
+    "Search the binary for hardcoded keys and key-derivation logic.",
+    "Assess whether keys are predictable or device-independent.",
+    "Recover a key and decrypt protected data.",
+    "Check whether the platform keystore is used.",
+    "Assess the impact of key recovery."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to reverse-engineer and test the app.",
+    "Locate encryption usage and key handling.",
+    "Extract or reconstruct the key from the binary/derivation.",
+    "Decrypt protected local data with the recovered key.",
+    "Assess whether keystore-backed keys would have prevented this.",
+    "Document the weak-key exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Search for hardcoded keys",
+     "command": "jadx -d src app.apk && grep -rniE 'SecretKeySpec|AES|\"[A-Za-z0-9+/]{16,}=\"|key ?=' src/"
+    },
+    {
+     "label": "Assess key derivation",
+     "command": "# is the key derived from a predictable/device-independent value?"
+    },
+    {
+     "label": "Recover and decrypt data",
+     "command": "# reconstruct the key and decrypt the app's protected local data"
+    },
+    {
+     "label": "Check keystore usage",
+     "command": "# does the app use the Android Keystore / iOS Keychain for keys?"
+    }
+   ],
+   "variants": [
+    "Hardcoded AES key in the binary.",
+    "Key derived from a predictable constant.",
+    "Device-independent key (same across installs).",
+    "Key stored insecurely instead of the keystore."
+   ],
+   "mitigation": [
+    "Derive keys from user secrets and/or store them in the platform keystore (Android Keystore / iOS Keychain).",
+    "Never hardcode keys in the binary.",
+    "Use strong, per-device/per-user keys, not device-independent constants.",
+    "Use authenticated encryption (e.g. AES-GCM) with proper key management.",
+    "Leverage hardware-backed key storage where available.",
+    "Review crypto key handling as part of security testing."
+   ],
+   "mitigationClientFacing": "If an app encrypts data on the phone but hides the key inside the app or builds it from something predictable, an attacker can recover the key and decrypt everything — making the encryption pointless. The fix is to store encryption keys in the phone's secure hardware-backed keystore, derive them from user secrets where appropriate, and never build keys into the app.",
+   "reference": {
+    "standard": "M10:2024 - Insufficient Cryptography",
+    "cwe": "CWE-321",
+    "tools": [
+     "jadx",
+     "apktool",
+     "Frida",
+     "MobSF"
+    ],
+    "links": [
+     "M10:2024 - Insufficient Cryptography",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "OWASP MASVS-CRYPTO"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M10",
+   "categoryName": "Insufficient Cryptography",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-STORAGE",
+     "name": "Data Storage"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-055",
+   "domain": "MOBILE",
+   "title": "Use of Weak or Broken Cryptographic Algorithms",
+   "sequence": 738,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-327",
+   "prerequisites": "The APK/IPA and analysis tools (jadx, MobSF). Authorization to analyze the app.",
+   "whatItIs": "Apps sometimes use weak or broken cryptographic algorithms — MD5/SHA1 for security purposes, DES/ECB-mode encryption, or custom crypto. These provide little real protection and can be broken. This tests for use of weak cryptographic algorithms.",
+   "rootCause": "Legacy or misunderstood crypto choices persist (copied code, old libraries), and there is often no review of algorithm strength, so weak algorithms remain in use.",
+   "impact": "Weak algorithms let an attacker break encryption, forge hashes, or bypass integrity checks, defeating the protection the crypto was meant to provide (data confidentiality, integrity, authentication).",
+   "realWorldContext": "Weak-crypto findings — MD5 for passwords, ECB-mode encryption revealing patterns, home-grown ciphers — are staples of mobile assessments. Using vetted, strong algorithms with correct modes is basic crypto hygiene that weak choices repeatedly violate.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify cryptographic usage in the app (hashing, encryption, signing).",
+    "Detect weak algorithms (MD5/SHA1 for security, DES, ECB mode, custom crypto).",
+    "Assess how each is used (passwords, data, integrity).",
+    "Determine the exploitability of each weakness.",
+    "Check for correct modes/parameters (IV, authenticated encryption).",
+    "Document the weak-crypto usage."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to analyze the app's cryptography.",
+    "Enumerate crypto algorithm usage from the code.",
+    "Flag weak/broken algorithms and misused modes.",
+    "Assess the impact of each weakness (e.g. ECB pattern leakage, MD5 collision).",
+    "Demonstrate exploitability where safe and in scope.",
+    "Document the weak-cryptography findings."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Search for weak algorithm usage",
+     "command": "jadx -d src app.apk && grep -rniE 'MD5|SHA1|DES|ECB|RC4|Cipher.getInstance\\(\"AES\"' src/"
+    },
+    {
+     "label": "Automated crypto scan",
+     "command": "# run MobSF and review its weak-cryptography findings"
+    },
+    {
+     "label": "Assess mode/parameters",
+     "command": "# is ECB used (pattern leakage)? is a static IV used? is encryption authenticated?"
+    },
+    {
+     "label": "Assess usage context",
+     "command": "# is MD5/SHA1 used for passwords/integrity where it must not be?"
+    }
+   ],
+   "variants": [
+    "MD5/SHA1 used for password hashing or integrity.",
+    "DES/3DES or RC4 encryption.",
+    "AES in ECB mode leaking patterns.",
+    "Custom/home-grown cryptography."
+   ],
+   "mitigation": [
+    "Use strong, vetted algorithms (AES-GCM, SHA-256+, Argon2/bcrypt for passwords).",
+    "Avoid ECB mode; use authenticated encryption with proper IVs.",
+    "Never roll custom cryptography; use platform crypto libraries.",
+    "Use appropriate algorithms for each purpose (KDF for passwords, AEAD for data).",
+    "Review crypto choices against current best practice.",
+    "Scan for weak-crypto usage in CI."
+   ],
+   "mitigationClientFacing": "Apps sometimes use outdated or broken encryption methods (like old hashing or weak ciphers) that provide little real protection and can be broken. The fix is to use modern, well-tested encryption and hashing methods with the correct settings, use proper password-hashing for passwords, and never invent your own cryptography. With modern, well-tested encryption in place, the data the app protects stays protected rather than being unlocked by an easily broken algorithm.",
+   "reference": {
+    "standard": "M10:2024 - Insufficient Cryptography",
+    "cwe": "CWE-327",
+    "tools": [
+     "jadx",
+     "MobSF",
+     "apktool"
+    ],
+    "links": [
+     "M10:2024 - Insufficient Cryptography",
+     "MITRE ATT&CK T1600 (Weaken Encryption)",
+     "OWASP MASVS-CRYPTO"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M10",
+   "categoryName": "Insufficient Cryptography",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-056",
+   "domain": "MOBILE",
+   "title": "Predictable Random Number Generation for Security Values",
+   "sequence": 739,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-338",
+   "prerequisites": "The APK/IPA and analysis tools (jadx). Authorization to analyze the app.",
+   "whatItIs": "Security-sensitive values — tokens, session identifiers, nonces, keys — must be generated with a cryptographically secure random number generator. If an app uses a predictable RNG (java.util.Random, rand()) for these, an attacker may predict or reproduce them. This tests for insecure randomness in security contexts.",
+   "rootCause": "Developers use the default/convenient RNG without realizing it is not cryptographically secure, so predictable values are produced for security-sensitive purposes.",
+   "impact": "Predictable security values let an attacker guess tokens, hijack sessions, or reproduce keys/nonces, undermining authentication, session management, and cryptographic protections.",
+   "realWorldContext": "Insecure randomness for tokens and session IDs has enabled session hijacking and token prediction in real apps. Using a cryptographically secure RNG (SecureRandom) for all security-sensitive values is the fix, and using the default RNG for them is a recurring mistake.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify generation of security-sensitive values (tokens, session IDs, nonces, keys).",
+    "Determine which RNG is used (secure vs predictable).",
+    "Detect use of java.util.Random / rand() / Math.random for security values.",
+    "Assess predictability and seeding.",
+    "Where feasible, demonstrate prediction/reproduction.",
+    "Document the insecure-randomness usage."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to analyze the app.",
+    "Locate security-sensitive value generation in the code.",
+    "Identify the RNG used and whether it is cryptographically secure.",
+    "Assess predictability (seed, algorithm).",
+    "Demonstrate prediction/reproduction where safe and in scope.",
+    "Document the insecure-randomness finding."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Search for insecure RNG usage",
+     "command": "jadx -d src app.apk && grep -rniE 'java\\.util\\.Random|Math\\.random|new Random\\(' src/"
+    },
+    {
+     "label": "Assess usage context",
+     "command": "# are these used to generate tokens/session IDs/nonces/keys?"
+    },
+    {
+     "label": "Check seeding",
+     "command": "# is the RNG seeded predictably (time-based)?"
+    },
+    {
+     "label": "Attempt prediction",
+     "command": "# where safe, demonstrate that generated security values are predictable"
+    }
+   ],
+   "variants": [
+    "java.util.Random used for tokens/session IDs.",
+    "Predictable time-based seeding.",
+    "Math.random for a security nonce.",
+    "Reproducible key/IV generation."
+   ],
+   "mitigation": [
+    "Use a cryptographically secure RNG (SecureRandom) for all security-sensitive values.",
+    "Never use java.util.Random / rand() / Math.random for security purposes.",
+    "Ensure sufficient entropy and secure seeding.",
+    "Generate tokens/session IDs/nonces/keys with vetted crypto libraries.",
+    "Review randomness usage in security contexts.",
+    "Scan for insecure RNG in CI."
+   ],
+   "mitigationClientFacing": "Security values like login tokens and session IDs must be truly unpredictable, but if an app uses an ordinary (non-secure) random generator for them, an attacker may be able to predict or reproduce them and hijack sessions. The fix is to always use a proper cryptographically-secure random generator for anything security-sensitive. The payoff is that security values like tokens and keys are truly unpredictable, so an attacker cannot guess them and impersonate a user.",
+   "reference": {
+    "standard": "M10:2024 - Insufficient Cryptography",
+    "cwe": "CWE-338",
+    "tools": [
+     "jadx",
+     "MobSF",
+     "apktool"
+    ],
+    "links": [
+     "M10:2024 - Insufficient Cryptography",
+     "MITRE ATT&CK T1539 (Steal Web Session Cookie)",
+     "OWASP MASVS-CRYPTO"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M10",
+   "categoryName": "Insufficient Cryptography",
+   "attack": [
+    {
+     "id": "T1550.001",
+     "name": "Application Access Token",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-057",
+   "domain": "MOBILE",
+   "title": "Sensitive Data Encrypted Without Integrity Protection",
+   "sequence": 740,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-353",
+   "prerequisites": "The APK/IPA, a test device, and analysis tools. Authorization to test.",
+   "whatItIs": "Encrypting data provides confidentiality but not integrity: if an app uses unauthenticated encryption (e.g. AES-CBC without a MAC), an attacker who can modify the ciphertext may tamper with the decrypted data undetected, potentially via padding-oracle or bit-flipping attacks. This tests for missing integrity protection on encrypted data.",
+   "rootCause": "Developers use encryption modes that provide confidentiality only (CBC/CTR without a MAC) and assume encryption implies integrity, leaving ciphertext malleable.",
+   "impact": "Without integrity protection, an attacker can tamper with encrypted data (bit-flipping, padding-oracle) to alter decrypted values or extract plaintext, undermining the data's trustworthiness and sometimes confidentiality.",
+   "realWorldContext": "Missing integrity on encrypted data enables padding-oracle and bit-flipping attacks that have broken real systems. Using authenticated encryption (AES-GCM or encrypt-then-MAC) is the fix, and unauthenticated CBC without a MAC is a recurring weakness.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify encrypted data storage/transmission and the mode used.",
+    "Detect unauthenticated encryption (CBC/CTR without a MAC).",
+    "Assess whether ciphertext can be modified and still decrypt (no integrity check).",
+    "Test bit-flipping / padding-oracle susceptibility where applicable.",
+    "Assess the tampering/plaintext-recovery impact.",
+    "Document the missing-integrity weakness."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app's cryptography.",
+    "Locate encryption usage and its mode/integrity handling.",
+    "Determine whether integrity (MAC/AEAD) is applied.",
+    "Attempt controlled ciphertext modification and observe whether it is detected.",
+    "Where applicable, demonstrate bit-flipping/padding-oracle effects safely.",
+    "Document the integrity gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Identify encryption mode",
+     "command": "jadx -d src app.apk && grep -rniE 'AES/CBC|AES/CTR|Cipher.getInstance' src/   # MAC/GCM present?"
+    },
+    {
+     "label": "Test ciphertext malleability",
+     "command": "# modify a stored/transmitted ciphertext and check whether decryption still succeeds"
+    },
+    {
+     "label": "Assess integrity handling",
+     "command": "# is a MAC verified, or is decryption trusted unconditionally?"
+    },
+    {
+     "label": "Test bit-flipping impact",
+     "command": "# where applicable, flip bits to alter a known plaintext field and observe the effect"
+    }
+   ],
+   "variants": [
+    "AES-CBC without a MAC (malleable ciphertext).",
+    "Bit-flipping altering decrypted values.",
+    "Padding-oracle susceptibility.",
+    "Trusting decrypted data without integrity verification."
+   ],
+   "mitigation": [
+    "Use authenticated encryption (AES-GCM) or encrypt-then-MAC.",
+    "Verify integrity (MAC/AEAD tag) before trusting decrypted data.",
+    "Avoid unauthenticated modes for sensitive data.",
+    "Use vetted crypto libraries with secure defaults.",
+    "Handle decryption/verification failures securely (no padding oracle).",
+    "Review encryption for integrity protection."
+   ],
+   "mitigationClientFacing": "Encrypting data keeps it secret but doesn't stop someone from tampering with it unless you also add an integrity check. Without one, an attacker can alter the encrypted data in ways that change the result when it's decrypted. The fix is to use encryption that also verifies integrity (authenticated encryption) and to reject any data whose integrity check fails. This ensures encrypted data cannot be silently altered without detection, closing a gap that encryption alone does not cover.",
+   "reference": {
+    "standard": "M10:2024 - Insufficient Cryptography",
+    "cwe": "CWE-353",
+    "tools": [
+     "jadx",
+     "Frida",
+     "MobSF"
+    ],
+    "links": [
+     "M10:2024 - Insufficient Cryptography",
+     "MITRE ATT&CK T1565.001 (Stored Data Manipulation)",
+     "OWASP MASVS-CRYPTO"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M10",
+   "categoryName": "Insufficient Cryptography",
+   "attack": [
+    {
+     "id": "T1409",
+     "name": "Stored Application Data",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-CRYPTO",
+     "name": "Cryptography"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-058",
+   "domain": "MOBILE",
+   "title": "Biometric Authentication Bypassable via Runtime Hooking",
+   "sequence": 756,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-287",
+   "prerequisites": "The app, a rooted/jailbroken test device, and instrumentation tools (Frida, objection). Authorization to test.",
+   "whatItIs": "Apps use biometrics (fingerprint/face) to gate access, but if the biometric result is checked in the app without being cryptographically bound to a keystore operation, an attacker can hook the callback to force a success. This tests whether biometric authentication is implemented securely or can be bypassed by runtime manipulation.",
+   "rootCause": "Biometric APIs can be used in a weak 'event-bound' way (a success callback the app trusts) rather than a strong 'crypto-bound' way (a keystore key released only on biometric success). The weak form is bypassable by hooking the callback.",
+   "impact": "Bypassing biometric authentication grants access to protected functionality/data without the biometric, defeating the control — especially impactful where biometrics gate sensitive features or data.",
+   "realWorldContext": "Biometric-bypass via Frida hooking the success callback is a standard mobile test, and apps that use the event-bound biometric API rather than binding a keystore key to the biometric are routinely defeated. Crypto-bound biometrics (a key released only on success) is the secure pattern.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify where biometrics gate access in the app.",
+    "Determine whether biometrics are crypto-bound (keystore key released on success) or merely event-bound.",
+    "Hook the biometric callback/result at runtime to force success.",
+    "Observe whether protected functionality becomes accessible.",
+    "Assess whether a keystore-bound key would have prevented the bypass.",
+    "Document the biometric-authentication weakness."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test on a rooted/jailbroken device.",
+    "Locate the biometric authentication logic.",
+    "Determine the binding model (event vs crypto-bound).",
+    "Hook the success callback/result with Frida/objection to force success.",
+    "Confirm access to protected functionality without the biometric.",
+    "Document the bypass and the insecure implementation."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inspect biometric usage",
+     "command": "objection -g <app> explore   # then: android hooking search classes Biometric"
+    },
+    {
+     "label": "Bypass the biometric prompt",
+     "command": "objection -g <app> explore -c 'android hooking watch class_method <BiometricCallback>.onAuthenticationSucceeded'"
+    },
+    {
+     "label": "Force success with Frida",
+     "command": "frida -U -f <app> -l biometric-bypass.js   # override onAuthenticationSucceeded / result"
+    },
+    {
+     "label": "Assess crypto-binding",
+     "command": "# is a keystore key released only on biometric success, or is a boolean trusted?"
+    }
+   ],
+   "variants": [
+    "Event-bound biometric callback hooked to force success.",
+    "Biometric result trusted as a boolean.",
+    "No keystore key bound to biometric success.",
+    "Fallback to a weaker method bypassing biometrics."
+   ],
+   "mitigation": [
+    "Use crypto-bound biometrics: release a keystore key only on biometric success (setUserAuthenticationRequired).",
+    "Do not trust a biometric success callback as a boolean.",
+    "Bind sensitive operations to the keystore-protected key.",
+    "Detect rooting/instrumentation as defense-in-depth.",
+    "Enforce sensitive checks server-side where possible.",
+    "Test biometric flows against runtime hooking."
+   ],
+   "mitigationClientFacing": "Apps that unlock features with your fingerprint or face can be bypassed if they simply trust a 'success' signal, because an attacker can fake that signal on a device they control. The fix is to tie the biometric to the phone's secure hardware — so that a protected key is only released on a genuine biometric success — rather than trusting a simple yes/no result.",
+   "reference": {
+    "standard": "M3:2024 - Insecure Authentication/Authorization",
+    "cwe": "CWE-287",
+    "tools": [
+     "Frida",
+     "objection",
+     "jadx"
+    ],
+    "links": [
+     "M3:2024 - Insecure Authentication/Authorization",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP MASVS-AUTH"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M3",
+   "categoryName": "Insecure Authentication/Authorization",
+   "attack": [
+    {
+     "id": "T1417",
+     "name": "Input Capture",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-STORAGE",
+     "name": "Data Storage"
+    }
+   ]
+  },
+  {
+   "id": "MOBILE-059",
+   "domain": "MOBILE",
+   "title": "App Accepts Invalid or Self-Signed TLS Certificates",
+   "sequence": 757,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-295",
+   "prerequisites": "The app, a test device, and an intercepting proxy with an invalid/self-signed certificate. Authorization to test.",
+   "whatItIs": "Some apps disable or weaken TLS certificate validation — accepting self-signed, expired, or hostname-mismatched certificates — often from leftover debug code. This lets any attacker with a self-signed certificate intercept the app's traffic. This tests whether the app properly validates TLS certificates.",
+   "rootCause": "Certificate validation is disabled during development (custom TrustManager accepting all, hostname verifier returning true) and shipped, so the app trusts invalid certificates.",
+   "impact": "An app that accepts invalid certificates can be intercepted by any attacker presenting a self-signed certificate, exposing all traffic — credentials, tokens, data — to reading and modification.",
+   "realWorldContext": "Apps shipping with certificate validation disabled (accept-all TrustManager, no-op hostname verifier) are a recurring critical finding — any proxy with a self-signed cert intercepts the traffic. Proper certificate validation (and pinning) is the fix, and leftover debug trust code is the common cause.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Route the app's traffic through a proxy presenting an invalid/self-signed certificate (not trusted by the device).",
+    "Observe whether the app still connects (accepting the invalid cert) or fails.",
+    "Test expired and hostname-mismatched certificates.",
+    "If accepted, intercept and inspect/modify traffic.",
+    "Inspect the app for accept-all TrustManager / no-op hostname verifier.",
+    "Assess the interception exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the app's TLS validation.",
+    "Configure a proxy with an invalid/self-signed certificate not trusted by the device.",
+    "Route app traffic and observe whether the invalid cert is accepted.",
+    "If accepted, capture sensitive traffic.",
+    "Confirm the weak validation in the app code.",
+    "Document the certificate-validation flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Present an untrusted self-signed cert",
+     "command": "# proxy the app with a self-signed cert NOT installed on the device; does the app connect?"
+    },
+    {
+     "label": "Test expired/mismatched certs",
+     "command": "# present expired and wrong-hostname certs and observe acceptance"
+    },
+    {
+     "label": "Inspect trust code",
+     "command": "jadx -d src app.apk && grep -rniE 'checkServerTrusted|TrustManager|HostnameVerifier|ALLOW_ALL' src/"
+    },
+    {
+     "label": "Capture traffic if accepted",
+     "command": "# extract credentials/tokens/data from the intercepted traffic"
+    }
+   ],
+   "variants": [
+    "Accept-all TrustManager trusting any certificate.",
+    "No-op hostname verifier (returns true).",
+    "Expired/self-signed cert accepted.",
+    "Hostname-mismatched cert accepted."
+   ],
+   "mitigation": [
+    "Enforce strict TLS certificate validation; never accept invalid certificates.",
+    "Remove any accept-all TrustManager / no-op hostname verifier before release.",
+    "Validate the certificate chain, expiry, and hostname.",
+    "Add certificate/public-key pinning for sensitive connections.",
+    "Fail closed on validation errors in production.",
+    "Scan for disabled certificate validation in CI."
+   ],
+   "mitigationClientFacing": "Some apps are set to accept any security certificate — even fake ones — usually because a testing shortcut was left in. This lets any attacker with a fake certificate read and change the app's traffic. The fix is to properly check that the server's certificate is genuine, valid, and for the right site, remove any 'accept everything' testing code before release, and ideally pin to your specific certificate.",
+   "reference": {
+    "standard": "M5:2024 - Insecure Communication",
+    "cwe": "CWE-295",
+    "tools": [
+     "Burp Suite",
+     "mitmproxy",
+     "jadx",
+     "Frida"
+    ],
+    "links": [
+     "M5:2024 - Insecure Communication",
+     "MITRE ATT&CK T1557 (Adversary-in-the-Middle)",
+     "OWASP MASVS-NETWORK"
+    ]
+   },
+   "categoryStandard": "OWASP Mobile Top 10:2024",
+   "categoryCode": "M5",
+   "categoryName": "Insecure Communication",
+   "attack": [
+    {
+     "id": "T1521",
+     "name": "Encrypted Channel",
+     "matrix": "mobile"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP MASVS v2",
+     "code": "MASVS-NETWORK",
+     "name": "Network Communication"
+    }
+   ]
   }
  ]
 }

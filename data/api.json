@@ -4170,6 +4170,1421 @@
      "name": "Authorization"
     }
    ]
+  },
+  {
+   "id": "API-042",
+   "domain": "API",
+   "title": "Administrative API Endpoint Accessible to Standard Users",
+   "sequence": 714,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-285",
+   "prerequisites": "A valid standard-user API token and knowledge/enumeration of admin endpoints. Burp Suite and an API client.",
+   "whatItIs": "APIs often expose administrative functions (user management, config, deletion) on separate endpoints, protected only by the UI hiding them rather than by server-side authorization. A standard user who discovers and calls the admin endpoint directly may perform admin actions. This tests function-level authorization on administrative API operations.",
+   "rootCause": "Authorization is enforced in the UI (hiding admin buttons) but not re-checked at the API for the function itself. The endpoint trusts that only admins would call it.",
+   "impact": "A standard user calling admin endpoints can create/delete users, change roles, or alter configuration — a privilege escalation to administrative control of the application.",
+   "realWorldContext": "Broken function-level authorization is a top API risk precisely because admin endpoints are frequently guarded only by UI obscurity; assessors routinely escalate from a normal account to admin by calling the hidden endpoint directly. The server must check the function, not assume the client won't ask.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate API endpoints, including admin-oriented paths (/admin, /users, /config).",
+    "Authenticate as a standard user and capture the token.",
+    "Call admin endpoints directly with the standard-user token.",
+    "Observe whether admin functions execute without an authorization error.",
+    "Test both documented and guessable/undocumented admin operations.",
+    "Assess whether authorization is enforced server-side per function."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test with a standard-user account.",
+    "Map admin endpoints from documentation, JS, or enumeration.",
+    "Invoke each admin endpoint with the standard-user token.",
+    "Demonstrate a successful admin action (e.g. role change) as a standard user.",
+    "Assess the breadth of accessible admin functions.",
+    "Document the function-level authorization failure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Call an admin endpoint as a standard user",
+     "command": "curl -s https://<target>/api/v1/admin/users -H 'Authorization: Bearer <standard-user-token>'"
+    },
+    {
+     "label": "Attempt an admin action",
+     "command": "curl -s -X POST https://<target>/api/v1/admin/users/<id>/role -H 'Authorization: Bearer <standard-user-token>' -d '{\"role\":\"admin\"}'"
+    },
+    {
+     "label": "Enumerate hidden admin routes",
+     "command": "ffuf -u https://<target>/api/v1/FUZZ -w admin-endpoints.txt -H 'Authorization: Bearer <standard-user-token>'"
+    },
+    {
+     "label": "Test method-based bypass",
+     "command": "curl -s -X DELETE https://<target>/api/v1/users/<id> -H 'Authorization: Bearer <standard-user-token>'"
+    }
+   ],
+   "variants": [
+    "Admin endpoint callable with a standard token.",
+    "HTTP-method-based authorization gap (GET allowed, DELETE not checked).",
+    "Undocumented admin operation reachable.",
+    "Role-change function unprotected."
+   ],
+   "mitigation": [
+    "Enforce function-level authorization server-side on every admin operation.",
+    "Deny by default; require explicit admin role for admin endpoints.",
+    "Do not rely on UI hiding to protect functions.",
+    "Apply consistent authorization across all HTTP methods.",
+    "Log and alert on admin-function calls by non-admins.",
+    "Test authorization on every endpoint, documented or not."
+   ],
+   "mitigationClientFacing": "Apps often have admin features on separate API addresses, protected only by hiding the buttons — not by a real server-side check. A normal user who finds the admin address can perform admin actions. The fix is to check on the server, for every admin operation, that the user is actually an admin — never relying on the app hiding things — and to log when non-admins try.",
+   "reference": {
+    "standard": "API5:2023 - Broken Function Level Authorization",
+    "cwe": "CWE-285",
+    "tools": [
+     "Burp Suite",
+     "ffuf",
+     "Postman",
+     "curl"
+    ],
+    "links": [
+     "API5:2023 - Broken Function Level Authorization",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP WSTG-ATHZ-02 (Function Level Authorization)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API5",
+   "categoryName": "Broken Function Level Authorization",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ATHZ",
+     "name": "Authorization"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V8",
+     "name": "Authorization"
+    }
+   ]
+  },
+  {
+   "id": "API-043",
+   "domain": "API",
+   "title": "Role Enforcement Missing on State-Changing API Methods",
+   "sequence": 715,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-862",
+   "prerequisites": "A valid lower-privilege API token and mapping of state-changing operations. Burp Suite.",
+   "whatItIs": "APIs may correctly restrict read operations by role but forget to enforce the same restrictions on state-changing methods (POST/PUT/PATCH/DELETE). A lower-privilege user who can only view data via the API may still be able to modify or delete it by calling the write method. This tests role enforcement on write operations.",
+   "rootCause": "Read authorization is implemented and tested, but write-method authorization is inconsistently applied, so state-changing calls slip through with only read-level authorization.",
+   "impact": "A read-only user modifying or deleting data via unprotected write methods can corrupt or destroy data and escalate their effective privileges, breaking the intended role model.",
+   "realWorldContext": "Inconsistent authorization across HTTP methods is a common API flaw — apps guard the GET but not the DELETE. Assessors regularly find read-only users able to write or delete, because the write path was never authorization-checked, turning a viewer into an editor.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify operations restricted for the lower-privilege role on read.",
+    "Enumerate the corresponding write methods (POST/PUT/PATCH/DELETE).",
+    "Call each write method with the lower-privilege token.",
+    "Observe whether the state change succeeds without an authorization error.",
+    "Test data modification and deletion specifically.",
+    "Assess whether write authorization matches read authorization."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test with a lower-privilege account.",
+    "Map read-restricted resources and their write endpoints.",
+    "Invoke write methods with the lower-privilege token.",
+    "Demonstrate an unauthorized modification/deletion.",
+    "Assess the scope of writable resources.",
+    "Document the write-authorization gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Attempt a write as a read-only user",
+     "command": "curl -s -X PUT https://<target>/api/v1/records/<id> -H 'Authorization: Bearer <readonly-token>' -d '{\"field\":\"changed\"}'"
+    },
+    {
+     "label": "Attempt a delete",
+     "command": "curl -s -X DELETE https://<target>/api/v1/records/<id> -H 'Authorization: Bearer <readonly-token>'"
+    },
+    {
+     "label": "Compare read vs write authorization",
+     "command": "# GET returns 403 but PUT/DELETE succeed? that is the gap"
+    },
+    {
+     "label": "Test PATCH partial update",
+     "command": "curl -s -X PATCH https://<target>/api/v1/records/<id> -H 'Authorization: Bearer <readonly-token>' -d '{\"status\":\"approved\"}'"
+    }
+   ],
+   "variants": [
+    "Read-only user able to PUT/PATCH data.",
+    "Read-only user able to DELETE resources.",
+    "Approval/status change via unprotected PATCH.",
+    "Write authorization weaker than read."
+   ],
+   "mitigation": [
+    "Enforce role authorization consistently across all HTTP methods.",
+    "Apply the same or stricter checks to state-changing operations as to reads.",
+    "Deny writes by default for lower-privilege roles.",
+    "Centralize authorization so read/write cannot diverge.",
+    "Log and alert on write operations by read-only roles.",
+    "Test every method on every endpoint."
+   ],
+   "mitigationClientFacing": "Sometimes an app correctly stops a user from viewing something but forgets to stop them from changing or deleting it through the API. The fix is to apply the same access checks to every kind of action — viewing, changing, and deleting alike — so a view-only user can't quietly edit or delete data, and to log when they try.",
+   "reference": {
+    "standard": "API5:2023 - Broken Function Level Authorization",
+    "cwe": "CWE-862",
+    "tools": [
+     "Burp Suite",
+     "Postman",
+     "curl"
+    ],
+    "links": [
+     "API5:2023 - Broken Function Level Authorization",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP WSTG-ATHZ-02 (Function Level Authorization)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API5",
+   "categoryName": "Broken Function Level Authorization",
+   "attack": [
+    {
+     "id": "T1213",
+     "name": "Data from Information Repositories",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ATHZ",
+     "name": "Authorization"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V8",
+     "name": "Authorization"
+    }
+   ]
+  },
+  {
+   "id": "API-044",
+   "domain": "API",
+   "title": "Privilege Escalation via Parameter-Based Role Assignment",
+   "sequence": 716,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-269",
+   "prerequisites": "A valid standard-user API token and the ability to observe/modify request bodies. Burp Suite.",
+   "whatItIs": "Some APIs let the client supply role or privilege parameters (role, isAdmin, permissions) in a request the server trusts. A standard user who adds or modifies such a parameter during registration, profile update, or another call may grant themselves elevated privileges. This tests for client-controllable privilege assignment.",
+   "rootCause": "The server trusts client-supplied role/privilege fields instead of assigning them server-side based on authenticated context. Mass-assignment or missing server-side enforcement lets the client set its own role.",
+   "impact": "A standard user assigning themselves an admin role or extra permissions via a request parameter escalates to elevated privileges directly, bypassing the intended role model.",
+   "realWorldContext": "Mass-assignment privilege escalation — sending isAdmin:true or role:admin in a profile update — has produced real account-takeover and privilege-escalation findings, because the API bound the client's field straight to the user record. The server must decide roles, never the client.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify requests where role/privilege might be client-supplied (registration, profile update, invites).",
+    "Inspect request bodies and responses for role/permission fields.",
+    "Add or modify a role/privilege parameter as a standard user.",
+    "Observe whether the elevated role is assigned.",
+    "Test mass-assignment of unexpected privilege fields.",
+    "Assess whether roles are assigned server-side from authenticated context."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test with a standard-user account.",
+    "Map requests that touch role/privilege data.",
+    "Inject or modify a role/privilege field (e.g. role:admin) in a request.",
+    "Verify whether the account gains elevated privileges.",
+    "Test mass-assignment of hidden privilege fields.",
+    "Document the client-controllable role-assignment flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inject a role field on profile update",
+     "command": "curl -s -X PATCH https://<target>/api/v1/me -H 'Authorization: Bearer <standard-token>' -d '{\"name\":\"x\",\"role\":\"admin\"}'"
+    },
+    {
+     "label": "Mass-assign a privilege flag",
+     "command": "curl -s -X PATCH https://<target>/api/v1/me -H 'Authorization: Bearer <standard-token>' -d '{\"isAdmin\":true}'"
+    },
+    {
+     "label": "Set role at registration",
+     "command": "curl -s -X POST https://<target>/api/v1/register -d '{\"email\":\"a@example.test\",\"password\":\"x\",\"role\":\"admin\"}'"
+    },
+    {
+     "label": "Confirm elevated access",
+     "command": "curl -s https://<target>/api/v1/admin/users -H 'Authorization: Bearer <standard-token>'   # now permitted?"
+    }
+   ],
+   "variants": [
+    "role:admin accepted in a profile update.",
+    "isAdmin:true mass-assigned.",
+    "Role set during self-registration.",
+    "Permissions array client-controllable."
+   ],
+   "mitigation": [
+    "Assign roles/privileges server-side from authenticated context, never from client input.",
+    "Use allow-lists for updatable fields; reject role/privilege fields from clients.",
+    "Prevent mass-assignment by binding only intended fields.",
+    "Require separate, authorized workflows for role changes.",
+    "Log and alert on role/privilege changes.",
+    "Test for client-controllable privilege fields on every write."
+   ],
+   "mitigationClientFacing": "Some APIs let the app trust a 'role' or 'admin' value sent by the user's own device, so a normal user can add it and make themselves an admin. The fix is to always decide a user's role on the server based on who they are — never accept a role or permission value from the user's request — and to route real role changes through a proper, authorized process.",
+   "reference": {
+    "standard": "API5:2023 - Broken Function Level Authorization",
+    "cwe": "CWE-269",
+    "tools": [
+     "Burp Suite",
+     "Postman",
+     "curl"
+    ],
+    "links": [
+     "API5:2023 - Broken Function Level Authorization",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "OWASP WSTG-ATHZ-03 (Privilege Escalation)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API5",
+   "categoryName": "Broken Function Level Authorization",
+   "attack": [
+    {
+     "id": "T1068",
+     "name": "Exploitation for Privilege Escalation",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ATHZ",
+     "name": "Authorization"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V8",
+     "name": "Authorization"
+    }
+   ]
+  },
+  {
+   "id": "API-045",
+   "domain": "API",
+   "title": "Automated Abuse of Purchase/Checkout Flow",
+   "sequence": 717,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-799",
+   "prerequisites": "A valid account and the ability to script API calls. Burp Suite and a scripting environment.",
+   "whatItIs": "Sensitive business flows (checkout, limited-stock purchase, ticket booking) assume a human pace. If the API does not restrict automation, an attacker can script the flow to buy out limited stock, snap up all tickets, or resell at scale — harming the business and other customers. This tests whether sensitive purchase flows resist automation.",
+   "rootCause": "The flow is designed for human use but the API enforces no anti-automation (rate limits, human verification, per-user caps), so a script completes it far faster and at scale.",
+   "impact": "Automated abuse of a purchase flow lets an attacker corner limited stock (scalping), deny availability to real customers, and profit from resale — a business-logic harm even without any technical breach.",
+   "realWorldContext": "Sneaker-bot and ticket-scalping abuse are exactly this: scripts complete the checkout flow at superhuman speed to buy out limited inventory. The API's failure to restrict the business flow — not any injection — is the vulnerability, and it directly harms the business and its customers.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify sensitive business flows (checkout, limited-stock, booking).",
+    "Map the API calls that complete the flow.",
+    "Assess anti-automation controls (rate limits, human verification, per-user caps).",
+    "Script the flow and measure how fast/at what scale it completes.",
+    "Test whether limited stock can be cornered by automation.",
+    "Assess business impact of the automated abuse."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the business flow with automation.",
+    "Map the full sequence of API calls for the flow.",
+    "Script the sequence and run it at scale (within authorized limits).",
+    "Demonstrate that the flow can be completed far faster than a human and repeatedly.",
+    "Show the business impact (e.g. cornering test stock).",
+    "Document the missing anti-automation controls."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Script the checkout sequence",
+     "command": "# automate add-to-cart -> checkout -> pay via the API calls, in a loop"
+    },
+    {
+     "label": "Measure completion rate",
+     "command": "for i in $(seq 1 20); do curl -s -X POST https://<target>/api/v1/checkout -H 'Authorization: Bearer <token>' -d @cart.json; done"
+    },
+    {
+     "label": "Test per-user/stock caps",
+     "command": "# attempt to acquire more limited-stock items than a human reasonably could"
+    },
+    {
+     "label": "Assess human-verification presence",
+     "command": "# is there any CAPTCHA/human check on the sensitive flow?"
+    }
+   ],
+   "variants": [
+    "Scalping limited stock via scripted checkout.",
+    "Bulk ticket booking beyond fair limits.",
+    "No CAPTCHA/human verification on the flow.",
+    "Per-user purchase caps not enforced server-side."
+   ],
+   "mitigation": [
+    "Apply anti-automation to sensitive flows (rate limits, human verification, device fingerprinting).",
+    "Enforce per-user and per-session caps server-side.",
+    "Detect and block bot-like behaviour and velocity anomalies.",
+    "Use queuing/fair-access mechanisms for high-demand releases.",
+    "Monitor sensitive flows for automated abuse.",
+    "Require step-up verification for high-value or high-velocity actions."
+   ],
+   "mitigationClientFacing": "Business steps like checkout or limited-stock buying assume a person doing them at human speed. If the API doesn't stop automation, a script can buy out all the stock or tickets in seconds. The fix is to add anti-automation to these flows — human checks, speed limits, per-person caps — and to detect and block bot-like buying that harms the business and real customers.",
+   "reference": {
+    "standard": "API6:2023 - Unrestricted Access to Sensitive Business Flows",
+    "cwe": "CWE-799",
+    "tools": [
+     "Burp Suite",
+     "custom scripts",
+     "Postman"
+    ],
+    "links": [
+     "API6:2023 - Unrestricted Access to Sensitive Business Flows",
+     "MITRE ATT&CK T1499 (Endpoint Denial of Service)",
+     "OWASP WSTG-BUSL-05 (Function Abuse)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API6",
+   "categoryName": "Unrestricted Access to Sensitive Business Flows",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-BUSL",
+     "name": "Business Logic"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V13",
+     "name": "Configuration"
+    }
+   ]
+  },
+  {
+   "id": "API-046",
+   "domain": "API",
+   "title": "Referral/Promotion Flow Abusable for Unlimited Rewards",
+   "sequence": 718,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-841",
+   "prerequisites": "A valid account and the ability to script API calls. Burp Suite.",
+   "whatItIs": "Referral, promotion, and reward flows assume normal use, but if the API does not prevent self-referral, repeated redemption, or account cycling, an attacker can farm rewards at scale. This tests whether reward/promotion business flows resist automated and self-dealing abuse.",
+   "rootCause": "The flow trusts that referrals and redemptions are genuine, without server-side checks for self-referral, duplicate redemption, or throwaway-account cycling, so it can be gamed.",
+   "impact": "Abused reward flows cause direct financial loss (paid-out rewards for fake referrals), skew metrics, and can be industrialized with disposable accounts — a business-logic harm.",
+   "realWorldContext": "Referral and promo-abuse fraud is common: self-referral loops, mass throwaway accounts, and repeated redemptions farm rewards the business pays for. The flaw is the flow's missing anti-abuse checks, and it directly drains promotion budgets.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify referral/promotion/reward flows and their API calls.",
+    "Assess controls against self-referral, duplicate redemption, and account cycling.",
+    "Attempt self-referral and repeated redemption.",
+    "Script account creation + referral to farm rewards (within authorized limits).",
+    "Assess the financial/metric impact.",
+    "Document the missing anti-abuse controls."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the reward flow.",
+    "Map the referral/redemption API calls.",
+    "Attempt self-referral and duplicate redemption.",
+    "Script throwaway-account referral farming (within authorized scope).",
+    "Demonstrate reward accrual from abuse.",
+    "Document the business-flow abuse."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Attempt self-referral",
+     "command": "curl -s -X POST https://<target>/api/v1/referral -H 'Authorization: Bearer <token>' -d '{\"referredEmail\":\"self+alias@example.test\"}'"
+    },
+    {
+     "label": "Repeat redemption",
+     "command": "for i in $(seq 1 10); do curl -s -X POST https://<target>/api/v1/promo/redeem -H 'Authorization: Bearer <token>' -d '{\"code\":\"WELCOME\"}'; done"
+    },
+    {
+     "label": "Script account+referral farming",
+     "command": "# automate register -> refer -> redeem across throwaway accounts (authorized)"
+    },
+    {
+     "label": "Assess reward accrual",
+     "command": "curl -s https://<target>/api/v1/rewards/balance -H 'Authorization: Bearer <token>'"
+    }
+   ],
+   "variants": [
+    "Self-referral via email aliasing.",
+    "Duplicate redemption of a one-time promo.",
+    "Throwaway-account referral farming.",
+    "No velocity limit on reward accrual."
+   ],
+   "mitigation": [
+    "Prevent self-referral and detect email-alias abuse.",
+    "Enforce one-time redemption server-side with idempotency.",
+    "Detect and limit throwaway-account cycling (device/velocity signals).",
+    "Cap reward accrual and require verification for payouts.",
+    "Monitor reward flows for abuse patterns.",
+    "Design promotions with anti-abuse checks from the start."
+   ],
+   "mitigationClientFacing": "Referral and promotion features assume honest use, but if the API doesn't check for self-referral, repeated claims, or throwaway accounts, someone can farm rewards the business pays for. The fix is to block self-referral, allow one-time promos to be claimed only once, detect mass fake accounts, and cap rewards until they're verified. In practice this means an attacker cannot quietly walk through your ID numbers to harvest other customers' records, and your logs will show any attempt to try.",
+   "reference": {
+    "standard": "API6:2023 - Unrestricted Access to Sensitive Business Flows",
+    "cwe": "CWE-841",
+    "tools": [
+     "Burp Suite",
+     "custom scripts",
+     "Postman"
+    ],
+    "links": [
+     "API6:2023 - Unrestricted Access to Sensitive Business Flows",
+     "MITRE ATT&CK T1499 (Endpoint Denial of Service)",
+     "OWASP WSTG-BUSL-05 (Function Abuse)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API6",
+   "categoryName": "Unrestricted Access to Sensitive Business Flows",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-BUSL",
+     "name": "Business Logic"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V2",
+     "name": "Validation and Business Logic"
+    }
+   ]
+  },
+  {
+   "id": "API-047",
+   "domain": "API",
+   "title": "Account-Creation Flow Allows Mass Automated Registration",
+   "sequence": 719,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-799",
+   "prerequisites": "The ability to script the registration API. Burp Suite and a scripting environment.",
+   "whatItIs": "The account-creation flow is a sensitive business flow: if it lacks anti-automation, an attacker can mass-create accounts for spam, fraud, resource abuse, or to farm free-tier benefits. This tests whether registration resists automated mass creation.",
+   "rootCause": "Registration is designed to be easy, and anti-automation (CAPTCHA, email/phone verification, rate limits) is often weak or missing, so accounts can be created in bulk by a script.",
+   "impact": "Mass automated registration enables spam, fraud, free-tier resource abuse, and inflated metrics, and provides disposable accounts to abuse other flows — a foundation for further abuse.",
+   "realWorldContext": "Mass fake-account creation underpins spam, fraud, and free-tier abuse across many platforms, and it starts with a registration flow that doesn't resist automation. Anti-automation on sign-up is what stops an attacker from minting disposable accounts at will.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Map the registration API flow and its verification steps.",
+    "Assess anti-automation (CAPTCHA, email/phone verification, rate limits).",
+    "Script account creation and measure the rate achievable.",
+    "Test whether verification can be skipped or automated.",
+    "Assess what mass accounts enable (abuse of other flows).",
+    "Document the missing anti-automation controls."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test registration with automation.",
+    "Map the registration and verification steps.",
+    "Script account creation at scale (within authorized limits).",
+    "Demonstrate rapid bulk registration.",
+    "Assess downstream abuse enabled by mass accounts.",
+    "Document the anti-automation gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Script bulk registration",
+     "command": "for i in $(seq 1 50); do curl -s -X POST https://<target>/api/v1/register -d \"{\\\"email\\\":\\\"user$i@example.test\\\",\\\"password\\\":\\\"P@ss$i\\\"}\"; done"
+    },
+    {
+     "label": "Test verification bypass",
+     "command": "# is email/phone verification required before the account is usable?"
+    },
+    {
+     "label": "Assess CAPTCHA presence",
+     "command": "# is there a CAPTCHA/human check on registration?"
+    },
+    {
+     "label": "Measure creation rate",
+     "command": "# how many accounts can be created per minute?"
+    }
+   ],
+   "variants": [
+    "No CAPTCHA on registration.",
+    "Email/phone verification skippable.",
+    "No rate limit on account creation.",
+    "Disposable-email domains accepted."
+   ],
+   "mitigation": [
+    "Add anti-automation to registration (CAPTCHA, rate limits, device signals).",
+    "Require verified email/phone before an account is usable.",
+    "Block disposable-email domains where appropriate.",
+    "Detect and throttle bulk registration patterns.",
+    "Monitor registration velocity and downstream abuse.",
+    "Apply progressive friction to suspicious sign-ups."
+   ],
+   "mitigationClientFacing": "Signing up for an account is a sensitive step: if it's too easy to automate, attackers create thousands of fake accounts for spam, fraud, or abusing free features. The fix is to add human checks and speed limits to sign-up, require verifying an email or phone before the account works, and detect and slow bulk registration. Done well, legitimate high-volume clients keep working smoothly while a single abusive caller is throttled long before it can scrape your data or run up your costs.",
+   "reference": {
+    "standard": "API6:2023 - Unrestricted Access to Sensitive Business Flows",
+    "cwe": "CWE-799",
+    "tools": [
+     "Burp Suite",
+     "custom scripts",
+     "Postman"
+    ],
+    "links": [
+     "API6:2023 - Unrestricted Access to Sensitive Business Flows",
+     "MITRE ATT&CK T1585 (Establish Accounts)",
+     "OWASP WSTG-BUSL-05 (Function Abuse)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API6",
+   "categoryName": "Unrestricted Access to Sensitive Business Flows",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-BUSL",
+     "name": "Business Logic"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V13",
+     "name": "Configuration"
+    }
+   ]
+  },
+  {
+   "id": "API-048",
+   "domain": "API",
+   "title": "SSRF via URL Parameter in Webhook/Callback Configuration",
+   "sequence": 720,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-918",
+   "prerequisites": "An API endpoint that accepts a URL (webhook, callback, import-from-URL) and authorization to test. Burp Suite and an out-of-band interaction server.",
+   "whatItIs": "APIs that accept a URL — for webhooks, callbacks, or importing remote content — may fetch it server-side without validation. An attacker can supply an internal URL (cloud metadata, internal services) and make the server request it, exposing internal resources. This tests for SSRF via user-supplied URLs.",
+   "rootCause": "The API fetches the supplied URL from the server without validating that it points to an allowed, external destination, so it can be pointed at internal or metadata endpoints.",
+   "impact": "SSRF lets an attacker reach internal services, cloud metadata (stealing credentials), and otherwise-unreachable endpoints from the server's trusted position — a frequent path to cloud credential theft and internal compromise.",
+   "realWorldContext": "SSRF via a webhook or import-URL feature was the mechanism behind major cloud breaches (e.g. reaching the instance metadata service to steal credentials). Any API that fetches a user-supplied URL server-side is a candidate, which is why SSRF earned its own API Top 10 entry.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify API parameters that accept a URL (webhook, callback, import, avatar-from-URL).",
+    "Supply an out-of-band URL and confirm the server fetches it.",
+    "Point the URL at internal ranges and cloud metadata endpoints.",
+    "Observe whether internal responses are returned or actions triggered.",
+    "Test bypasses (alternate encodings, redirects, DNS rebinding).",
+    "Assess what internal resources become reachable."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test URL-accepting endpoints.",
+    "Submit an out-of-band URL and confirm a server-side fetch.",
+    "Target internal services and cloud metadata (e.g. 169.254.169.254).",
+    "Attempt to retrieve internal responses or credentials.",
+    "Test validation bypasses (encoding, redirect, rebinding).",
+    "Document the SSRF and reachable internal resources."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Confirm server-side fetch (out-of-band)",
+     "command": "curl -s -X POST https://<target>/api/v1/webhook -H 'Authorization: Bearer <token>' -d '{\"url\":\"http://<collab-id>.oast.fun/\"}'"
+    },
+    {
+     "label": "Target cloud metadata",
+     "command": "curl -s -X POST https://<target>/api/v1/import -H 'Authorization: Bearer <token>' -d '{\"url\":\"http://169.254.169.254/latest/meta-data/iam/security-credentials/\"}'"
+    },
+    {
+     "label": "Probe internal services",
+     "command": "curl -s -X POST https://<target>/api/v1/webhook -H 'Authorization: Bearer <token>' -d '{\"url\":\"http://127.0.0.1:6379/\"}'"
+    },
+    {
+     "label": "Bypass a naive filter",
+     "command": "# try decimal IP, [::], redirect via <collab>, or DNS rebinding to reach internal"
+    }
+   ],
+   "variants": [
+    "Cloud metadata SSRF stealing instance credentials.",
+    "Internal service access via 127.0.0.1/internal ranges.",
+    "Filter bypass via alternate IP encodings or redirects.",
+    "Blind SSRF confirmed out-of-band."
+   ],
+   "mitigation": [
+    "Validate and allow-list outbound URLs; reject internal ranges and metadata IPs.",
+    "Resolve and re-check the destination after redirects; block redirect-based bypass.",
+    "Use a dedicated egress proxy with strict destination controls.",
+    "Disable access to cloud metadata (or require IMDSv2 with hop limits).",
+    "Do not return raw fetched responses to the client.",
+    "Monitor and alert on server-side fetches to internal destinations."
+   ],
+   "mitigationClientFacing": "Some APIs take a web address from the user — for webhooks or importing content — and fetch it from the server. If they don't check the address, an attacker can point it at internal systems or the cloud's credential service and make the server reach them. The fix is to strictly limit which addresses the server will fetch (blocking internal and metadata addresses), re-check after any redirect, and never hand the raw response back.",
+   "reference": {
+    "standard": "API7:2023 - Server Side Request Forgery",
+    "cwe": "CWE-918",
+    "tools": [
+     "Burp Suite",
+     "Interactsh",
+     "curl"
+    ],
+    "links": [
+     "API7:2023 - Server Side Request Forgery",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1552.005 (Cloud Instance Metadata API)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API7",
+   "categoryName": "Server Side Request Forgery",
+   "attack": [
+    {
+     "id": "T1090",
+     "name": "Proxy",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V4",
+     "name": "API and Web Service"
+    }
+   ]
+  },
+  {
+   "id": "API-049",
+   "domain": "API",
+   "title": "Blind SSRF via PDF/Image Generation from User Content",
+   "sequence": 721,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-918",
+   "prerequisites": "An API feature that renders user content to PDF/image (fetching referenced resources) and authorization to test. An out-of-band interaction server.",
+   "whatItIs": "APIs that generate PDFs or images from user-supplied HTML/markup often fetch referenced resources (images, stylesheets, remote content) server-side during rendering. An attacker can embed internal URLs to trigger blind SSRF via the renderer. This tests for SSRF in server-side rendering pipelines.",
+   "rootCause": "The rendering engine (headless browser, PDF library) fetches referenced resources from the server without restriction, so attacker-embedded internal URLs are requested during rendering.",
+   "impact": "Blind SSRF via the renderer reaches internal services and cloud metadata from the server, enabling credential theft and internal reconnaissance even though no response is directly returned to the attacker.",
+   "realWorldContext": "PDF- and image-generation SSRF is a well-known class: an <img> or CSS URL in user content makes the server-side renderer fetch an internal or metadata endpoint. Because output is a PDF/image, it is often blind — confirmed out-of-band — and has reached cloud credentials in real engagements.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify features that render user content to PDF/image server-side.",
+    "Embed an out-of-band URL (img/link/stylesheet) in the content and render it.",
+    "Confirm the server fetched the URL (out-of-band interaction).",
+    "Target internal ranges and cloud metadata via embedded URLs.",
+    "Test different resource types the renderer fetches (img, css, iframe).",
+    "Assess reachable internal resources."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the rendering feature.",
+    "Submit content embedding an out-of-band URL and trigger rendering.",
+    "Confirm the server-side fetch via out-of-band interaction.",
+    "Target internal/metadata endpoints via embedded URLs.",
+    "Attempt to exfiltrate internal data through the render output where possible.",
+    "Document the blind SSRF and reachable resources."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Embed an out-of-band image URL",
+     "command": "curl -s -X POST https://<target>/api/v1/render/pdf -H 'Authorization: Bearer <token>' -d '{\"html\":\"<img src=http://<collab-id>.oast.fun/x>\"}'"
+    },
+    {
+     "label": "Target metadata via embedded URL",
+     "command": "curl -s -X POST https://<target>/api/v1/render/pdf -H 'Authorization: Bearer <token>' -d '{\"html\":\"<img src=http://169.254.169.254/latest/meta-data/>\"}'"
+    },
+    {
+     "label": "Try CSS/stylesheet fetch",
+     "command": "curl -s -X POST https://<target>/api/v1/render/pdf -H 'Authorization: Bearer <token>' -d '{\"html\":\"<link rel=stylesheet href=http://127.0.0.1:8080/>\"}'"
+    },
+    {
+     "label": "Attempt data exfil into output",
+     "command": "# reference an internal endpoint whose response renders into the PDF/image"
+    }
+   ],
+   "variants": [
+    "Blind SSRF via <img> in rendered content.",
+    "Metadata access through the renderer.",
+    "CSS/iframe-based resource fetch to internal services.",
+    "Internal response exfiltrated into the render output."
+   ],
+   "mitigation": [
+    "Restrict the renderer's network access; block internal ranges and metadata.",
+    "Disable remote-resource fetching in the renderer, or allow-list destinations.",
+    "Run rendering in an isolated, network-restricted sandbox.",
+    "Sanitize user content to remove/neutralize external references.",
+    "Disable metadata access (IMDSv2, hop limits) for the rendering host.",
+    "Monitor renderer egress for internal destinations."
+   ],
+   "mitigationClientFacing": "Features that turn user content into PDFs or images often fetch referenced pictures and styles from the server while rendering — so an attacker can embed an internal address and make the server reach it. The fix is to run the rendering in an isolated environment that can't reach internal systems, block or allow-list which addresses it may fetch, and strip external references from user content.",
+   "reference": {
+    "standard": "API7:2023 - Server Side Request Forgery",
+    "cwe": "CWE-918",
+    "tools": [
+     "Burp Suite",
+     "Interactsh",
+     "curl"
+    ],
+    "links": [
+     "API7:2023 - Server Side Request Forgery",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1552.005 (Cloud Instance Metadata API)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API7",
+   "categoryName": "Server Side Request Forgery",
+   "attack": [
+    {
+     "id": "T1090",
+     "name": "Proxy",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V4",
+     "name": "API and Web Service"
+    }
+   ]
+  },
+  {
+   "id": "API-050",
+   "domain": "API",
+   "title": "SSRF via XML/SVG External Entity in API Upload",
+   "sequence": 722,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-918",
+   "prerequisites": "An API that parses uploaded XML/SVG server-side and authorization to test. An out-of-band interaction server.",
+   "whatItIs": "APIs that accept and parse XML or SVG uploads may process external entities or references, letting an attacker cause the server to fetch attacker-chosen URLs (SSRF), overlapping with XXE. This tests for SSRF via XML/SVG external references in API uploads.",
+   "rootCause": "The XML/SVG parser resolves external entities/references without restriction, so an attacker-defined external URL is fetched by the server during parsing.",
+   "impact": "SSRF via XML/SVG lets the server reach internal services and cloud metadata, and can also read local files (XXE), enabling credential theft, internal reconnaissance, and data disclosure.",
+   "realWorldContext": "XXE-driven SSRF via XML or SVG uploads is a classic finding — the parser fetches an external entity pointing at an internal or metadata endpoint. APIs accepting document, config, or image (SVG) uploads are frequent targets, and it has yielded both cloud credentials and internal file reads.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify API endpoints that accept XML or SVG uploads.",
+    "Submit XML/SVG with an external entity pointing at an out-of-band URL.",
+    "Confirm the server fetched the URL (out-of-band interaction).",
+    "Target internal ranges and cloud metadata via the entity.",
+    "Test file-read (XXE) alongside SSRF.",
+    "Assess reachable internal resources and files."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test XML/SVG-parsing endpoints.",
+    "Upload XML/SVG defining an external entity to an out-of-band URL.",
+    "Confirm the server-side fetch via out-of-band interaction.",
+    "Target internal/metadata endpoints via the entity.",
+    "Attempt local file disclosure via XXE where applicable.",
+    "Document the SSRF/XXE and reachable resources."
+   ],
+   "examplePayloads": [
+    {
+     "label": "XML external-entity SSRF (out-of-band)",
+     "command": "curl -s -X POST https://<target>/api/v1/import -H 'Content-Type: application/xml' -d '<?xml version=\"1.0\"?><!DOCTYPE r [<!ENTITY x SYSTEM \"http://<collab-id>.oast.fun/\">]><r>&x;</r>'"
+    },
+    {
+     "label": "Target metadata via entity",
+     "command": "# entity SYSTEM \"http://169.254.169.254/latest/meta-data/iam/security-credentials/\""
+    },
+    {
+     "label": "SVG upload with external reference",
+     "command": "curl -s -X POST https://<target>/api/v1/avatar -F 'file=@ssrf.svg'   # svg with <image href=\"http://127.0.0.1:6379/\">"
+    },
+    {
+     "label": "Attempt file read (XXE)",
+     "command": "# entity SYSTEM \"file:///etc/passwd\" to test local file disclosure"
+    }
+   ],
+   "variants": [
+    "XML external-entity SSRF to internal/metadata.",
+    "SVG-based SSRF via external image href.",
+    "Local file disclosure via XXE.",
+    "Blind SSRF confirmed out-of-band."
+   ],
+   "mitigation": [
+    "Disable external-entity and DTD processing in XML/SVG parsers.",
+    "Use hardened parser configurations (no external references).",
+    "Restrict the parsing host's network access; block internal/metadata.",
+    "Validate and sanitize uploaded XML/SVG.",
+    "Disable metadata access (IMDSv2, hop limits) for the parsing host.",
+    "Monitor for parser egress to internal destinations."
+   ],
+   "mitigationClientFacing": "APIs that accept XML or SVG files can be tricked into fetching an attacker's chosen address while reading the file — reaching internal systems or the cloud's credential service, and sometimes reading local files. The fix is to turn off the risky 'external reference' features in the file parsers, block the server from reaching internal addresses, and validate uploaded files.",
+   "reference": {
+    "standard": "API7:2023 - Server Side Request Forgery",
+    "cwe": "CWE-918",
+    "tools": [
+     "Burp Suite",
+     "Interactsh",
+     "curl"
+    ],
+    "links": [
+     "API7:2023 - Server Side Request Forgery",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "OWASP WSTG-INPV-07 (XML Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API7",
+   "categoryName": "Server Side Request Forgery",
+   "attack": [
+    {
+     "id": "T1090",
+     "name": "Proxy",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V4",
+     "name": "API and Web Service"
+    }
+   ]
+  },
+  {
+   "id": "API-051",
+   "domain": "API",
+   "title": "Verbose API Error Messages Leak Stack Traces and Internals",
+   "sequence": 723,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-209",
+   "prerequisites": "Any API endpoint and the ability to send malformed requests. Burp Suite and curl.",
+   "whatItIs": "APIs in a misconfigured (often debug) state return verbose error responses — stack traces, framework versions, internal paths, SQL fragments, and configuration detail — when given malformed input. This information aids an attacker in fingerprinting and exploiting the API. This tests for information leakage via error handling.",
+   "rootCause": "Debug/verbose error handling is left enabled in production, so unhandled exceptions return internal detail to the client instead of a generic error.",
+   "impact": "Leaked stack traces, versions, and internal paths let an attacker fingerprint the stack, find known vulnerabilities, and craft targeted attacks (e.g. from exposed SQL or file paths), accelerating exploitation.",
+   "realWorldContext": "Verbose API errors are a reliable early win in testing: a malformed request returns a full stack trace revealing the framework, version, internal paths, and sometimes SQL — a roadmap for the next attack. Production APIs should return generic errors, but debug mode is frequently left on.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Send malformed requests (bad types, missing fields, injection markers) to API endpoints.",
+    "Observe error responses for stack traces, versions, paths, and SQL.",
+    "Trigger unhandled exceptions with edge-case input.",
+    "Assess whether errors reveal the technology stack and internals.",
+    "Check whether debug mode appears enabled.",
+    "Document the information leakage."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to send malformed requests.",
+    "Submit malformed/edge-case input to multiple endpoints.",
+    "Collect verbose error responses and the internals they reveal.",
+    "Fingerprint the stack from leaked versions/paths.",
+    "Show how the leaked detail aids further attacks.",
+    "Document the error-handling misconfiguration."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Send malformed JSON",
+     "command": "curl -s https://<target>/api/v1/users -H 'Content-Type: application/json' -d '{malformed'"
+    },
+    {
+     "label": "Type-confusion to trigger an exception",
+     "command": "curl -s 'https://<target>/api/v1/items?id[]=1'"
+    },
+    {
+     "label": "Provoke a stack trace",
+     "command": "curl -s -X POST https://<target>/api/v1/orders -d '{\"qty\":\"not-a-number\"}'"
+    },
+    {
+     "label": "Assess leaked internals",
+     "command": "# note framework/version, internal paths, SQL fragments in the error body"
+    }
+   ],
+   "variants": [
+    "Full stack trace in the error response.",
+    "Framework/version disclosure.",
+    "Internal file paths revealed.",
+    "SQL fragments exposed in errors."
+   ],
+   "mitigation": [
+    "Disable debug/verbose error handling in production.",
+    "Return generic, non-revealing error responses to clients.",
+    "Log detailed errors server-side only.",
+    "Standardize error formats across the API.",
+    "Suppress framework/version headers and internal detail.",
+    "Test error handling as part of configuration review."
+   ],
+   "mitigationClientFacing": "When something goes wrong, a misconfigured API can send back detailed internal error messages — including its software versions, internal file paths, and even database fragments — which hand an attacker a map for their next move. The fix is to turn off detailed error messages in production, return simple generic errors to users, and keep the detailed information in server logs only.",
+   "reference": {
+    "standard": "API8:2023 - Security Misconfiguration",
+    "cwe": "CWE-209",
+    "tools": [
+     "Burp Suite",
+     "curl",
+     "Postman"
+    ],
+    "links": [
+     "API8:2023 - Security Misconfiguration",
+     "MITRE ATT&CK T1592 (Gather Victim Host Information)",
+     "OWASP WSTG-ERRH-01 (Error Handling)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API8",
+   "categoryName": "Security Misconfiguration",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ERRH",
+     "name": "Error Handling"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V16",
+     "name": "Security Logging and Error Handling"
+    }
+   ]
+  },
+  {
+   "id": "API-052",
+   "domain": "API",
+   "title": "Deprecated API Version Still Live and Unpatched",
+   "sequence": 724,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1059",
+   "prerequisites": "Knowledge/enumeration of API versions and authorization to test older versions. Burp Suite.",
+   "whatItIs": "Organizations version their APIs (v1, v2, v3) but often leave old versions running after newer ones ship. Deprecated versions frequently miss security fixes and controls present in the current version, so an attacker can use the old version to bypass protections. This tests for live, unpatched deprecated API versions.",
+   "rootCause": "Old API versions are kept for backward compatibility and forgotten, without a deprecation/retirement process. They miss the security improvements made to the current version.",
+   "impact": "A live deprecated version can lack fixes and controls (weaker auth, missing rate limits, unpatched flaws) present in the current version, letting an attacker bypass protections by simply using the old endpoint.",
+   "realWorldContext": "Zombie API versions — old, unmaintained, but still reachable — are a classic inventory-management failure and a real breach vector: attackers use the deprecated version that never got the fix the current one has. Retiring old versions is as important as securing the current one.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate API versions (path-based /v1, header-based, subdomain).",
+    "Identify deprecated/older versions that are still reachable.",
+    "Compare security controls between old and current versions.",
+    "Test whether the old version misses fixes/controls (auth, rate limits, patched flaws).",
+    "Assess whether the old version can access current data.",
+    "Document the deprecated-version exposure."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test older API versions.",
+    "Enumerate reachable API versions.",
+    "Compare authentication, rate limiting, and known-flaw status across versions.",
+    "Demonstrate a protection present in the current version but missing in the old one.",
+    "Assess whether the old version reaches current data.",
+    "Document the inventory-management gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate versions",
+     "command": "for v in v1 v2 v3; do echo $v; curl -s -o /dev/null -w '%{http_code}\\n' https://<target>/api/$v/users; done"
+    },
+    {
+     "label": "Compare a control across versions",
+     "command": "# test whether rate limiting / a patched flaw differs between /api/v1 and /api/v3"
+    },
+    {
+     "label": "Test old-version auth strength",
+     "command": "curl -s https://<target>/api/v1/admin -H 'Authorization: Bearer <token>'   # weaker checks?"
+    },
+    {
+     "label": "Check data access via old version",
+     "command": "# does the deprecated version reach current production data?"
+    }
+   ],
+   "variants": [
+    "Deprecated version missing a fix present in current.",
+    "Old version with weaker authentication.",
+    "Missing rate limits on the old version.",
+    "Old version reaching current data."
+   ],
+   "mitigation": [
+    "Maintain an inventory of all API versions and retire deprecated ones.",
+    "Apply security fixes to all live versions, or take old versions offline.",
+    "Define and enforce an API deprecation/retirement process.",
+    "Ensure controls (auth, rate limits) are consistent across versions.",
+    "Monitor usage of old versions and sunset them.",
+    "Include version inventory in security reviews."
+   ],
+   "mitigationClientFacing": "Companies release new versions of their APIs but often leave old ones running, and those old versions usually miss the security fixes the new one has — so attackers just use the old one. The fix is to keep track of every API version, apply fixes to all of them or shut the old ones down, and follow a clear process for retiring old versions.",
+   "reference": {
+    "standard": "API9:2023 - Improper Inventory Management",
+    "cwe": "CWE-1059",
+    "tools": [
+     "Burp Suite",
+     "ffuf",
+     "curl"
+    ],
+    "links": [
+     "API9:2023 - Improper Inventory Management",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "OWASP WSTG-CONF-01 (Configuration Management)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API9",
+   "categoryName": "Improper Inventory Management",
+   "attack": [
+    {
+     "id": "T1190",
+     "name": "Exploit Public-Facing Application",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-CONF",
+     "name": "Configuration and Deployment Management"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V13",
+     "name": "Configuration"
+    }
+   ]
+  },
+  {
+   "id": "API-053",
+   "domain": "API",
+   "title": "Blind Trust of Third-Party API Response Data",
+   "sequence": 725,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "Knowledge of the API's third-party integrations and authorization to test how their responses are handled. Burp Suite and (where possible) a mock upstream.",
+   "whatItIs": "APIs consume data from third-party services (payment, identity, data providers) and often trust that data implicitly — passing it to the database, rendering it, or acting on it without validation. If a third party is compromised or returns malicious data, the consuming API is exploited. This tests whether third-party API responses are validated before use.",
+   "rootCause": "The consuming API assumes third-party responses are safe, so it does not validate or sanitize them. A compromised or malicious upstream then injects data the API trusts.",
+   "impact": "Blindly-trusted third-party data can carry injection payloads, poisoned records, or manipulated values that the consuming API stores, renders, or acts on — turning an upstream compromise into a downstream breach.",
+   "realWorldContext": "Supply-chain-style attacks via trusted upstream APIs are a growing concern: a compromised or malicious third party returns data the consumer trusts, leading to injection, data poisoning, or fraud. Validating and sanitizing upstream responses — treating them as untrusted — is what contains this.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify third-party APIs the application consumes and how their responses are used.",
+    "Assess whether responses are validated/sanitized before storage, rendering, or action.",
+    "Where possible, manipulate an upstream response (mock/proxy) to inject malicious data.",
+    "Observe whether the consuming API stores/renders/acts on it unsafely.",
+    "Test injection via upstream data (stored XSS, SQLi, logic manipulation).",
+    "Assess the downstream impact of a malicious upstream."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test third-party response handling.",
+    "Map upstream integrations and their data flows.",
+    "Interpose on or mock an upstream response to inject a benign marker/payload.",
+    "Observe whether the consuming API handles it unsafely (stored/rendered/acted on).",
+    "Demonstrate a downstream effect (e.g. stored XSS from upstream data).",
+    "Document the unsafe-consumption flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Interpose on an upstream response",
+     "command": "# via a proxy, modify the third-party API response to include a benign marker/payload"
+    },
+    {
+     "label": "Inject stored-XSS via upstream data",
+     "command": "# upstream returns name: '<img src=x onerror=...>'; does it render unescaped downstream?"
+    },
+    {
+     "label": "Test logic manipulation",
+     "command": "# upstream returns a manipulated status/amount; does the API act on it without validation?"
+    },
+    {
+     "label": "Assess storage of upstream data",
+     "command": "# is unvalidated upstream data written to the database as-is?"
+    }
+   ],
+   "variants": [
+    "Stored XSS from unescaped upstream data.",
+    "SQL injection via unvalidated third-party fields.",
+    "Business-logic manipulation from trusted upstream values.",
+    "Data poisoning of stored records."
+   ],
+   "mitigation": [
+    "Validate and sanitize all third-party API responses before use.",
+    "Treat upstream data as untrusted input at every sink (store, render, act).",
+    "Enforce schemas and value constraints on consumed data.",
+    "Use TLS and authenticate/verify upstream integrations.",
+    "Isolate and limit the blast radius of a compromised upstream.",
+    "Monitor for anomalous upstream data."
+   ],
+   "mitigationClientFacing": "Apps pull in data from other services (like payment or identity providers) and often trust it completely — passing it straight into their database or web pages. If that other service is hacked or malicious, the app gets attacked through it. The fix is to treat data from other services as untrusted: validate and clean it before storing, displaying, or acting on it, just like data from users.",
+   "reference": {
+    "standard": "API10:2023 - Unsafe Consumption of APIs",
+    "cwe": "CWE-1104",
+    "tools": [
+     "Burp Suite",
+     "mitmproxy",
+     "mock server"
+    ],
+    "links": [
+     "API10:2023 - Unsafe Consumption of APIs",
+     "MITRE ATT&CK T1195 (Supply Chain Compromise)",
+     "OWASP WSTG-INPV (Injection)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API10",
+   "categoryName": "Unsafe Consumption of APIs",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-CONF",
+     "name": "Configuration and Deployment Management"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V15",
+     "name": "Secure Coding and Architecture"
+    }
+   ]
+  },
+  {
+   "id": "API-054",
+   "domain": "API",
+   "title": "No Validation of Redirects/Data from Consumed OAuth Provider",
+   "sequence": 726,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-345",
+   "prerequisites": "An application that consumes an external OAuth/OIDC provider and authorization to test the integration. Burp Suite.",
+   "whatItIs": "APIs that delegate authentication to an external OAuth/OIDC provider must validate what they receive — tokens, claims, redirect URIs, and user data. If they trust provider data without validating signatures, issuers, audiences, or redirect targets, an attacker can manipulate the flow to impersonate users or hijack the callback. This tests safe consumption of an external identity provider.",
+   "rootCause": "The consuming API trusts the identity provider's responses without full validation (signature, iss, aud, nonce, redirect URI), so manipulated or forged data is accepted.",
+   "impact": "Improper validation of consumed OAuth data enables authentication bypass, user impersonation, token substitution, and open-redirect/callback hijacking — a direct account-takeover path via the trusted provider integration.",
+   "realWorldContext": "OAuth-consumption flaws — accepting a token without checking its audience or issuer, or an unvalidated redirect URI — have produced real account-takeover and open-redirect vulnerabilities. Delegating auth to a provider does not remove the consumer's duty to validate everything it receives.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Map the OAuth/OIDC consumption flow (redirects, token exchange, claims usage).",
+    "Assess validation of token signature, issuer (iss), audience (aud), and nonce.",
+    "Test redirect-URI validation for open-redirect/callback hijacking.",
+    "Attempt token substitution (a token from a different client/audience).",
+    "Test manipulation of consumed user data (email/sub) for account linking.",
+    "Assess the impersonation/takeover potential."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test the OAuth/OIDC integration.",
+    "Trace the consumption flow and its validation steps.",
+    "Test redirect-URI validation with attacker-controlled targets.",
+    "Attempt token substitution and claim manipulation.",
+    "Demonstrate impersonation or callback hijacking if validation is missing.",
+    "Document the unsafe-consumption flaw."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test redirect-URI validation",
+     "command": "# manipulate redirect_uri to an attacker domain in the auth request; is it accepted?"
+    },
+    {
+     "label": "Attempt token substitution",
+     "command": "# present a token issued for a different client/audience; is aud validated?"
+    },
+    {
+     "label": "Manipulate consumed claims",
+     "command": "# alter email/sub in a manipulable token/response to link to another account"
+    },
+    {
+     "label": "Check signature/issuer validation",
+     "command": "# present a token with a wrong/absent signature or issuer; is it rejected?"
+    }
+   ],
+   "variants": [
+    "Unvalidated redirect_uri enabling callback hijack.",
+    "Token audience/issuer not validated (token substitution).",
+    "Account linking via manipulated email claim.",
+    "Missing signature/nonce validation."
+   ],
+   "mitigation": [
+    "Fully validate consumed tokens: signature, issuer, audience, expiry, and nonce.",
+    "Strictly allow-list and validate redirect URIs.",
+    "Do not trust provider-supplied email/identifiers for account linking without verification.",
+    "Use vetted, up-to-date OAuth/OIDC libraries with secure defaults.",
+    "Bind tokens to the intended client and session.",
+    "Test the integration against known OAuth attack patterns."
+   ],
+   "mitigationClientFacing": "When an app lets you log in via an outside provider (like a social login), it must carefully check everything it gets back — that the login token is genuine, meant for this app, and that the return address is legitimate. If it doesn't, attackers can impersonate users or hijack the login. The fix is to fully verify the provider's tokens and strictly control the return addresses the app will accept.",
+   "reference": {
+    "standard": "API10:2023 - Unsafe Consumption of APIs",
+    "cwe": "CWE-345",
+    "tools": [
+     "Burp Suite",
+     "OAuth testing tools",
+     "jwt_tool"
+    ],
+    "links": [
+     "API10:2023 - Unsafe Consumption of APIs",
+     "MITRE ATT&CK T1550.001 (Application Access Token)",
+     "OWASP WSTG-ATHN-01 (Authentication)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API10",
+   "categoryName": "Unsafe Consumption of APIs",
+   "attack": [
+    {
+     "id": "T1550",
+     "name": "Use Alternate Authentication Material",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-ATHN",
+     "name": "Authentication"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V9",
+     "name": "Self-contained Tokens"
+    }
+   ]
+  },
+  {
+   "id": "API-055",
+   "domain": "API",
+   "title": "Following Third-Party API Redirects to Internal Resources",
+   "sequence": 727,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-918",
+   "prerequisites": "An API that consumes third-party endpoints and follows redirects, and authorization to test. An out-of-band interaction server.",
+   "whatItIs": "When an API calls a third-party endpoint and automatically follows HTTP redirects, a compromised or malicious upstream can redirect the request to internal resources (metadata, internal services) — turning trusted consumption into SSRF. This tests whether redirect-following during API consumption is safely constrained.",
+   "rootCause": "The consuming API follows redirects from upstream responses without re-validating the redirect target, so a malicious upstream can steer it to internal destinations.",
+   "impact": "Redirect-following during consumption lets a malicious/compromised upstream reach internal services and cloud metadata via the consuming server, enabling credential theft and internal access — SSRF through a trusted integration.",
+   "realWorldContext": "Redirect-based SSRF via a consumed API is a subtle but real variant: the initial destination is allowed, but a redirect steers the server to an internal or metadata endpoint. Re-validating every redirect target during consumption is what prevents a trusted upstream from becoming an SSRF vector.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify where the API consumes third-party endpoints and whether it follows redirects.",
+    "Assess whether redirect targets are re-validated.",
+    "Where possible, cause an upstream (mock/proxy) to redirect to an out-of-band URL.",
+    "Confirm the consuming server follows the redirect.",
+    "Redirect to internal ranges and cloud metadata.",
+    "Assess reachable internal resources via redirect."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test redirect handling in API consumption.",
+    "Interpose on an upstream response to return a redirect to an out-of-band URL.",
+    "Confirm the consuming server follows it (out-of-band interaction).",
+    "Redirect to internal/metadata endpoints.",
+    "Assess what internal resources become reachable.",
+    "Document the redirect-based SSRF."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Redirect upstream to an out-of-band URL",
+     "command": "# via proxy, return 302 Location: http://<collab-id>.oast.fun/ from the upstream"
+    },
+    {
+     "label": "Confirm redirect-following",
+     "command": "# check the out-of-band server for the consuming API's request"
+    },
+    {
+     "label": "Redirect to metadata",
+     "command": "# return 302 Location: http://169.254.169.254/latest/meta-data/"
+    },
+    {
+     "label": "Assess internal reach",
+     "command": "# redirect to internal service ports and observe reachability"
+    }
+   ],
+   "variants": [
+    "Redirect to cloud metadata during consumption.",
+    "Redirect to internal services.",
+    "Chained redirects bypassing a first-hop allow-list.",
+    "Blind redirect-SSRF confirmed out-of-band."
+   ],
+   "mitigation": [
+    "Do not blindly follow redirects when consuming third-party APIs; re-validate each target.",
+    "Allow-list destinations and re-check after every redirect hop.",
+    "Restrict the consuming host's network access; block internal/metadata.",
+    "Limit redirect count and reject internal-range redirects.",
+    "Disable metadata access (IMDSv2, hop limits) for consuming hosts.",
+    "Monitor consumption egress for internal destinations."
+   ],
+   "mitigationClientFacing": "When an app calls another service and automatically follows 'redirects' it sends back, a malicious service can redirect the app to internal systems or the cloud's credential service. The fix is to re-check every redirect address the app is told to follow, block redirects to internal addresses, and limit the app's ability to reach internal systems while consuming outside services.",
+   "reference": {
+    "standard": "API10:2023 - Unsafe Consumption of APIs",
+    "cwe": "CWE-918",
+    "tools": [
+     "Burp Suite",
+     "Interactsh",
+     "mitmproxy"
+    ],
+    "links": [
+     "API10:2023 - Unsafe Consumption of APIs",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1552.005 (Cloud Instance Metadata API)"
+    ]
+   },
+   "categoryStandard": "OWASP API Security Top 10:2023",
+   "categoryCode": "API10",
+   "categoryName": "Unsafe Consumption of APIs",
+   "attack": [
+    {
+     "id": "T1090",
+     "name": "Proxy",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "OWASP WSTG v4.2",
+     "code": "WSTG-INPV",
+     "name": "Input Validation"
+    },
+    {
+     "standard": "OWASP ASVS 5.0",
+     "code": "V4",
+     "name": "API and Web Service"
+    }
+   ]
   }
  ]
 }

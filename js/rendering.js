@@ -384,11 +384,20 @@ function renderDetailInner(item){
       </div>
     </div>`;
 
+  const diff = (item.difficulty || '').toLowerCase();
+  const engageStrip = (item.difficulty || item.timeEstimate)
+    ? `<div class="detail-engage">
+         ${item.difficulty ? `<span class="engage-chip engage-diff diff-${escapeHtml(diff)}"><span class="engage-k">Difficulty</span><span class="engage-v">${escapeHtml(item.difficulty)}</span></span>` : ''}
+         ${item.timeEstimate ? `<span class="engage-chip engage-time"><span class="engage-k">Time to test</span><span class="engage-v">${escapeHtml(item.timeEstimate)}</span></span>` : ''}
+       </div>`
+    : '';
   const overviewHtml = `
+    ${engageStrip}
     ${item.prerequisites ? `<div class="detail-section"><div class="sec-label">Prerequisites — what you need before starting</div><div class="detail-prereq"><span class="pill">need</span><span>${escapeHtml(item.prerequisites)}</span></div></div>` : ''}
     <div class="detail-section"><div class="sec-label">What it is</div><div class="detail-desc">${escapeHtml(item.whatItIs)}</div></div>
     <div class="detail-section"><div class="sec-label">Root cause</div><div class="detail-text">${escapeHtml(item.rootCause)}</div></div>
     <div class="detail-section"><div class="sec-label">Impact</div><div class="detail-impact">${escapeHtml(item.impact)}</div></div>
+    ${item.realWorldContext ? `<div class="detail-section"><div class="sec-label">Real-world context — why this matters</div><div class="detail-realworld">${escapeHtml(item.realWorldContext)}</div></div>` : ''}
   `;
   const testStepsHtml = `
     <div class="detail-section"><div class="sec-label">Steps to identify</div>${listHtml(item.stepsToIdentify,'numbered')}</div>

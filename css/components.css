@@ -113,6 +113,27 @@
 .detail-client{font-size:12.6px; color:var(--text); line-height:1.8; padding:14px 16px; background:rgba(var(--info-rgb),.05); border-left:2px solid var(--info); border-radius:0 var(--r-sm) var(--r-sm) 0;}
 .detail-impact{font-size:12.6px; color:var(--text); line-height:1.75; padding:14px 16px; background:rgba(var(--crit-rgb),.06); border-left:2px solid var(--crit); border-radius:0 var(--r-sm) var(--r-sm) 0;}
 
+/* Real-world context — a narrative "why this matters" callout, distinct from
+   the terse Impact box so the story reads as engaging, not clinical. */
+.detail-realworld{font-size:12.6px; color:var(--text); line-height:1.8; padding:14px 16px; background:rgba(var(--accent-rgb),.055); border-left:2px solid var(--accent); border-radius:0 var(--r-sm) var(--r-sm) 0;}
+
+/* Difficulty + time-to-test strip at the top of a case. */
+.detail-engage{display:flex; flex-wrap:wrap; gap:8px; margin-bottom:16px;}
+.engage-chip{display:inline-flex; align-items:center; gap:7px; padding:6px 11px; border-radius:var(--r-pill); border:1px solid var(--border); background:var(--surface-2); font-family:var(--font-mono); font-size:10.5px;}
+.engage-chip .engage-k{color:var(--text-dim); text-transform:uppercase; letter-spacing:.5px; font-size:9px;}
+.engage-chip .engage-v{color:var(--text-bright); font-weight:700;}
+.engage-time .engage-v{color:var(--accent);}
+/* Difficulty tiers use the existing severity tokens, which are contrast-gated
+   in both themes, so no new colour is introduced. */
+.engage-diff.diff-beginner{border-color:rgba(var(--low-rgb),.4);}
+.engage-diff.diff-beginner .engage-v{color:var(--low);}
+.engage-diff.diff-intermediate{border-color:rgba(var(--med-rgb),.4);}
+.engage-diff.diff-intermediate .engage-v{color:var(--med);}
+.engage-diff.diff-advanced{border-color:rgba(var(--high-rgb),.4);}
+.engage-diff.diff-advanced .engage-v{color:var(--high);}
+.engage-diff.diff-expert{border-color:rgba(var(--crit-rgb),.4);}
+.engage-diff.diff-expert .engage-v{color:var(--crit);}
+
 /* ---------- Terminal-window payload blocks (signature component) ---------- */
 .payload-stack{display:flex; flex-direction:column; gap:11px;}
 .term-window{border-radius:var(--r-md); overflow:hidden; border:1px solid var(--border-strong); background:#0A0A0A; box-shadow:var(--shadow-sm);}

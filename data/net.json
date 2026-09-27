@@ -15278,6 +15278,3261 @@
      "name": "Target vulnerability validation"
     }
    ]
+  },
+  {
+   "id": "NET-151",
+   "domain": "NET",
+   "title": "Default SNMP Community Strings Left on Network Devices",
+   "sequence": 518,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1188",
+   "prerequisites": "Network reachability to devices with SNMP enabled and authorization to query them. snmpwalk / onesixtyone and a list of common community strings.",
+   "whatItIs": "Many switches, routers, printers, and appliances ship with SNMP enabled and the well-known community strings 'public' (read) and 'private' (read/write). Staff often deploy them without knowing to change these, leaving devices readable — and sometimes writable — by anyone on the network. This test checks for default/guessable SNMP community strings, an awareness and configuration-hygiene gap.",
+   "rootCause": "SNMP defaults exist for out-of-box manageability, and staff are frequently unaware that leaving them is dangerous. Without awareness or a hardening checklist, devices go live with 'public'/'private' intact.",
+   "impact": "A read community exposes device configuration, routing, interface, and sometimes credential material; a write community ('private') can reconfigure the device, reroute traffic, or cause outages. It is a fast route to network reconnaissance and control.",
+   "realWorldContext": "Default 'public'/'private' SNMP strings are one of the most reliably-found weaknesses in internal engagements — assessors routinely dump full device configs, and occasionally VLAN and password data, in the first hour. It persists because it is an awareness gap: whoever racked the device simply didn't know to change it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Identify devices with UDP/161 open across the in-scope ranges.",
+    "Test common community strings ('public', 'private', vendor defaults) with onesixtyone.",
+    "For any hit, snmpwalk the device to gauge the data exposed.",
+    "Check whether the string is read-only or read/write.",
+    "Look for configuration, routing, ARP, and credential OIDs in the walk.",
+    "Note whether SNMPv3 is available but unused."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to query SNMP on in-scope devices.",
+    "Sweep the range for SNMP with a community wordlist.",
+    "Walk each responsive device to enumerate system, interface, and routing data.",
+    "For a writable community, demonstrate (non-disruptively) that a benign OID can be set.",
+    "Extract any configuration or credential material exposed via SNMP.",
+    "Document the awareness/hardening gap behind the defaults."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Brute default community strings",
+     "command": "onesixtyone -c communities.txt -i targets.txt"
+    },
+    {
+     "label": "Walk a device with a found string",
+     "command": "snmpwalk -v2c -c public <target-ip>"
+    },
+    {
+     "label": "Pull the running config via SNMP (Cisco example)",
+     "command": "snmpwalk -v2c -c public <target-ip> 1.3.6.1.4.1.9.9.96"
+    },
+    {
+     "label": "Confirm write access (benign set)",
+     "command": "snmpset -v2c -c private <target-ip> sysContact.0 s 'pentest-noop'"
+    }
+   ],
+   "variants": [
+    "Read-only 'public' exposing full device configuration.",
+    "Writable 'private' allowing reconfiguration.",
+    "Vendor-specific default community (not just public/private).",
+    "SNMPv1/v2c in use where SNMPv3 with auth/priv is available."
+   ],
+   "mitigation": [
+    "Change or disable default SNMP community strings on every device.",
+    "Move to SNMPv3 with authentication and encryption.",
+    "Restrict SNMP access with ACLs to authorized management hosts only.",
+    "Provide a device-hardening checklist and train staff who rack equipment.",
+    "Disable SNMP entirely where it is not needed.",
+    "Scan periodically for default communities as they reappear."
+   ],
+   "mitigationClientFacing": "Lots of network equipment comes with a default 'management password' for a protocol called SNMP, and whoever installs the device often doesn't know to change it — leaving the device readable, and sometimes controllable, by anyone on the network. The fix is to change or turn off these defaults on every device, use the secure version of the protocol, limit which computers can manage devices, and give staff a simple hardening checklist so this doesn't happen again.",
+   "reference": {
+    "standard": "AT-2 (Literacy Training and Awareness)",
+    "cwe": "CWE-1188",
+    "tools": [
+     "onesixtyone",
+     "snmpwalk",
+     "snmp-check",
+     "nmap"
+    ],
+    "links": [
+     "NIST SP 800-53 AT-2 Awareness Training",
+     "MITRE ATT&CK T1046 (Network Service Discovery)",
+     "MITRE ATT&CK T1602.001 (SNMP MIB Dump)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AT",
+   "categoryName": "Awareness and Training",
+   "attack": [
+    {
+     "id": "T1592",
+     "name": "Gather Victim Host Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-4",
+     "name": "Secure Configuration of Enterprise Assets and Software"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-152",
+   "domain": "NET",
+   "title": "Credential Reuse Across Network Infrastructure Devices",
+   "sequence": 519,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-521",
+   "prerequisites": "Access to at least one network device credential (recovered or provided) and authorization to test its reuse across the estate. A device inventory helps.",
+   "whatItIs": "Network teams frequently reuse the same admin password across many switches, routers, and firewalls because remembering unique passwords for hundreds of devices is hard. If one device's credential is recovered, it unlocks the rest. This test checks for password reuse across network infrastructure — a training and password-hygiene gap.",
+   "rootCause": "Managing unique credentials for a large device fleet is operationally painful, so a single shared password is used everywhere. Staff are rarely trained on the blast-radius risk or given tooling (a vault, TACACS+) to avoid it.",
+   "impact": "One recovered credential — from an unwiped device, a config backup, or a weak hash — grants admin over the entire network fabric, enabling traffic rerouting, monitoring, and estate-wide outage. It converts a single device compromise into total network control.",
+   "realWorldContext": "Password reuse across network gear is the mechanism behind many 'one foothold to whole-network' escalations: recover one switch's enable password and the same string logs into everything. It is fundamentally a training gap, and it is why credential-vaulting and TACACS+ are hallmarks of mature network operations.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Obtain one device credential (from config backup, SNMP, weak hash, or provided).",
+    "Enumerate other management interfaces (SSH/Telnet/HTTPS) across the estate.",
+    "Test the recovered credential against a representative sample of devices.",
+    "Check whether a centralized auth system (TACACS+/RADIUS) is in use or bypassed by local accounts.",
+    "Assess whether the same enable/secret password is shared fleet-wide.",
+    "Document the reuse breadth and blast radius."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test credential reuse across devices.",
+    "Recover or receive a single device credential.",
+    "Spray it (carefully, respecting lockouts) across management interfaces on other devices.",
+    "Record how many devices accept the reused credential.",
+    "Demonstrate admin capability on a second, unrelated device.",
+    "Document the fleet-wide exposure and the training/hygiene root cause."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test SSH credential reuse across devices",
+     "command": "hydra -l admin -p '<recovered-pass>' -M devices.txt ssh"
+    },
+    {
+     "label": "Check enable/secret reuse (Cisco)",
+     "command": "# after login: enable   # does the same enable password work everywhere?"
+    },
+    {
+     "label": "Enumerate management interfaces",
+     "command": "nmap -p22,23,443 --open -iL ranges.txt -oG mgmt.gnmap"
+    },
+    {
+     "label": "Crack a recovered device hash",
+     "command": "hashcat -m 500 device_hash.txt <wordlist>   # Cisco type-5 example"
+    }
+   ],
+   "variants": [
+    "Shared enable/secret password across all switches.",
+    "Local admin account with the same password everywhere as a TACACS+ fallback.",
+    "Same SSH key deployed fleet-wide.",
+    "Recovered credential from a decommissioned device still valid everywhere."
+   ],
+   "mitigation": [
+    "Use centralized authentication (TACACS+/RADIUS) with per-user accounts and MFA.",
+    "Deploy unique per-device local credentials via a password vault.",
+    "Train network staff on credential-reuse blast radius and vault usage.",
+    "Rotate any credential known to be shared or recovered.",
+    "Disable or strictly control local fallback accounts.",
+    "Monitor for the same account logging into many devices."
+   ],
+   "mitigationClientFacing": "Network teams often use the same admin password on many switches and routers because unique passwords for hundreds of devices are hard to manage — but that means cracking one device unlocks them all. The fix is to use a central login system with per-person accounts, store unique device passwords in a secure vault, and train staff on why one shared password is so dangerous.",
+   "reference": {
+    "standard": "AT-2 (Literacy Training and Awareness)",
+    "cwe": "CWE-521",
+    "tools": [
+     "hydra",
+     "hashcat",
+     "nmap",
+     "password vault"
+    ],
+    "links": [
+     "NIST SP 800-53 AT-2 / IA-5",
+     "MITRE ATT&CK T1078 (Valid Accounts)",
+     "MITRE ATT&CK T1110.004 (Credential Stuffing)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AT",
+   "categoryName": "Awareness and Training",
+   "attack": [
+    {
+     "id": "T1110",
+     "name": "Brute Force",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-5",
+     "name": "Account Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-153",
+   "domain": "NET",
+   "title": "Staff Connecting Unauthorized Devices to the Network",
+   "sequence": 520,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-284",
+   "prerequisites": "Ability to observe the network for unmanaged devices (switch CAM tables, DHCP leases, discovery scans) and authorization to enumerate connected hosts. Optionally a test device to plug in.",
+   "whatItIs": "Employees frequently plug personal laptops, mini-switches, wireless routers, or IoT gadgets into the corporate network for convenience, unaware of the risk. Each unmanaged device expands the attack surface and can bridge untrusted networks. This test checks for unauthorized devices and the awareness gap that allows them.",
+   "rootCause": "Staff want connectivity and don't perceive the risk of adding a device. Without NAC enforcement and without training, any live network jack becomes an on-ramp for whatever someone chooses to connect.",
+   "impact": "Unauthorized devices can introduce malware, act as rogue APs, bridge the corporate network to untrusted networks, or provide an attacker a foothold if the device itself is compromised. They are unmanaged, unpatched, and invisible to inventory.",
+   "realWorldContext": "Shadow devices — a personal router 'to get better Wi-Fi', a mini-switch to add ports, an IoT gadget — turn up in almost every internal assessment, each an unmanaged, unpatched entry point. They persist because connecting them feels harmless to staff, which is precisely why role-based awareness training targets it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate connected devices via switch CAM/MAC tables, DHCP leases, and discovery scans.",
+    "Compare discovered devices against the asset inventory to find unknowns.",
+    "Identify device types (personal laptops, mini-switches, wireless routers, IoT).",
+    "Check whether NAC/802.1X is enforced on access ports.",
+    "Where authorized, plug a test device into an open jack and see if it gets network access.",
+    "Assess whether staff are trained/permitted to connect devices."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate connected hosts and test an open jack.",
+    "Build a picture of live devices from CAM tables, DHCP, and scans.",
+    "Flag every device absent from the inventory and classify it.",
+    "Plug a test device into an accessible jack and confirm whether it obtains network access without authentication.",
+    "Demonstrate that an unauthorized device can reach internal resources.",
+    "Document the unmanaged devices and the awareness/NAC gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Discover live hosts",
+     "command": "nmap -sn <target-range>/24 -oG live.gnmap"
+    },
+    {
+     "label": "Fingerprint unknown devices",
+     "command": "nmap -O -sV <unknown-ip>"
+    },
+    {
+     "label": "Test an open jack for access (no 802.1X)",
+     "command": "dhclient <interface> && ip a   # did we get a lease without authenticating?"
+    },
+    {
+     "label": "Look for rogue mini-switches (many MACs on one port)",
+     "command": "# on the switch: show mac address-table interface <port>"
+    }
+   ],
+   "variants": [
+    "Personal wireless router plugged in as a shadow AP.",
+    "Unmanaged mini-switch adding uncontrolled ports.",
+    "Personal laptop bridging a home VPN into corporate.",
+    "IoT device (camera, assistant) added to a sensitive VLAN."
+   ],
+   "mitigation": [
+    "Enforce 802.1X/NAC on access ports so only authorized devices connect.",
+    "Disable unused switch ports and apply port security (MAC limits).",
+    "Train staff (role-based) that connecting devices requires approval and why.",
+    "Maintain an accurate asset inventory and reconcile it regularly.",
+    "Alert on unknown MACs and multi-MAC access ports.",
+    "Provide sanctioned alternatives (guest Wi-Fi, approved hardware) to reduce the temptation."
+   ],
+   "mitigationClientFacing": "Staff often plug in their own laptops, mini-switches, or Wi-Fi routers to be helpful, not realizing each one is an unmanaged doorway into the network. The fix is to require devices to authenticate before they get network access, turn off unused network sockets, keep an accurate inventory, and train staff that connecting devices needs approval — while giving them safe alternatives so they don't feel the need.",
+   "reference": {
+    "standard": "AT-3 (Role-Based Training)",
+    "cwe": "CWE-284",
+    "tools": [
+     "nmap",
+     "dhclient",
+     "switch CAM tables",
+     "NAC/802.1X"
+    ],
+    "links": [
+     "NIST SP 800-53 AT-3 Role-Based Training",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1046 (Network Service Discovery)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AT",
+   "categoryName": "Awareness and Training",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-154",
+   "domain": "NET",
+   "title": "Rogue Device Connections Not Reported by Staff",
+   "sequence": 521,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Ability to introduce a benign, clearly-labelled test device and observe whether it is reported/detected, plus authorization to do so. Coordination with the blue team is recommended.",
+   "whatItIs": "Even where monitoring exists, its effectiveness depends on staff noticing and reporting unusual devices — an unfamiliar box plugged into a meeting-room jack, an extra device under a desk. This test measures whether staff recognize and report rogue devices, an awareness outcome distinct from technical detection.",
+   "rootCause": "Staff are not trained to notice or report unfamiliar network devices, and assume 'IT knows about it'. Without an easy reporting path and awareness of why it matters, rogue devices sit unremarked for long periods.",
+   "impact": "An unreported rogue device (a drop box, a Raspberry Pi, a rogue AP) can persist for days or weeks, providing an attacker continuous access, traffic capture, or a pivot point, purely because no one thought to flag it.",
+   "realWorldContext": "Physical drop boxes and implants rely on exactly this: plug a small device into an out-of-the-way jack and count on nobody reporting it. Assessments repeatedly show benign test devices left in meeting rooms for days without a single report — an awareness gap that technical monitoring alone doesn't close.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "With authorization and blue-team coordination, place a clearly-labelled benign test device on the network.",
+    "Choose a plausible but noticeable location (meeting room, under a desk).",
+    "Measure how long until anyone notices or reports it.",
+    "Check whether any technical monitoring flagged it independently.",
+    "Interview staff (in scope) on whether they would know how to report such a device.",
+    "Document the reporting/awareness outcome."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization and coordinate with the blue team for a benign test device.",
+    "Deploy the labelled device and record the placement time.",
+    "Track staff reports and technical alerts over the test window.",
+    "Note the time-to-report (or that it was never reported).",
+    "Assess whether staff know the reporting process at all.",
+    "Document the awareness gap and recommend training/reporting improvements."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Prepare a benign, labelled test device",
+     "command": "# small SBC labelled 'AUTHORIZED PENTEST DEVICE - CONTACT SECURITY' with beacon"
+    },
+    {
+     "label": "Confirm it has network access",
+     "command": "ip a && ping -c1 <internal-gateway>"
+    },
+    {
+     "label": "Beacon so its presence is verifiable",
+     "command": "while true; do curl -s http://<team-listener>/checkin; sleep 300; done"
+    },
+    {
+     "label": "Record report timeline",
+     "command": "# log first staff report and first technical alert, if any"
+    }
+   ],
+   "variants": [
+    "Meeting-room drop box unreported for the full engagement.",
+    "Under-desk device noticed but not reported (no known process).",
+    "Device reported quickly (positive outcome) in a mature environment.",
+    "Technical monitoring caught it but staff did not (partial coverage)."
+   ],
+   "mitigation": [
+    "Train staff to recognize and report unfamiliar network devices, with an easy reporting path.",
+    "Run periodic awareness exercises using benign, coordinated test devices.",
+    "Combine awareness with technical detection (NAC, port security, rogue-device alerts).",
+    "Publicize a simple 'see something, say something' security contact.",
+    "Reward reporting to reinforce the behaviour.",
+    "Track and improve time-to-report as a metric."
+   ],
+   "mitigationClientFacing": "Security also depends on people noticing and reporting a strange device plugged into the network — but staff often assume IT already knows, so drop boxes and implants sit unreported for weeks. The fix is to train staff to spot and easily report unfamiliar devices, run occasional awareness exercises, and pair that with technical monitoring so both people and systems catch rogue devices.",
+   "reference": {
+    "standard": "AT-2 (Literacy Training and Awareness)",
+    "cwe": "CWE-778",
+    "tools": [
+     "SBC test device",
+     "network beacon",
+     "blue-team coordination"
+    ],
+    "links": [
+     "NIST SP 800-53 AT-2 Awareness Training",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1205 (Traffic Signaling)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AT",
+   "categoryName": "Awareness and Training",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-155",
+   "domain": "NET",
+   "title": "Unmanaged 'Shadow' Network Segments and Devices",
+   "sequence": 522,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Broad network visibility (routing tables, discovery scans, switch data) and authorization to enumerate the environment. A documented network diagram to compare against.",
+   "whatItIs": "Departments and teams sometimes stand up their own network segments, lab networks, or devices outside central IT's knowledge — 'shadow IT' at the network layer. These segments are unmanaged, unpatched, and often poorly secured, yet may bridge to the corporate network. This test discovers shadow segments and the awareness/governance gap behind them.",
+   "rootCause": "Teams needing quick connectivity build their own networks without engaging central IT, unaware of security obligations. Without governance and training, these segments proliferate and connect back into the corporate fabric.",
+   "impact": "Shadow segments provide attackers an unmonitored, weakly-secured path into the environment, often bridging to sensitive networks. They evade patching, monitoring, and inventory entirely.",
+   "realWorldContext": "Assessments routinely uncover forgotten lab networks and team-built segments — full of unpatched hosts — quietly bridged to production. Because central IT never knew they existed, they receive none of the standard controls, making them a favourite pivot for attackers who find them first.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate reachable networks via routing tables, ARP, and discovery scans.",
+    "Compare discovered segments against the documented network diagram/inventory.",
+    "Identify segments and devices not managed by central IT.",
+    "Assess the security posture of shadow segments (patching, monitoring, access control).",
+    "Check whether shadow segments bridge to sensitive/production networks.",
+    "Document the governance/awareness gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate the full environment.",
+    "Map reachable networks from a foothold using routing and discovery data.",
+    "Flag segments/devices absent from official documentation.",
+    "Assess a shadow segment's posture and its reachability to sensitive systems.",
+    "Demonstrate that a shadow segment offers an unmonitored path or weak foothold.",
+    "Document the shadow infrastructure and its root cause."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Discover reachable networks",
+     "command": "ip route && for n in $(seq 1 254); do ping -c1 -W1 10.10.$n.1 >/dev/null && echo 10.10.$n.0/24; done"
+    },
+    {
+     "label": "Sweep a discovered segment",
+     "command": "nmap -sn 10.10.<n>.0/24"
+    },
+    {
+     "label": "Fingerprint shadow hosts",
+     "command": "nmap -O -sV --top-ports 100 10.10.<n>.0/24"
+    },
+    {
+     "label": "Check reachability to production",
+     "command": "nmap -Pn -p1-1000 <production-host>   # from the shadow segment"
+    }
+   ],
+   "variants": [
+    "Team-built lab network bridged to production.",
+    "Forgotten segment full of unpatched legacy hosts.",
+    "Department switch outside NAC and monitoring.",
+    "Cloud-connected shadow segment extending the perimeter."
+   ],
+   "mitigation": [
+    "Establish network-change governance so new segments go through central IT.",
+    "Train teams (role-based) that standing up networks requires engagement and controls.",
+    "Discover and reconcile actual topology against documentation regularly.",
+    "Bring shadow segments under management, monitoring, and patching or remove them.",
+    "Enforce segmentation so unmanaged segments cannot reach sensitive systems.",
+    "Maintain an authoritative, current network diagram and inventory."
+   ],
+   "mitigationClientFacing": "Teams sometimes build their own network segments or lab networks without telling central IT, and these unmanaged, unpatched networks often connect back to the main network — giving attackers an easy, unwatched way in. The fix is to require new networks to go through IT, train teams on why that matters, regularly compare the real network to the documented one, and bring any 'shadow' networks under proper management or shut them down.",
+   "reference": {
+    "standard": "AT-3 (Role-Based Training)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "nmap",
+     "ip route",
+     "network diagram",
+     "discovery tooling"
+    ],
+    "links": [
+     "NIST SP 800-53 AT-3 Role-Based Training",
+     "MITRE ATT&CK T1046 (Network Service Discovery)",
+     "MITRE ATT&CK T1016 (System Network Configuration Discovery)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AT",
+   "categoryName": "Awareness and Training",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-156",
+   "domain": "NET",
+   "title": "No NetFlow / Traffic Flow Collection for Network Visibility",
+   "sequence": 523,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to network devices to check flow-export configuration and to the collector (or evidence of its absence). Authorization to review monitoring configuration.",
+   "whatItIs": "NetFlow/sFlow/IPFIX records who talked to whom, when, and how much, across the network. Without it, defenders have little visibility into lateral movement, exfiltration, or command-and-control. This test checks whether traffic-flow data is collected — an audit-record-generation gap at the network layer.",
+   "rootCause": "Flow collection requires configuration on devices and a collector to receive it, and is often skipped as 'nice to have'. Without it, there is no record of network conversations to review during or after an incident.",
+   "impact": "Absent flow data, lateral movement, data exfiltration, and C2 beaconing leave no network-level trace, crippling detection and incident response. Investigators cannot reconstruct what an attacker did on the network.",
+   "realWorldContext": "In real incident response, NetFlow is often the difference between reconstructing an attacker's path and guessing — it reveals lateral movement and exfiltration that endpoint logs miss. Organizations without it repeatedly find, mid-breach, that they simply have no record of what moved across their network.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Check network devices for flow-export configuration (NetFlow/sFlow/IPFIX).",
+    "Verify whether a flow collector is deployed and receiving data.",
+    "Assess coverage: which segments and devices export flows.",
+    "Determine retention of any flow data collected.",
+    "Test whether a known internal conversation is visible in flow records.",
+    "Document the flow-visibility gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review monitoring configuration.",
+    "Inspect device configs for flow export and identify collectors.",
+    "Generate a distinctive internal traffic pattern and check whether it appears in flow data.",
+    "Assess how much of the network has no flow visibility.",
+    "Show that lateral movement between two hosts would leave no flow record.",
+    "Document the coverage and retention gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check flow export on a device (Cisco)",
+     "command": "show running-config | include (flow|netflow|sflow)"
+    },
+    {
+     "label": "Confirm collector reachability",
+     "command": "nc -vzu <collector-ip> 2055   # NetFlow/IPFIX default"
+    },
+    {
+     "label": "Generate a distinctive test conversation",
+     "command": "iperf3 -c <target-ip> -p 54321 -t 10"
+    },
+    {
+     "label": "Look for the flow at the collector",
+     "command": "# query the collector for src/dst <foothold>-<target> on port 54321"
+    }
+   ],
+   "variants": [
+    "No flow export configured on core devices.",
+    "Flow exported but no collector receiving it.",
+    "Partial coverage leaving key segments blind.",
+    "Very short flow retention preventing historical investigation."
+   ],
+   "mitigation": [
+    "Enable flow export (NetFlow/IPFIX/sFlow) on core and edge devices.",
+    "Deploy a flow collector with adequate retention.",
+    "Ensure coverage across all significant network segments.",
+    "Integrate flow data with the SIEM and detection use-cases.",
+    "Baseline normal flows and alert on anomalies (beaconing, exfil).",
+    "Include flow visibility in monitoring and audit requirements."
+   ],
+   "mitigationClientFacing": "NetFlow is a record of which computers talked to each other across your network — without it, you can't see an attacker moving around inside or stealing data, and can't reconstruct what happened after a breach. The fix is to turn on flow collection across your network devices, send it to a collector that keeps enough history, and connect it to your security monitoring so unusual traffic gets flagged.",
+   "reference": {
+    "standard": "AU-12 (Audit Record Generation)",
+    "cwe": "CWE-778",
+    "tools": [
+     "nfdump",
+     "nc",
+     "iperf3",
+     "flow collector"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-12 Audit Record Generation",
+     "MITRE ATT&CK T1049 (System Network Connections Discovery)",
+     "MITRE ATT&CK T1071 (Application Layer Protocol)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-157",
+   "domain": "NET",
+   "title": "Network Device Logs Not Centrally Collected",
+   "sequence": 524,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to network devices to check logging configuration and to any central log/SIEM (or evidence of its absence). Authorization to review logging.",
+   "whatItIs": "Switches, routers, and firewalls generate logs of logins, configuration changes, and security events — but if those logs stay only on each device (where they roll over quickly and are lost on reboot), no one reviews them and they vanish when needed. This test checks whether network device logs are centrally collected and reviewed.",
+   "rootCause": "Central logging requires syslog configuration and a collector, and is often not set up for network gear specifically. Device-local logs are small, volatile, and never aggregated, so review is impossible.",
+   "impact": "Without central logs, an attacker's logins and configuration changes to network devices go unrecorded or are lost, defeating detection and forensics. A device reboot (or an attacker) erases the only evidence.",
+   "realWorldContext": "After network-device compromises, responders frequently find the only logs were on the device itself — long since rolled over or wiped by the attacker. Centralizing network logs is basic accountability, and its absence repeatedly turns a detectable intrusion into an invisible one.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Check syslog/logging configuration on network devices.",
+    "Verify whether logs are forwarded to a central collector/SIEM.",
+    "Assess which event types are logged (auth, config change, ACL hits).",
+    "Determine device-local log buffer size and volatility.",
+    "Test whether a login and a config change appear centrally.",
+    "Document the central-logging gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review logging configuration.",
+    "Inspect device logging config and identify any central destination.",
+    "Perform a benign login and configuration change on a test device.",
+    "Check whether those events reach a central collector.",
+    "Show that device-local logs would be lost on reboot or roll-over.",
+    "Document the accountability gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check logging config (Cisco)",
+     "command": "show running-config | include logging"
+    },
+    {
+     "label": "Confirm syslog reachability",
+     "command": "nc -vzu <syslog-ip> 514"
+    },
+    {
+     "label": "Generate a test event",
+     "command": "# authorized: log in and make a benign config change (e.g. set a description)"
+    },
+    {
+     "label": "Verify central receipt",
+     "command": "# search the SIEM/collector for the device's login and config-change event"
+    }
+   ],
+   "variants": [
+    "Logging to local buffer only, lost on reboot.",
+    "Syslog configured but pointing to a dead collector.",
+    "Config changes not logged at all.",
+    "No forwarding of firewall deny/security events."
+   ],
+   "mitigation": [
+    "Configure syslog forwarding from all network devices to a central collector/SIEM.",
+    "Log authentication, configuration changes, and security events.",
+    "Ensure adequate retention and tamper-resistance of central logs.",
+    "Review network logs regularly and build detection use-cases.",
+    "Alert on suspicious device logins and configuration changes.",
+    "Include network logging in audit and monitoring standards."
+   ],
+   "mitigationClientFacing": "Your switches, routers, and firewalls record important events like logins and settings changes, but if those records only stay on each device, they're tiny, get overwritten quickly, and disappear on a reboot — so no one can review them when it matters. The fix is to send all network-device logs to a central system that keeps them safely, review them regularly, and alert on suspicious logins or changes.",
+   "reference": {
+    "standard": "AU-6 (Audit Record Review, Analysis, and Reporting)",
+    "cwe": "CWE-778",
+    "tools": [
+     "syslog",
+     "nc",
+     "SIEM",
+     "rsyslog"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-6 Audit Review",
+     "MITRE ATT&CK T1070 (Indicator Removal)",
+     "MITRE ATT&CK T1562.008 (Disable Cloud/Network Logs)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-158",
+   "domain": "NET",
+   "title": "Firewall Logging Disabled or Not Reviewed",
+   "sequence": 525,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to firewall configuration and logs (or evidence of their absence), and authorization to review. Test traffic to generate loggable events.",
+   "whatItIs": "Firewalls sit at trust boundaries and see connection attempts, denies, and allowed sessions — invaluable for detecting attacks and investigating incidents. If firewall logging is disabled, or logs are generated but never reviewed, that visibility is wasted. This test checks whether firewall events are logged and reviewed.",
+   "rootCause": "Logging every rule can be voluminous, so it is sometimes disabled for performance or noise reasons, and even when enabled, the logs are frequently never looked at. Boundary visibility is generated and then ignored.",
+   "impact": "Without reviewed firewall logs, port scans, exploitation attempts, C2 callbacks, and policy violations at the boundary go unnoticed, and incident responders lack a record of what crossed the perimeter.",
+   "realWorldContext": "Firewall logs are often the first place a scan or exploitation attempt is visible — yet in many breaches the logs existed but nobody watched them, or logging was off on the very rules that mattered. Turning boundary logging on and actually reviewing it is a foundational control that is surprisingly often skipped.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Check firewall configuration for logging on relevant rules (allow, deny, and default-deny).",
+    "Verify whether logs are forwarded to a central collector/SIEM.",
+    "Assess whether the logs are actually reviewed or alerted on.",
+    "Generate benign test traffic that should be logged (e.g. a denied connection).",
+    "Confirm whether the event appears and would trigger review.",
+    "Document logging/review gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review firewall configuration and logs.",
+    "Inspect logging settings on key rules and the default-deny.",
+    "Send benign traffic that should hit a logged rule (e.g. a connection to a blocked port).",
+    "Verify the event is logged and forwarded centrally.",
+    "Assess whether anyone reviews or alerts on such events.",
+    "Document the boundary-visibility gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check logging on rules (iptables example)",
+     "command": "iptables -L -v -n | grep -i LOG"
+    },
+    {
+     "label": "Generate a denied connection to test logging",
+     "command": "nmap -Pn -p <blocked-port> <firewall-protected-host>"
+    },
+    {
+     "label": "Confirm central forwarding",
+     "command": "nc -vzu <siem-ip> 514"
+    },
+    {
+     "label": "Search for the deny event",
+     "command": "# query the SIEM for the denied connection from the test source"
+    }
+   ],
+   "variants": [
+    "Logging disabled on the default-deny rule (scans invisible).",
+    "Allowed-rule logging off, hiding successful boundary crossings.",
+    "Logs generated but never forwarded or reviewed.",
+    "No alerting on repeated denied connection attempts."
+   ],
+   "mitigation": [
+    "Enable logging on deny and key allow rules, including the default-deny.",
+    "Forward firewall logs to a central collector/SIEM with retention.",
+    "Build detection use-cases (scanning, exploitation, beaconing) and alert on them.",
+    "Review firewall logs regularly, not just after incidents.",
+    "Tune logging to balance visibility and volume.",
+    "Include firewall logging/review in monitoring standards."
+   ],
+   "mitigationClientFacing": "Firewalls see everything trying to cross into your network, and their logs reveal scans, attacks, and suspicious callbacks — but only if logging is on and someone actually reviews it. The fix is to make sure your firewalls log blocked and important allowed traffic, send those logs to a central system, and set up alerts and regular reviews so boundary attacks are noticed.",
+   "reference": {
+    "standard": "AU-6 (Audit Record Review, Analysis, and Reporting)",
+    "cwe": "CWE-778",
+    "tools": [
+     "iptables",
+     "nmap",
+     "nc",
+     "SIEM"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-6 Audit Review",
+     "MITRE ATT&CK T1046 (Network Service Discovery)",
+     "MITRE ATT&CK T1071 (Application Layer Protocol)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-159",
+   "domain": "NET",
+   "title": "Configuration Changes to Network Devices Not Logged",
+   "sequence": 526,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to network devices and any change-logging/central log system, and authorization to review. Ability to make a benign test configuration change.",
+   "whatItIs": "Every configuration change to a switch, router, or firewall alters the security posture — an ACL edit, a new route, a disabled protection. If these changes are not logged with who/what/when, malicious or accidental changes cannot be detected or attributed. This test checks whether network configuration changes are logged and attributable.",
+   "rootCause": "Change logging requires AAA accounting and central log capture, which is often not configured for config-level events. Changes then happen without an attributable record.",
+   "impact": "Unlogged configuration changes let an attacker weaken defences (open an ACL, disable logging, add a route) without a trace, and prevent responders from knowing what was altered or by whom.",
+   "realWorldContext": "A common attacker move after gaining device access is a quiet configuration change — opening a path, disabling a control — and without change logging, it is invisible and unattributable. Config-change accountability is exactly what lets teams detect and undo such tampering.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Check whether AAA command accounting / config-change logging is enabled.",
+    "Verify whether config changes are captured centrally (who, what, when).",
+    "Assess whether pre/post change snapshots or diffs are retained.",
+    "Make a benign test change and see whether it is logged and attributed.",
+    "Check for alerting on security-relevant changes (ACLs, logging, routes).",
+    "Document the change-accountability gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to make a benign test configuration change.",
+    "Review AAA accounting and change-logging configuration.",
+    "Make an attributable benign change (e.g. an interface description).",
+    "Verify the change is logged centrally with user attribution.",
+    "Test whether a security-weakening change would alert.",
+    "Document the accountability and alerting gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check command accounting (Cisco)",
+     "command": "show running-config | include aaa accounting"
+    },
+    {
+     "label": "Make a benign attributable change",
+     "command": "# authorized: configure terminal; interface <if>; description PENTEST-NOOP"
+    },
+    {
+     "label": "Verify central capture",
+     "command": "# search the SIEM for the config-change event and the user who made it"
+    },
+    {
+     "label": "Check config diff/archive",
+     "command": "show archive   # is there a change history to diff against?"
+    }
+   ],
+   "variants": [
+    "Changes made with no accounting (unattributable).",
+    "Local console changes bypassing AAA accounting.",
+    "Security-weakening changes not alerting.",
+    "No config archive/diff to detect drift."
+   ],
+   "mitigation": [
+    "Enable AAA command accounting for all configuration changes.",
+    "Capture config changes centrally with user attribution.",
+    "Maintain a configuration archive and alert on diffs.",
+    "Alert on security-relevant changes (ACLs, logging, routing, accounts).",
+    "Require change control for network configuration modifications.",
+    "Review configuration changes as part of audit."
+   ],
+   "mitigationClientFacing": "Every change to a switch, router, or firewall can strengthen or weaken security, but if changes aren't logged with who made them and when, a harmful change — by an attacker or by mistake — leaves no trace. The fix is to log all configuration changes with the person's identity, keep a history you can compare against, and alert when security-sensitive settings are changed.",
+   "reference": {
+    "standard": "AU-2 (Event Logging)",
+    "cwe": "CWE-778",
+    "tools": [
+     "AAA accounting",
+     "SIEM",
+     "config archive",
+     "RANCID/Oxidized"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-2 Event Logging",
+     "MITRE ATT&CK T1601 (Modify System Image)",
+     "MITRE ATT&CK T1562.004 (Disable or Modify System Firewall)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-160",
+   "domain": "NET",
+   "title": "Unsynchronized Clocks Make Network Logs Unusable",
+   "sequence": 527,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to network devices to check NTP configuration and observe timestamps, and authorization to review. Two or more devices to compare.",
+   "whatItIs": "Log timestamps are only useful if devices agree on the time. When network devices are not synchronized to a common, reliable time source (NTP), their logs cannot be correlated, and reconstructing the sequence of events across devices during an incident becomes guesswork. This test checks time synchronization across network infrastructure.",
+   "rootCause": "NTP is easy to overlook or misconfigure, and devices drift or default to wrong times. Without enforced, authenticated NTP, each device keeps its own approximate time, so cross-device correlation breaks.",
+   "impact": "Unsynchronized clocks make it impossible to reliably order events across devices during an investigation, and can invalidate logs as evidence. An attacker's actions across multiple devices cannot be stitched into a timeline.",
+   "realWorldContext": "Incident responders repeatedly hit the wall of mismatched clocks — device A says 14:02, device B says 13:47 — making it impossible to order an attacker's steps. Time synchronization is unglamorous, but its absence quietly undermines every other log the organization collects.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Check NTP configuration on network devices.",
+    "Compare current time across several devices.",
+    "Verify whether a reliable, common time source is used.",
+    "Assess whether NTP is authenticated (to prevent time spoofing).",
+    "Correlate a single event's timestamp across two devices to test drift.",
+    "Document the time-sync gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review device time configuration.",
+    "Query the current time and NTP status on multiple devices.",
+    "Measure clock drift between devices.",
+    "Generate one event visible on two devices and compare its timestamps.",
+    "Show that the drift would prevent reliable cross-device correlation.",
+    "Document the synchronization and authentication gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check NTP status (Cisco)",
+     "command": "show ntp status && show ntp associations"
+    },
+    {
+     "label": "Compare device times",
+     "command": "for d in <ip1> <ip2> <ip3>; do echo $d; ssh admin@$d 'show clock'; done"
+    },
+    {
+     "label": "Check for NTP authentication",
+     "command": "show running-config | include ntp"
+    },
+    {
+     "label": "Measure drift against a reference",
+     "command": "ntpdate -q <reliable-ntp>   # compare device time to a trusted source"
+    }
+   ],
+   "variants": [
+    "Devices with no NTP, drifting freely.",
+    "Different time zones/offsets across devices.",
+    "Unauthenticated NTP vulnerable to time spoofing.",
+    "One critical device silently far out of sync."
+   ],
+   "mitigation": [
+    "Configure all network devices to sync to a common, reliable NTP source.",
+    "Use authenticated NTP to prevent time spoofing.",
+    "Standardize on a single time zone (often UTC) for logs.",
+    "Monitor and alert on clock drift.",
+    "Include time synchronization in device build standards.",
+    "Verify sync after maintenance and reboots."
+   ],
+   "mitigationClientFacing": "Log timestamps are only useful if all your devices agree on the time — otherwise, during an investigation, you can't tell what happened first. The fix is to sync every network device to the same reliable time source, protect that time source from tampering, use one consistent time zone, and alert if any device's clock drifts. Getting this right is cheap and simple, but it is what makes all your other logs trustworthy when you need them most.",
+   "reference": {
+    "standard": "AU-8 (Time Stamps)",
+    "cwe": "CWE-778",
+    "tools": [
+     "ntpdate",
+     "ssh",
+     "NTP",
+     "SIEM"
+    ],
+    "links": [
+     "NIST SP 800-53 AU-8 Time Stamps",
+     "MITRE ATT&CK T1070.006 (Timestomp)",
+     "MITRE ATT&CK T1565 (Data Manipulation)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "AU",
+   "categoryName": "Audit and Accountability",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-161",
+   "domain": "NET",
+   "title": "Decommissioned Network Gear Retains Configs and Keys",
+   "sequence": 528,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-312",
+   "prerequisites": "Physical access to decommissioned/spare/returned network devices, and a serial console or flash-extraction capability. Authorization to inspect retired hardware.",
+   "whatItIs": "When switches, routers, and firewalls are retired, their NVRAM/flash usually still holds the last running configuration: admin passwords, SNMP strings, VPN keys, and RADIUS secrets. If those units are resold, sent to e-waste, or stored without being wiped, anyone who obtains one can read the credentials and use them against the still-live network. This test checks sanitization of retired network media.",
+   "rootCause": "Decommissioning removes the device from service but not its stored secrets; flash retains the config unless explicitly erased. With no sanitization step in the disposal process, credentials leave the building inside the hardware.",
+   "impact": "Recovered VPN keys, RADIUS secrets, and admin passwords can grant an attacker network access, let them impersonate the auth server, or decrypt captured traffic — all from a single unwiped device pulled from a skip or bought on an auction site.",
+   "realWorldContext": "Security researchers buying used enterprise routers and firewalls online have repeatedly recovered live VPN keys, credentials, and even prior owners' network maps straight from unwiped flash. Retired network gear is one of the most reliable sources of working corporate secrets an attacker can obtain without touching the network.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Inventory decommissioned/spare network devices and their disposal path.",
+    "Console into a unit and check whether it boots configured rather than to defaults.",
+    "Dump the startup/running configuration and search for passwords, SNMP strings, VPN/RADIUS keys.",
+    "Where needed, extract flash/NVRAM directly and carve the config.",
+    "Test whether any recovered secret is still valid on the live network.",
+    "Assess whether a sanitization step exists in decommissioning."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to inspect and extract config from retired devices.",
+    "Console into the device and capture its stored configuration.",
+    "Search the config for 'password', 'snmp-server community', 'crypto key', 'radius', 'shared-secret'.",
+    "If flash access is required, image it and carve the configuration with binwalk.",
+    "Validate a recovered credential/secret against production (in scope).",
+    "Document each recovered secret and the missing sanitization control."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Dump stored config over console",
+     "command": "screen /dev/ttyUSB0 9600   # then: show startup-config"
+    },
+    {
+     "label": "Search a config for secrets",
+     "command": "grep -niE 'password|secret|snmp-server community|crypto key|radius|pre-shared-key' device.cfg"
+    },
+    {
+     "label": "Image and carve flash",
+     "command": "flashrom -p ch341a_spi -r dev_flash.bin && binwalk -e dev_flash.bin"
+    },
+    {
+     "label": "Crack a recovered type-5 hash",
+     "command": "hashcat -m 500 dev_hash.txt <wordlist>"
+    }
+   ],
+   "variants": [
+    "Firewall with VPN pre-shared keys intact.",
+    "Switch retaining SNMP RW community and enable secret.",
+    "Router with RADIUS shared secret in NVRAM.",
+    "Config backup for the device left on an unencrypted share."
+   ],
+   "mitigation": [
+    "Add a mandatory sanitization step (factory reset + crypto-erase where supported) to decommissioning.",
+    "Track retired network media through a documented disposal chain with sign-off.",
+    "Rotate any credential/secret present on a disposed device.",
+    "Physically destroy flash on units that cannot be reliably wiped.",
+    "Encrypt and restrict access to configuration backups.",
+    "Verify sanitization before any device leaves the organization."
+   ],
+   "mitigationClientFacing": "When you retire a switch, router, or firewall, its stored settings — including passwords and VPN keys — usually stay inside it. If the device is thrown out, sold, or shelved without being wiped, someone can read those secrets and get onto your network. The fix is to always reset and wipe network gear before it leaves your control, keep a record of how each device was disposed of, and change any password or key that was on a retired device.",
+   "reference": {
+    "standard": "MP-6 (Media Sanitization)",
+    "cwe": "CWE-312",
+    "tools": [
+     "serial console",
+     "flashrom",
+     "binwalk",
+     "hashcat"
+    ],
+    "links": [
+     "NIST SP 800-88 (Media Sanitization)",
+     "NIST SP 800-53 MP-6",
+     "MITRE ATT&CK T1552.004 (Private Keys)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-3",
+     "name": "Data Protection"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-162",
+   "domain": "NET",
+   "title": "Configuration Backups Exposed on TFTP/FTP Servers",
+   "sequence": 529,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-552",
+   "prerequisites": "Network reachability to TFTP/FTP servers used for device backups, and authorization to enumerate and retrieve files. tftp/ftp clients and common filename lists.",
+   "whatItIs": "Network teams commonly back up device configurations to TFTP or FTP servers. TFTP has no authentication at all, and FTP is often anonymous or weakly secured, so anyone on the network who can guess or list the filenames can download full device configs — complete with credentials and keys. This test checks for exposed configuration backups.",
+   "rootCause": "TFTP/FTP are convenient for device backups and are enabled without access control. Config backups are stored as media without protection, so the confidentiality of the backup depends only on filename obscurity.",
+   "impact": "Downloaded config backups hand over admin passwords, SNMP strings, VPN keys, and the network's structure — enabling device takeover, traffic interception, and mapping of the whole environment, with no exploitation required.",
+   "realWorldContext": "Exposed TFTP/FTP config repositories are a classic internal-assessment jackpot: a single anonymous download can yield hundreds of device configs and every credential in them. Because TFTP has no authentication by design, the only thing protecting the backups is that nobody looked — until someone does.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify TFTP (UDP/69) and FTP (TCP/21) servers on the network.",
+    "Test anonymous/guessable access to FTP and attempt TFTP retrieval.",
+    "Guess or enumerate config backup filenames (hostnames, 'config', 'startup-config', dated names).",
+    "Download any accessible configuration backups.",
+    "Search retrieved configs for credentials, keys, and network structure.",
+    "Assess whether backups are encrypted or access-controlled at all."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate and retrieve backup files.",
+    "Locate TFTP/FTP backup servers and test access.",
+    "Enumerate/guess config filenames and retrieve any that succeed.",
+    "Extract credentials and keys from a downloaded configuration.",
+    "Validate a recovered credential against the corresponding device (in scope).",
+    "Document the exposed backups and the storage-protection gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Find TFTP/FTP servers",
+     "command": "nmap -sU -p69 --open <target-range> ; nmap -p21 --open <target-range>"
+    },
+    {
+     "label": "Test anonymous FTP",
+     "command": "ftp <ftp-ip>   # user: anonymous, pass: anything"
+    },
+    {
+     "label": "Retrieve a guessed config via TFTP",
+     "command": "tftp <tftp-ip> -c get <hostname>-confg"
+    },
+    {
+     "label": "Search a downloaded config",
+     "command": "grep -niE 'password|secret|community|crypto key|radius' <hostname>-confg"
+    }
+   ],
+   "variants": [
+    "Anonymous FTP directory listing every device config.",
+    "TFTP server serving predictably-named backups.",
+    "Backups named by hostname, trivially guessable.",
+    "Dated backups revealing the whole device inventory over time."
+   ],
+   "mitigation": [
+    "Replace TFTP/anonymous FTP with authenticated, encrypted transfer (SCP/SFTP) for backups.",
+    "Restrict backup servers to authorized management hosts via ACLs.",
+    "Encrypt configuration backups at rest.",
+    "Remove predictable filenames and directory listing.",
+    "Treat config backups as sensitive media with access control and retention.",
+    "Rotate credentials exposed by any accessible backup."
+   ],
+   "mitigationClientFacing": "Network teams back up device settings to file servers, but the common methods (TFTP and basic FTP) often have no real access control, so anyone on the network who guesses the filenames can download full device configurations — including passwords and keys. The fix is to use secure, authenticated transfer for backups, restrict who can reach the backup server, encrypt the backups, and change any password that was exposed.",
+   "reference": {
+    "standard": "MP-4 (Media Storage)",
+    "cwe": "CWE-552",
+    "tools": [
+     "nmap",
+     "tftp",
+     "ftp",
+     "grep"
+    ],
+    "links": [
+     "NIST SP 800-53 MP-4 Media Storage",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "MITRE ATT&CK T1602 (Data from Configuration Repository)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1083",
+     "name": "File and Directory Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-3",
+     "name": "Data Protection"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "IDENT",
+     "name": "Target identification and analysis"
+    }
+   ]
+  },
+  {
+   "id": "NET-163",
+   "domain": "NET",
+   "title": "Unencrypted Configuration Backups on Network Shares",
+   "sequence": 530,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-312",
+   "prerequisites": "Access to network file shares that may hold device backups, and authorization to enumerate and read them. SMB enumeration tooling.",
+   "whatItIs": "Beyond dedicated backup servers, device configurations often end up on general-purpose network shares — an admin's folder, a team share, a 'backups' directory — stored in plaintext. Anyone with access to the share can read the credentials and keys inside. This test checks for device configs stored unencrypted on accessible shares.",
+   "rootCause": "Admins save configs wherever is convenient, and shares are often broadly readable. The config is stored as an ordinary file with no encryption, so its secrets are exposed to everyone with share access.",
+   "impact": "A readable share holding plaintext configs exposes device passwords, SNMP strings, and keys to any user (or compromised account) with access, enabling device takeover and network mapping without any exploitation.",
+   "realWorldContext": "Assessors routinely find network-device configs sitting in plaintext on an over-shared 'IT' folder, readable by far more people than intended. One over-permissioned share can leak the credentials to the entire network fabric, which is why treating configs as sensitive media matters.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate accessible SMB/NFS shares across the environment.",
+    "Search readable shares for configuration files (by extension, name, or content).",
+    "Identify device configs stored in plaintext.",
+    "Assess who can access each share holding configs.",
+    "Extract credentials and keys from discovered configs.",
+    "Check whether any encryption or access control protects the backups."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate and read network shares.",
+    "List reachable shares and their permissions.",
+    "Search for config files ('config', 'running-config', device hostnames, .cfg).",
+    "Open a discovered config and extract secrets.",
+    "Validate a recovered credential against its device (in scope).",
+    "Document the exposed configs, share permissions, and lack of encryption."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate shares",
+     "command": "smbmap -H <fileserver-ip> -u <user> -p <pass>"
+    },
+    {
+     "label": "Search shares for configs",
+     "command": "smbclient //<fileserver-ip>/<share> -c 'recurse; ls' | grep -iE 'config|\\.cfg|confg'"
+    },
+    {
+     "label": "Grep a downloaded config for secrets",
+     "command": "grep -niE 'password|secret|community|crypto key|radius' found_config.cfg"
+    },
+    {
+     "label": "Find over-broad share permissions",
+     "command": "smbmap -H <fileserver-ip> -u guest -p '' -R"
+    }
+   ],
+   "variants": [
+    "Device configs in a world-readable 'backups' folder.",
+    "Admin's personal share holding fleet configs in plaintext.",
+    "Configs emailed and saved to a shared mailbox/share.",
+    "Version-controlled configs in an accessible repo without secret redaction."
+   ],
+   "mitigation": [
+    "Store device backups only in access-controlled, encrypted locations.",
+    "Remove configs from general-purpose and over-shared network folders.",
+    "Restrict share permissions to authorized personnel (least privilege).",
+    "Encrypt configuration backups at rest and redact secrets where possible.",
+    "Audit shares for sensitive files regularly (DLP/scanning).",
+    "Rotate credentials exposed by any accessible config."
+   ],
+   "mitigationClientFacing": "Device configurations often get saved onto ordinary network folders in plain text, where anyone with access — or any hacked account — can read the passwords and keys inside. The fix is to keep backups only in secure, access-controlled, encrypted locations, remove configs from broadly-shared folders, tighten who can access them, and change any password that was exposed. It costs little to store backups securely, and doing so removes one of the easiest ways an attacker can take over your whole network at once.",
+   "reference": {
+    "standard": "MP-4 (Media Storage)",
+    "cwe": "CWE-312",
+    "tools": [
+     "smbmap",
+     "smbclient",
+     "grep",
+     "DLP tooling"
+    ],
+    "links": [
+     "NIST SP 800-53 MP-4 Media Storage",
+     "MITRE ATT&CK T1552.001 (Credentials In Files)",
+     "MITRE ATT&CK T1039 (Data from Network Shared Drive)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1552",
+     "name": "Unsecured Credentials",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-3",
+     "name": "Data Protection"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-164",
+   "domain": "NET",
+   "title": "Network Device NVRAM Not Wiped Before Redeployment",
+   "sequence": 531,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-212",
+   "prerequisites": "Access to devices being redeployed/repurposed internally, and console access. Authorization to inspect device state before redeployment.",
+   "whatItIs": "Devices are frequently repurposed internally — a switch moved from a secure zone to a less secure one, a firewall reassigned — without wiping the previous configuration. The old config may carry credentials, ACLs, VPN keys, and trust relationships that are inappropriate or dangerous in the new role. This test checks whether NVRAM is sanitized before redeployment.",
+   "rootCause": "Internal redeployment is treated as a simple move, not a fresh build, so the old configuration rides along. Without a sanitization/rebuild step, stale credentials and trust settings persist in the new context.",
+   "impact": "A device carrying its old config into a new role can retain access to systems it should no longer reach, expose credentials to a lower-trust zone, or apply inappropriate ACLs — creating unexpected trust paths and credential exposure.",
+   "realWorldContext": "Repurposing gear without wiping it is a quiet source of trust-boundary violations: a firewall moved to a new segment still holding the old VPN keys, or a switch carrying credentials into a less-trusted zone. Because it 'still works', nobody rebuilds it, and the stale trust becomes an attacker's shortcut.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify devices that have been redeployed/repurposed internally.",
+    "Console in and review whether the config was wiped or carried over.",
+    "Check for stale credentials, ACLs, VPN keys, and trust relationships from the prior role.",
+    "Assess whether any carried-over setting is inappropriate for the new zone.",
+    "Test whether stale trust/credentials still grant access they shouldn't.",
+    "Determine whether a wipe/rebuild step exists in redeployment."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to inspect redeployed devices.",
+    "Review the device's current config for prior-role artifacts.",
+    "Identify stale credentials, keys, and trust settings.",
+    "Demonstrate that a carried-over credential or trust path grants inappropriate access (in scope).",
+    "Show the absence of a sanitization/rebuild step.",
+    "Document the stale-config exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review current config for stale artifacts",
+     "command": "show running-config | include (crypto|radius|tacacs|username|access-list)"
+    },
+    {
+     "label": "Check for prior-zone ACLs/trusts",
+     "command": "show access-lists && show crypto isakmp key"
+    },
+    {
+     "label": "Test a carried-over credential",
+     "command": "ssh <stale-user>@<system-device-should-not-reach>"
+    },
+    {
+     "label": "Confirm no wipe occurred",
+     "command": "show version | include uptime && show startup-config   # config predates the move?"
+    }
+   ],
+   "variants": [
+    "Firewall retaining old VPN keys after moving zones.",
+    "Switch carrying credentials into a lower-trust segment.",
+    "Stale ACLs granting access to the old role's systems.",
+    "TACACS+/RADIUS trust pointing to the previous zone's servers."
+   ],
+   "mitigation": [
+    "Wipe and rebuild device configuration before redeployment to a new role/zone.",
+    "Include NVRAM sanitization in the redeployment procedure.",
+    "Rotate credentials and keys when a device changes role.",
+    "Review ACLs and trust relationships for the new context.",
+    "Treat internal moves across trust boundaries as fresh builds.",
+    "Verify a clean baseline before the device carries production traffic."
+   ],
+   "mitigationClientFacing": "When network devices are moved to a new job internally, their old settings — including passwords, keys, and access rules — often come along, which can be dangerous in the new location. The fix is to wipe and rebuild a device before reusing it in a new role, change its passwords and keys, and review its access rules for the new context, rather than treating a move as a simple relocation.",
+   "reference": {
+    "standard": "MP-6 (Media Sanitization)",
+    "cwe": "CWE-212",
+    "tools": [
+     "console access",
+     "show commands",
+     "ssh",
+     "configuration review"
+    ],
+    "links": [
+     "NIST SP 800-88 (Media Sanitization)",
+     "NIST SP 800-53 MP-6",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-5",
+     "name": "Account Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-165",
+   "domain": "NET",
+   "title": "Sensitive Data Recoverable from Discarded Network Documentation",
+   "sequence": 532,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-530",
+   "prerequisites": "Authorized access to disposal areas or discarded printed material, gloves, and a camera. Authorization covering discarded-media review in a physical assessment.",
+   "whatItIs": "Printed network diagrams, IP schemes, device inventories, and run-books frequently contain the information an attacker needs to map and attack the network — and sometimes credentials too. When these are discarded in ordinary recycling rather than shredded, they become recoverable intelligence. This test checks whether network documentation leaves the building intact on discarded paper.",
+   "rootCause": "Operational network documents are not treated as sensitive media, so they skip shredding. There is no disposal control tying 'contains network detail' to 'must be destroyed', so diagrams and inventories ride out on paper.",
+   "impact": "A recovered network diagram or inventory hands an attacker the map — segments, addressing, device roles, trust paths — dramatically accelerating targeting; recovered run-books may include credentials directly.",
+   "realWorldContext": "Dumpster-diving for network diagrams and run-books remains effective because the recovered map turns a blind attacker into an informed one. Assessors routinely reconstruct a target's internal topology from a handful of discarded pages before touching a single packet — exactly the head start real intruders seek.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "With authorization, review recycling and disposal areas for printed network material.",
+    "Photograph any diagrams, IP schemes, inventories, or run-books.",
+    "Assess what the recovered material reveals (topology, addressing, credentials).",
+    "Check whether shredding is available but unused, versus absent.",
+    "Correlate the recovered detail with the live network.",
+    "Review the document-disposal policy for network documentation."
+   ],
+   "exploitationSteps": [
+    "Confirm the physical assessment authorizes reviewing discarded media.",
+    "Recover and photograph printed network documentation.",
+    "Reconstruct as much of the network map as the paper allows.",
+    "If credentials were recovered, demonstrate impact within scope.",
+    "Show that the recovered detail accelerates targeting.",
+    "Document the disposal gap and its intelligence value to an attacker."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Reconstruct topology from a diagram",
+     "command": "# map recovered segments/addresses; validate reachability with a light scan"
+    },
+    {
+     "label": "Validate a recovered IP scheme",
+     "command": "nmap -sn <recovered-range> --max-retries 1"
+    },
+    {
+     "label": "Test a recovered credential (in scope)",
+     "command": "ssh <recovered-user>@<recovered-device-ip>"
+    },
+    {
+     "label": "Photograph evidence",
+     "command": "# capture discarded diagrams/run-books with visible detail"
+    }
+   ],
+   "variants": [
+    "Network diagram exposing segmentation and trust paths.",
+    "IP scheme/inventory revealing the full addressing plan.",
+    "Run-book page containing device credentials.",
+    "Shredder present but bypassed for bulk documents."
+   ],
+   "mitigation": [
+    "Mandate cross-cut shredding for printed network documentation and credentials.",
+    "Provide secure disposal bins; remove open recycling for IT documents.",
+    "Minimize printing of sensitive network detail; prefer controlled digital docs.",
+    "Rotate any credential that appears on discarded paper.",
+    "Include network documentation in the media-disposal policy.",
+    "Audit disposal areas as part of physical security reviews."
+   ],
+   "mitigationClientFacing": "Printed network diagrams, address lists, and run-books give an attacker a ready-made map of your network — and sometimes passwords — and when they're thrown in normal recycling instead of shredded, someone can retrieve them. The fix is to shred anything showing network detail or credentials, provide secure disposal bins, avoid printing sensitive detail where possible, and change any password that ends up in the bin.",
+   "reference": {
+    "standard": "MP-6 (Media Sanitization)",
+    "cwe": "CWE-530",
+    "tools": [
+     "camera",
+     "nmap",
+     "ssh",
+     "shredder (control)"
+    ],
+    "links": [
+     "NIST SP 800-88 (Media Sanitization)",
+     "NIST SP 800-53 MP-6",
+     "MITRE ATT&CK T1602 (Data from Configuration Repository)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "MP",
+   "categoryName": "Media Protection",
+   "attack": [
+    {
+     "id": "T1592",
+     "name": "Gather Victim Host Information",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-3",
+     "name": "Data Protection"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-166",
+   "domain": "NET",
+   "title": "Unsecured Network Jacks in Public / Common Areas",
+   "sequence": 533,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-284",
+   "prerequisites": "Physical access to public/common areas (lobby, meeting rooms, corridors) and a laptop/cable. Authorization to plug into wall jacks and test network access.",
+   "whatItIs": "Live network wall jacks in lobbies, meeting rooms, and corridors let anyone plug in a laptop and reach the internal network. If those jacks are not disabled or protected by 802.1X/port security, a visitor can gain internal access from a public seat. This test checks physical/logical protection of accessible network jacks.",
+   "rootCause": "Jacks are wired for flexibility and left live, and the physical-access boundary is assumed to be enough. Without 802.1X or port security, physical reach to a jack equals network access.",
+   "impact": "A live public jack grants an attacker an internal foothold from a lobby chair — network reconnaissance, service access, and pivoting — bypassing all perimeter controls with a single cable.",
+   "realWorldContext": "Plugging into a lobby or meeting-room jack and landing on the internal network is one of the most dependable moves in a physical assessment. Where 802.1X isn't enforced, a visitor with a laptop is effectively an insider, which is why port-level authentication is a core physical-security control.",
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Identify live network jacks in public/common areas.",
+    "Plug a test device in and check whether it obtains network access.",
+    "Determine whether 802.1X/port security is enforced.",
+    "Enumerate what the jack's VLAN can reach (internal ranges, services).",
+    "Assess whether unused jacks are disabled.",
+    "Document accessible jacks and their reach."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to plug into wall jacks and test access.",
+    "Connect a test device to a public-area jack.",
+    "Check whether a DHCP lease and internal reachability are obtained without authentication.",
+    "Enumerate internal services reachable from the jack.",
+    "Demonstrate a foothold (reach an internal system) from the public seat.",
+    "Document the jack, its VLAN, and the access it granted."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test a public jack for access",
+     "command": "dhclient <interface> && ip a && ping -c1 <internal-gateway>"
+    },
+    {
+     "label": "Check for 802.1X (no lease until authenticated)",
+     "command": "# observe whether the port requires EAP before granting access"
+    },
+    {
+     "label": "Enumerate reachable internal hosts",
+     "command": "nmap -sn <internal-range>/24"
+    },
+    {
+     "label": "Probe reachable services",
+     "command": "nmap -p22,80,139,443,445,3389 --open <internal-range>/24"
+    }
+   ],
+   "variants": [
+    "Lobby jack on an internal VLAN.",
+    "Meeting-room jack reaching sensitive segments.",
+    "Corridor jack with no port security.",
+    "Unused-but-live jack behind furniture."
+   ],
+   "mitigation": [
+    "Enforce 802.1X on all access ports so physical access alone grants nothing.",
+    "Disable unused switch ports and apply port security (MAC limits/sticky).",
+    "Place public-area jacks on an isolated, internet-only VLAN if needed at all.",
+    "Physically remove or disable jacks in uncontrolled areas.",
+    "Monitor for new MACs and unauthorized connections.",
+    "Include jack/port control in physical security reviews."
+   ],
+   "mitigationClientFacing": "Network sockets in lobbies, meeting rooms, and hallways often let anyone plug in a laptop and reach your internal network. The fix is to make devices prove who they are before a socket grants access (802.1X), switch off unused sockets, and either remove public-area sockets or keep them on an internet-only network — so a visitor with a cable can't become an insider.",
+   "reference": {
+    "standard": "PE-3 (Physical Access Control)",
+    "cwe": "CWE-284",
+    "tools": [
+     "dhclient",
+     "nmap",
+     "802.1X",
+     "port security"
+    ],
+    "links": [
+     "NIST SP 800-53 PE-3 Physical Access Control",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1046 (Network Service Discovery)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "PE",
+   "categoryName": "Physical and Environmental Protection",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-167",
+   "domain": "NET",
+   "title": "Network Equipment in Unlocked or Shared Comms Rooms",
+   "sequence": 534,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-668",
+   "prerequisites": "Physical access to comms/wiring rooms and cabinets, and authorization to inspect them. A console cable for demonstration.",
+   "whatItIs": "Switches, routers, and patch panels concentrated in a wiring closet or comms room are a high-value target: physical access allows console logins, cable taps, port manipulation, and device theft. If the room is unlocked, propped open, or secured only by a shared key, that access is trivial. This test checks physical protection of core network equipment.",
+   "rootCause": "Comms rooms are often shared with facilities or secured by a common key, and are propped open during work. The console/cabling assumes the room is the security boundary, so once inside, control is easy.",
+   "impact": "Physical access to a comms room enables console logins (often to unauthenticated ports), inline taps for traffic capture, port/VLAN manipulation, and outright device theft — a direct path to network compromise or outage.",
+   "realWorldContext": "Physical red-teams reach comms rooms left unlocked or propped open with striking regularity, and a single console session against a core switch can yield the network. The wiring closet is frequently the least-protected, highest-value spot in the building.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Locate comms/wiring rooms and cabinets and assess how they are secured.",
+    "Check for shared keys, propped doors, or tailgating opportunities.",
+    "Determine whether device console ports are reachable and authenticated.",
+    "Assess whether patch panels allow unauthorized cross-connects/taps.",
+    "Check for config backups or credentials stored in the room.",
+    "Document physical access and its network impact."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization for physical access to comms rooms.",
+    "Gain (authorized) entry and photograph the equipment and access controls.",
+    "Console into a device and attempt to view its configuration.",
+    "Demonstrate the potential for an inline tap or port manipulation (describe, don't disrupt production).",
+    "Extract any secrets from a reachable device configuration.",
+    "Document the physical-control gaps and blast radius."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Console into a core device",
+     "command": "screen /dev/ttyUSB0 9600   # then: enable / show run"
+    },
+    {
+     "label": "Extract secrets from the config",
+     "command": "show running-config | include (password|secret|community|crypto)"
+    },
+    {
+     "label": "Assess port/VLAN control",
+     "command": "show interfaces status && show vlan brief"
+    },
+    {
+     "label": "Photograph access controls",
+     "command": "# capture the room's lock/door state and equipment"
+    }
+   ],
+   "variants": [
+    "Comms room shared with facilities via a common key.",
+    "Unauthenticated console on a core switch.",
+    "Patch panel allowing an unauthorized cross-connect/tap.",
+    "Config backups or credentials stored in the room."
+   ],
+   "mitigation": [
+    "Secure comms rooms and cabinets with dedicated access control and logging.",
+    "Require authentication on all console/management ports.",
+    "Remove shared keys; use auditable access (badge/keypad).",
+    "Prevent unauthorized cross-connects; document and control patch changes.",
+    "Do not store credentials or backups in the room.",
+    "Include comms-room access in physical security audits."
+   ],
+   "mitigationClientFacing": "Your core network equipment sits in wiring rooms; if those rooms are unlocked or use a shared key, someone who gets in can log into devices, tap cables, or steal hardware — directly compromising the network. The fix is to properly lock and log access to these rooms, require a login on the equipment itself even for someone standing in front of it, and stop storing passwords or backups in the room.",
+   "reference": {
+    "standard": "PE-3 (Physical Access Control)",
+    "cwe": "CWE-668",
+    "tools": [
+     "console cable",
+     "screen/minicom",
+     "camera",
+     "physical inspection"
+    ],
+    "links": [
+     "NIST SP 800-53 PE-3 Physical Access Control",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1040 (Network Sniffing)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "PE",
+   "categoryName": "Physical and Environmental Protection",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-3",
+     "name": "Data Protection"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-168",
+   "domain": "NET",
+   "title": "Physically Accessible Console Ports Without Authentication",
+   "sequence": 535,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-306",
+   "prerequisites": "Physical access to a device's console/AUX port and a console cable, plus authorization to connect. Knowledge of the device's console-auth state.",
+   "whatItIs": "A device's serial console often provides privileged access with weaker (or no) authentication than the network management interface, and password-recovery procedures can bypass it entirely with physical access. If console ports are reachable and unauthenticated, physical access equals device control. This test checks console-port protection.",
+   "rootCause": "Console ports exist for field service and recovery, and are frequently left without console-line authentication because 'the room is locked'. Password-recovery via the console is a documented vendor feature that physical access unlocks.",
+   "impact": "Console access lets an attacker view/modify configuration, extract secrets, or perform password recovery to take full control of the device — bypassing network-side controls entirely with a cable.",
+   "realWorldContext": "The serial console is a well-known soft underbelly: vendor password-recovery steps assume physical access is controlled, so an exposed, unauthenticated console hands over the device. Assessors routinely reset or log into devices via console during physical engagements.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "15-30 min",
+   "stepsToIdentify": [
+    "Identify devices with physically reachable console/AUX ports.",
+    "Connect a console cable and check whether the line prompts for authentication.",
+    "Assess whether privileged mode is reachable without a strong password.",
+    "Review whether password-recovery via console is possible (physical bypass).",
+    "Check whether AUX/modem ports are enabled and reachable.",
+    "Document reachable, weakly-protected console access."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to connect to console ports.",
+    "Console into the device and observe the authentication prompt (or lack of one).",
+    "Attempt to reach privileged mode and view configuration.",
+    "Where authorized and non-disruptive, note that password recovery would grant full control.",
+    "Extract secrets from a reachable configuration.",
+    "Document the console-access exposure."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Connect to the console",
+     "command": "screen /dev/ttyUSB0 9600   # observe: password prompt or direct access?"
+    },
+    {
+     "label": "Attempt privileged mode",
+     "command": "enable   # is an enable secret required?"
+    },
+    {
+     "label": "View config if reachable",
+     "command": "show running-config | include (password|secret|community)"
+    },
+    {
+     "label": "Check AUX/modem line",
+     "command": "show line   # is AUX enabled and reachable?"
+    }
+   ],
+   "variants": [
+    "Console line with no password.",
+    "Console reaching privileged mode without an enable secret.",
+    "Password-recovery bypass via ROMMON/bootloader.",
+    "AUX/modem port enabled and reachable."
+   ],
+   "mitigation": [
+    "Configure authentication on console (and AUX) lines; disable unused AUX lines.",
+    "Set a strong enable secret and require it for privileged mode.",
+    "Where supported, disable or protect password-recovery.",
+    "Physically secure devices so console ports are not reachable.",
+    "Log console access via AAA where possible.",
+    "Include console protection in device build standards."
+   ],
+   "mitigationClientFacing": "A device's direct 'console' port often gives powerful access with weaker security than the network side, and physical access can bypass passwords entirely. The fix is to require a password on the console port, set a strong privileged-mode password, disable password-recovery where you can, and physically secure devices so nobody can reach the console in the first place. Physical access to a device should never be a shortcut around its passwords, so treat the console port as seriously as a network login.",
+   "reference": {
+    "standard": "PE-3 (Physical Access Control)",
+    "cwe": "CWE-306",
+    "tools": [
+     "console cable",
+     "screen/minicom",
+     "show commands"
+    ],
+    "links": [
+     "NIST SP 800-53 PE-3 Physical Access Control",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "PE",
+   "categoryName": "Physical and Environmental Protection",
+   "attack": [
+    {
+     "id": "T1078",
+     "name": "Valid Accounts",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-169",
+   "domain": "NET",
+   "title": "No Port Security Allows Physical MAC Spoofing / Rogue Bridging",
+   "sequence": 536,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-291",
+   "prerequisites": "Physical access to a switch port (via a jack or by unplugging a device) and authorization to test. A laptop capable of MAC spoofing.",
+   "whatItIs": "When switch access ports lack port security, an attacker with physical access can unplug an authorized device and connect their own — spoofing the device's MAC to inherit its access, or bridging in a rogue device. This test checks whether port security limits which devices a physical port will serve.",
+   "rootCause": "Port security (MAC limiting/sticky MAC, 802.1X) is often not configured on access ports. The port trusts whatever connects, so physical access plus MAC spoofing equals the authorized device's access.",
+   "impact": "By impersonating an authorized device's MAC (e.g. a printer or VoIP phone exempted from 802.1X), an attacker inherits its network access and any exemptions, gaining an internal foothold that blends in.",
+   "realWorldContext": "MAC-spoofing to impersonate an exempted printer or phone is a standard way past weak NAC: unplug the device, clone its MAC, inherit its access. Without port security, the switch has no way to tell the attacker's laptop from the device it replaced.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Identify access ports and whether port security/802.1X is configured.",
+    "Find a device (printer, phone) likely exempted from authentication.",
+    "Unplug it (where authorized) and connect a test device spoofing its MAC.",
+    "Check whether the spoofed device inherits network access.",
+    "Assess what the inherited access can reach.",
+    "Document the port-security gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test physical port security and MAC spoofing.",
+    "Record an authorized device's MAC (from a label, the switch, or traffic).",
+    "Connect a test device with the spoofed MAC to the port.",
+    "Confirm the port grants access as if the original device were present.",
+    "Enumerate what the inherited access reaches.",
+    "Document the spoofing success and the missing control."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Read the target device MAC",
+     "command": "# from switch: show mac address-table interface <port>"
+    },
+    {
+     "label": "Spoof the MAC on the test device",
+     "command": "ip link set <interface> down && macchanger -m <target-mac> <interface> && ip link set <interface> up"
+    },
+    {
+     "label": "Obtain access with the spoofed MAC",
+     "command": "dhclient <interface> && ip a"
+    },
+    {
+     "label": "Enumerate inherited reach",
+     "command": "nmap -sn <internal-range>/24"
+    }
+   ],
+   "variants": [
+    "Spoofing a printer's MAC to inherit its exemption.",
+    "Spoofing a VoIP phone's MAC to reach the voice VLAN.",
+    "Bridging a rogue device behind an authorized one.",
+    "Exceeding the (absent) MAC limit on a port with a mini-switch."
+   ],
+   "mitigation": [
+    "Enable port security (sticky MAC, MAC limits) on access ports.",
+    "Enforce 802.1X so device identity, not MAC, controls access.",
+    "Use MACsec where supported for link-layer authentication.",
+    "Avoid broad MAC-based exemptions; use MAB with posture where needed.",
+    "Alert on MAC moves and port-security violations.",
+    "Disable unused ports and control physical access to devices."
+   ],
+   "mitigationClientFacing": "Without 'port security', an attacker can unplug a device like a printer, plug in their own laptop, and copy the printer's network address to inherit its access. The fix is to lock each network port to the specific device that should use it, make devices prove their identity (802.1X) rather than trusting a network address, and get alerts when a device on a port suddenly changes.",
+   "reference": {
+    "standard": "PE-3 (Physical Access Control)",
+    "cwe": "CWE-291",
+    "tools": [
+     "macchanger",
+     "dhclient",
+     "nmap",
+     "port security"
+    ],
+    "links": [
+     "NIST SP 800-53 PE-3 Physical Access Control",
+     "MITRE ATT&CK T1200 (Hardware Additions)",
+     "MITRE ATT&CK T1078 (Valid Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "PE",
+   "categoryName": "Physical and Environmental Protection",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-170",
+   "domain": "NET",
+   "title": "No Environmental Controls / Redundancy for Network Availability",
+   "sequence": 537,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-400",
+   "prerequisites": "Access to inspect comms-room environmental and power arrangements, and authorization to review. Physical inspection.",
+   "whatItIs": "Network equipment needs stable power and cooling. If comms rooms lack UPS/backup power, adequate cooling, or environmental monitoring — and if core devices have no redundancy — a power blip or overheating event can take the network offline, and an attacker can exploit or induce that fragility. This test checks environmental and availability protections for network infrastructure.",
+   "rootCause": "Environmental and redundancy controls are cost and space items that get deferred, and 'it hasn't failed yet' breeds complacency. Core devices end up as single points of failure in rooms without proper power or cooling.",
+   "impact": "Loss of power or cooling can take critical network segments offline, causing outages; a lack of redundancy means a single device failure disrupts the network. An attacker aware of the fragility can time or induce disruption.",
+   "realWorldContext": "Data-centre and comms-room outages from cooling or power failures are a recurring cause of major service disruption, and networks without UPS or redundant core devices simply fall over when the environment does. Availability is a security property, and environmental fragility quietly undermines it.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Inspect comms rooms for UPS/backup power and its runtime.",
+    "Assess cooling adequacy and whether temperature is monitored.",
+    "Check for environmental monitoring/alerting (temp, humidity, power).",
+    "Identify core devices that are single points of failure (no redundancy).",
+    "Review whether critical paths have redundant links/devices.",
+    "Document environmental and redundancy gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review environmental and power arrangements.",
+    "Inspect and document power (UPS/generator) and cooling for comms rooms.",
+    "Identify single-points-of-failure among core devices and links.",
+    "Assess environmental monitoring/alerting coverage.",
+    "Describe the outage impact of a power/cooling failure or a single device failure.",
+    "Document the availability risk and mitigations."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Check device power/PSU redundancy",
+     "command": "show environment power && show environment temperature"
+    },
+    {
+     "label": "Assess link/device redundancy",
+     "command": "show spanning-tree summary && show standby brief   # HSRP/VRRP present?"
+    },
+    {
+     "label": "Review UPS/cooling (physical)",
+     "command": "# inspect UPS runtime rating, generator, cooling, and temp monitoring"
+    },
+    {
+     "label": "Identify single points of failure",
+     "command": "# map core devices/links with no redundant path"
+    }
+   ],
+   "variants": [
+    "Comms room with no UPS (power blip = outage).",
+    "Inadequate/failing cooling risking thermal shutdown.",
+    "Single core switch/router with no redundancy.",
+    "No environmental monitoring or alerting."
+   ],
+   "mitigation": [
+    "Provide UPS and, where warranted, generator backup for critical network equipment.",
+    "Ensure adequate, monitored cooling in comms rooms.",
+    "Deploy redundant core devices and links for critical paths.",
+    "Add environmental monitoring and alerting (temp, humidity, power).",
+    "Test failover and power-loss scenarios periodically.",
+    "Include availability/environmental controls in resilience planning."
+   ],
+   "mitigationClientFacing": "Network gear needs steady power and cooling — without battery backup, proper cooling, or backup devices, a power blip or an overheating room can knock your network offline, and an attacker can exploit that fragility. The fix is to add backup power and monitored cooling for network rooms, use backup devices and links for the most important paths, and add alerts for power and temperature problems.",
+   "reference": {
+    "standard": "PE-14 (Environmental Controls)",
+    "cwe": "CWE-400",
+    "tools": [
+     "show environment",
+     "physical inspection",
+     "environmental monitoring",
+     "UPS"
+    ],
+    "links": [
+     "NIST SP 800-53 PE-14 Environmental Controls",
+     "MITRE ATT&CK T1498 (Network Denial of Service)",
+     "MITRE ATT&CK T0813 (Denial of Control)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "PE",
+   "categoryName": "Physical and Environmental Protection",
+   "attack": [
+    {
+     "id": "T1499",
+     "name": "Endpoint Denial of Service",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-13",
+     "name": "Network Monitoring and Defense"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-171",
+   "domain": "NET",
+   "title": "No Regular Authenticated Vulnerability Scanning of Network Devices",
+   "sequence": 538,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1053",
+   "prerequisites": "Access to review the vulnerability-management program (or evidence of its absence) and authorization to run an authenticated scan against a sample of network devices. A scanner (Nessus/OpenVAS) with device credentials.",
+   "whatItIs": "Network devices run firmware with vulnerabilities, but they are frequently excluded from vulnerability scanning — or scanned only unauthenticated, which misses most issues. Without regular authenticated scanning, known device vulnerabilities go undetected and unpatched. This test checks whether network devices are within the vulnerability-management program.",
+   "rootCause": "Scanning programs focus on servers and endpoints; network devices are seen as fragile or out-of-scope, and authenticated scanning of them requires credentials and care. So they are scanned poorly or not at all.",
+   "impact": "Unscanned devices carry unknown, unpatched vulnerabilities — management RCE, auth bypass, protocol flaws — that an attacker can find and exploit for a foothold or network control, while the defender has no visibility.",
+   "realWorldContext": "Network devices are increasingly targeted precisely because they are under-scanned and under-patched, and authenticated scanning routinely reveals device CVEs that unauthenticated scans and ad-hoc reviews miss entirely. Leaving the network fabric outside vulnerability management is a blind spot attackers actively exploit.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review whether network devices are in scope for vulnerability scanning and how often.",
+    "Determine whether scanning is authenticated (credentialed) or only unauthenticated.",
+    "Run (with authorization) an authenticated scan against a sample of devices.",
+    "Compare authenticated results to what unauthenticated scanning would show.",
+    "Identify unpatched, known-vulnerable firmware.",
+    "Document the coverage and remediation gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to run an authenticated scan against sample devices.",
+    "Review the vulnerability-management scope and cadence for network gear.",
+    "Run a credentialed scan and collect findings.",
+    "Demonstrate that authenticated scanning surfaces issues unauthenticated scanning missed.",
+    "Show the absence (or inadequacy) of regular device scanning.",
+    "Document findings and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Authenticated scan of a device",
+     "command": "# Nessus: enable SSH credentials for the device and run a credentialed policy"
+    },
+    {
+     "label": "Unauthenticated baseline for comparison",
+     "command": "nmap -sV --script vuln <device-ip>"
+    },
+    {
+     "label": "Identify firmware and known CVEs",
+     "command": "show version   # then cross-check vendor advisories/CVE feeds"
+    },
+    {
+     "label": "Confirm patch status",
+     "command": "# compare running firmware to the latest fixed version per advisory"
+    }
+   ],
+   "variants": [
+    "Network devices excluded from scanning entirely.",
+    "Only unauthenticated scanning, missing most CVEs.",
+    "Infrequent scanning that misses newly-disclosed issues.",
+    "Devices scanned but findings never remediated."
+   ],
+   "mitigation": [
+    "Include all network devices in the vulnerability-management program.",
+    "Perform regular authenticated (credentialed) scanning of devices.",
+    "Track firmware CVEs via vendor advisories and remediate on a cadence.",
+    "Prioritize remotely-exploitable, unauthenticated issues.",
+    "Handle fragile devices with careful, scheduled scanning windows.",
+    "Feed device findings into risk assessment and metrics."
+   ],
+   "mitigationClientFacing": "Switches, routers, and firewalls have security bugs like any software, but they're often left out of vulnerability scanning — so nobody knows what needs patching until an attacker finds it. The fix is to include network devices in your regular scanning, scan them with proper credentials so it actually finds the issues, and patch the most dangerous problems first on a set schedule.",
+   "reference": {
+    "standard": "RA-5 (Vulnerability Monitoring and Scanning)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "Nessus",
+     "OpenVAS",
+     "nmap",
+     "vendor CVE feeds"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-5 Vulnerability Scanning",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1595 (Active Scanning)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "IDENT",
+     "name": "Target identification and analysis"
+    }
+   ]
+  },
+  {
+   "id": "NET-172",
+   "domain": "NET",
+   "title": "End-of-Life Network Hardware Not Risk-Assessed",
+   "sequence": 539,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "Ability to enumerate device models/firmware and authorization to assess them. Vendor EOL/support references.",
+   "whatItIs": "Network hardware reaches end-of-life and stops receiving security patches, yet often keeps running for years. If the organization never assesses which devices are unsupported and what risk they carry, it holds unquantified, unpatchable exposure at the core of its network. This test checks whether network hardware lifecycle is part of risk assessment.",
+   "rootCause": "Network devices are durable and expensive to replace, so EOL gear stays in service. Without a process linking models to vendor EOL dates and CVEs, unsupported devices accumulate unassessed.",
+   "impact": "Unsupported devices may carry known, unpatchable vulnerabilities (management RCE, protocol flaws) that an attacker can exploit for a foothold or persistent control — with no vendor fix available.",
+   "realWorldContext": "Edge and core network devices past end-of-support are a favourite target because their known bugs will never be patched, and mass-exploitation campaigns against EOL routers and firewalls are well documented. The absence of lifecycle risk assessment is why these devices linger as the softest remote target on the network.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate device models and firmware across the estate.",
+    "Map each model to vendor support status and EOL date.",
+    "Cross-reference firmware against vendor advisories/CVEs.",
+    "Identify unsupported or unpatchable devices and their exposure.",
+    "Check whether hardware lifecycle is part of any risk assessment.",
+    "Assess exploitability of the most severe issues (safely, in scope)."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess device firmware and lifecycle.",
+    "Collect model/firmware data from the devices or management system.",
+    "Build a list of EOL/unsupported devices and associated CVEs.",
+    "For an in-scope, non-disruptive case, validate exploitability of a known issue.",
+    "Show that no risk-assessment process tracked these devices.",
+    "Document the unquantified risk and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate models/firmware",
+     "command": "for d in $(cat devices.txt); do ssh admin@$d 'show version | include (Version|Model)'; done"
+    },
+    {
+     "label": "Fingerprint remotely",
+     "command": "nmap -sV -O <device-ip>"
+    },
+    {
+     "label": "Cross-check EOL and CVEs",
+     "command": "# map model -> vendor EOL date and firmware -> advisories/CVEs"
+    },
+    {
+     "label": "Validate a known issue (in scope)",
+     "command": "nmap --script vuln -p443 <device-mgmt-ip>"
+    }
+   ],
+   "variants": [
+    "EOL router with a known, unpatchable management RCE.",
+    "Firewall past end-of-support with a public exploit.",
+    "Mixed fleet where only some models are supported.",
+    "Device whose vendor has exited the market entirely."
+   ],
+   "mitigation": [
+    "Inventory device models/firmware and map to vendor EOL and advisories.",
+    "Add network hardware to the lifecycle and risk-assessment process.",
+    "Replace or isolate unsupported devices; prioritize by exploitability.",
+    "Subscribe to vendor advisories and patch on a defined cadence.",
+    "Segment legacy devices away from sensitive networks until replaced.",
+    "Maintain a hardware-refresh plan tied to EOL dates."
+   ],
+   "mitigationClientFacing": "Network equipment eventually stops getting security updates, but it often keeps running for years. If no one tracks which devices are out of support and what weaknesses they have, you're carrying risk you can't fix and don't know about — and attackers actively hunt these devices. The fix is to keep a list of your devices and their support status, check them against vendor security notices, and replace or isolate the ones no longer supported.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-1104",
+    "tools": [
+     "nmap",
+     "ssh",
+     "vendor EOL/PSIRT feeds"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 Risk Assessment",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1133 (External Remote Services)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-173",
+   "domain": "NET",
+   "title": "No Asset Inventory Feeding Network Risk Assessment",
+   "sequence": 540,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Broad network visibility and authorization to enumerate devices, plus access to any existing asset inventory. Discovery tooling.",
+   "whatItIs": "You cannot assess the risk of assets you do not know you have. If the network asset inventory is incomplete or absent, risk assessment is working from a false picture — unknown devices carry unassessed risk. This test compares the real device population against the inventory to expose the gap.",
+   "rootCause": "Inventories drift as devices are added and removed without updates, and there is often no automated discovery reconciling reality with records. Risk assessment then rests on an inaccurate asset list.",
+   "impact": "Unknown devices are unassessed, unpatched, and unmonitored — each an unquantified risk and a potential foothold. Without an accurate inventory, the organization cannot prioritize or even see its exposure.",
+   "realWorldContext": "'You can't protect what you don't know you have' is a truism because it keeps proving true: assessments routinely discover live devices absent from the inventory, each outside patching and monitoring. An accurate, discovery-reconciled inventory is the foundation every other network control depends on.",
+   "difficulty": "Beginner",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Obtain the current network asset inventory.",
+    "Perform active/passive discovery to enumerate live devices.",
+    "Reconcile discovered devices against the inventory.",
+    "Identify devices present but not inventoried (and inventoried but absent).",
+    "Assess the security posture of un-inventoried devices.",
+    "Document the inventory accuracy gap and its risk-assessment impact."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate devices across the environment.",
+    "Discover live devices via scanning, ARP, DHCP, and switch data.",
+    "Diff the discovered population against the inventory.",
+    "Investigate un-inventoried devices (role, posture, reachability).",
+    "Show that un-inventoried devices carry unassessed risk.",
+    "Document the reconciliation gap and recommend automated inventory."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Discover live devices",
+     "command": "nmap -sn <all-ranges> -oG discovered.gnmap"
+    },
+    {
+     "label": "Fingerprint devices",
+     "command": "nmap -O -sV --top-ports 50 -iL live_hosts.txt"
+    },
+    {
+     "label": "Diff against inventory",
+     "command": "comm -13 <(sort inventory_ips.txt) <(grep Up discovered.gnmap | awk '{print $2}' | sort)"
+    },
+    {
+     "label": "Pull switch-side device data",
+     "command": "# show mac address-table / show arp across core devices for a fuller picture"
+    }
+   ],
+   "variants": [
+    "Live devices entirely absent from the inventory.",
+    "Inventoried devices that no longer exist (stale records).",
+    "IoT/OT devices never inventoried.",
+    "Cloud/edge devices missing from the on-prem inventory."
+   ],
+   "mitigation": [
+    "Establish an accurate, automatically-reconciled asset inventory.",
+    "Use active and passive discovery to keep it current.",
+    "Feed the inventory into risk assessment and vulnerability management.",
+    "Investigate and onboard (or remove) every un-inventoried device.",
+    "Assign ownership for inventory accuracy.",
+    "Review inventory completeness periodically."
+   ],
+   "mitigationClientFacing": "You can't assess the risk of devices you don't know you have — and if your device inventory is incomplete, unknown devices sit unpatched and unmonitored. The fix is to keep an accurate, automatically-updated inventory using network discovery, feed it into your risk and patching processes, and track down any device that turns up but isn't on the list. An accurate inventory is the foundation everything else rests on, because you cannot patch, monitor, or protect a device you do not know exists.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "nmap",
+     "discovery tooling",
+     "CMDB",
+     "switch data"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 / CM-8",
+     "MITRE ATT&CK T1046 (Network Service Discovery)",
+     "MITRE ATT&CK T1016 (System Network Configuration Discovery)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-13",
+     "name": "Network Monitoring and Defense"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-174",
+   "domain": "NET",
+   "title": "Exposed Network Attack Surface Never Enumerated",
+   "sequence": 541,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1053",
+   "prerequisites": "The ability to enumerate exposed services from an attacker's vantage (external and internal), and authorization to do so. Scanning tooling and any documented exposure baseline.",
+   "whatItIs": "The network attack surface is every reachable service and device an attacker could target — externally and from within. If it has never been enumerated and compared to intended exposure, unnecessary services, forgotten hosts, and management interfaces remain reachable and unassessed. This test enumerates the real attack surface against what the organization intends to expose.",
+   "rootCause": "Exposure grows organically as services are opened and never closed. Without periodic enumeration against an intended baseline, the real attack surface drifts far from the intended one, unseen.",
+   "impact": "Unnecessary exposed services (management interfaces, legacy protocols, forgotten hosts) are exactly what attackers enumerate first. If the defender never has, the attacker knows the environment's exposure better than its owner.",
+   "realWorldContext": "The attacker's first move is to enumerate exposed services, and assessments routinely find management interfaces, legacy protocols, and forgotten hosts reachable that the owner didn't know were exposed. Regular attack-surface enumeration is how mature teams close these before an attacker maps them.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Define the intended exposure (external and internal) from documentation.",
+    "Enumerate reachable services externally and from a representative internal vantage.",
+    "Compare discovered exposure against the intended baseline.",
+    "Flag unnecessary services, management interfaces, and legacy protocols.",
+    "Identify forgotten or unmanaged reachable hosts.",
+    "Assess whether attack-surface enumeration feeds risk assessment."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to enumerate exposed services externally and internally.",
+    "Scan for reachable services from each vantage.",
+    "Diff discovered exposure against the intended baseline.",
+    "Investigate each unnecessary or unexpected exposure.",
+    "Demonstrate that at least one un-enumerated exposure presents real risk.",
+    "Document the full surface and the gap versus intent."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate external exposure",
+     "command": "nmap -Pn -sV --top-ports 1000 <external-range>"
+    },
+    {
+     "label": "Enumerate internal exposure from a vantage",
+     "command": "nmap -sV -p- --min-rate 1000 <internal-range>/24"
+    },
+    {
+     "label": "Flag management interfaces",
+     "command": "nmap -p22,23,80,443,161,3389,8443 --open <ranges>"
+    },
+    {
+     "label": "Diff against intended baseline",
+     "command": "# compare open services to the documented intended-exposure list"
+    }
+   ],
+   "variants": [
+    "Management interface reachable that should be restricted.",
+    "Legacy protocol (Telnet, SMBv1) still exposed.",
+    "Forgotten host reachable and unmanaged.",
+    "Service opened for a project and never closed."
+   ],
+   "mitigation": [
+    "Enumerate the full attack surface (external and internal) and compare to intent.",
+    "Close unnecessary services and restrict management interfaces to admin networks.",
+    "Remove legacy protocols and unmanaged hosts.",
+    "Re-enumerate periodically to catch drift.",
+    "Feed attack-surface data into risk assessment and metrics.",
+    "Adopt attack-surface management tooling for continuous visibility."
+   ],
+   "mitigationClientFacing": "Your 'attack surface' is every service and device an attacker can reach. If you've never mapped it and compared it to what you meant to expose, unnecessary services and forgotten systems stay reachable — and an attacker will map them before you do. The fix is to regularly scan what's reachable from outside and inside, compare it to what you intended, and close down anything that shouldn't be exposed.",
+   "reference": {
+    "standard": "RA-3 (Risk Assessment)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "nmap",
+     "masscan",
+     "attack-surface tooling"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-3 Risk Assessment",
+     "MITRE ATT&CK T1595 (Active Scanning)",
+     "MITRE ATT&CK T1046 (Network Service Discovery)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-13",
+     "name": "Network Monitoring and Defense"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "IDENT",
+     "name": "Target identification and analysis"
+    }
+   ]
+  },
+  {
+   "id": "NET-175",
+   "domain": "NET",
+   "title": "No Defined Cadence for Network Penetration Testing",
+   "sequence": 542,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Access to review the security-testing program (or evidence of its absence) and authorization for the review. Prior testing records, if any.",
+   "whatItIs": "Automated scanning finds known issues, but only hands-on penetration testing finds chained weaknesses, logic flaws, and segmentation failures. If the organization has no defined cadence for network penetration testing, real-world exploitability across the network goes unassessed between rare, ad-hoc tests. This test reviews whether network penetration testing happens regularly and drives remediation.",
+   "rootCause": "Penetration testing is costly and disruptive, so it is done rarely or only for compliance. Without a defined cadence and remediation follow-through, exploitable weaknesses persist unassessed between tests.",
+   "impact": "Between infrequent tests, chained and complex weaknesses — the ones scanners miss — remain exploitable and unknown, and prior findings may go unremediated, so the same issues recur.",
+   "realWorldContext": "Scanners find the known; penetration testing finds the chains and segmentation gaps that turn a foothold into a breach. Organizations that test only for compliance, years apart, repeatedly discover the same exploitable paths a regular cadence would have caught and closed.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Review the frequency and scope of network penetration testing.",
+    "Check whether testing is regular/cadenced or only ad-hoc/compliance-driven.",
+    "Assess whether prior findings were remediated and re-tested.",
+    "Determine whether testing covers internal, external, and segmentation.",
+    "Check whether results feed risk assessment and prioritization.",
+    "Document the testing-cadence and follow-through gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review the security-testing program.",
+    "Examine the history and cadence of network penetration testing.",
+    "Assess coverage (internal/external/segmentation) and depth.",
+    "Review remediation and re-test of prior findings.",
+    "Show that gaps between tests leave exploitable weaknesses unassessed.",
+    "Document the cadence, coverage, and remediation gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Review testing history",
+     "command": "# examine dates, scope, and findings of prior network pentests"
+    },
+    {
+     "label": "Check remediation of prior findings",
+     "command": "# verify whether previously-reported issues were fixed and re-tested"
+    },
+    {
+     "label": "Assess segmentation testing coverage",
+     "command": "# was inter-segment reachability actually tested, not just assumed?"
+    },
+    {
+     "label": "Map coverage gaps",
+     "command": "# identify network areas never included in any test"
+    }
+   ],
+   "variants": [
+    "No network penetration testing at all.",
+    "Testing only every few years for compliance.",
+    "Prior findings never remediated (recurring issues).",
+    "Segmentation never actually tested, only assumed."
+   ],
+   "mitigation": [
+    "Define a regular cadence for internal, external, and segmentation penetration testing.",
+    "Ensure findings are tracked, remediated, and re-tested.",
+    "Cover the full network scope over the testing programme.",
+    "Feed testing results into risk assessment and prioritization.",
+    "Combine periodic deep testing with continuous scanning.",
+    "Use independent testers to avoid blind spots."
+   ],
+   "mitigationClientFacing": "Automated scans find known problems, but only hands-on penetration testing finds the chained weaknesses and segmentation gaps that lead to real breaches. If you only test rarely, those issues stay hidden and exploitable between tests. The fix is to set a regular schedule for network penetration testing, make sure findings actually get fixed and re-checked, and use the results to guide where you invest in security.",
+   "reference": {
+    "standard": "RA-5 (Vulnerability Monitoring and Scanning)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "testing program review",
+     "remediation tracking"
+    ],
+    "links": [
+     "NIST SP 800-53 RA-5 / CA-8",
+     "MITRE ATT&CK T1595 (Active Scanning)",
+     "MITRE ATT&CK T1210 (Exploitation of Remote Services)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "RA",
+   "categoryName": "Risk Assessment",
+   "attack": [
+    {
+     "id": "T1566",
+     "name": "Phishing",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "IDENT",
+     "name": "Target identification and analysis"
+    }
+   ]
+  },
+  {
+   "id": "NET-176",
+   "domain": "NET",
+   "title": "Counterfeit or Grey-Market Network Hardware in Use",
+   "sequence": 543,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1357",
+   "prerequisites": "Ability to verify hardware authenticity (serials, vendor validation, physical inspection) and authorization to inspect devices. Vendor authenticity references.",
+   "whatItIs": "Network hardware sourced from grey-market resellers or counterfeit suppliers can contain substandard components, tampered firmware, or hidden implants. Deployed in the network core, such devices can fail unpredictably or provide an attacker covert access. This test checks the authenticity and provenance of network hardware.",
+   "rootCause": "Cost and availability pressures drive purchases through unofficial channels, and organizations rarely validate serials or physical authenticity. Supply-chain integrity is assumed rather than verified.",
+   "impact": "Counterfeit devices may carry tampered firmware or implants that capture traffic, provide backdoor access, or persist through resets — durable, trusted-looking compromise at the network core — and may also fail, causing outages.",
+   "realWorldContext": "Counterfeit networking gear is a documented, large-scale problem, and seized counterfeit devices have been found with modified firmware. A tampered core device is an attacker embedded in your infrastructure wearing the manufacturer's badge, which is why provenance verification is a supply-chain control that matters.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify the sourcing channel for network hardware.",
+    "Validate device serials and authenticity with the vendor.",
+    "Physically inspect for anti-counterfeit features and tampering.",
+    "Verify firmware integrity against vendor-published values.",
+    "Check for unexpected accounts, services, or outbound connections.",
+    "Document authenticity and provenance verification gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to inspect network hardware and firmware.",
+    "Validate serials/authenticity with the vendor where possible.",
+    "Compare running firmware hash/signature to vendor values.",
+    "Inspect for unexpected listeners or beaconing.",
+    "Assess whether secure boot / signed firmware is enforced.",
+    "Document any authenticity or integrity failure and the sourcing gap."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Verify serial authenticity",
+     "command": "# check the device serial against the vendor's authenticity/validation service"
+    },
+    {
+     "label": "Compare firmware hash to vendor",
+     "command": "sha256sum device_firmware.bin   # vs the vendor-published checksum"
+    },
+    {
+     "label": "Inspect for unexpected listeners",
+     "command": "nmap -sV -p1-65535 <device-ip> | grep -v expected"
+    },
+    {
+     "label": "Watch for outbound beaconing",
+     "command": "tcpdump -i <uplink> host <device-ip> and not <management-subnet>"
+    }
+   ],
+   "variants": [
+    "Grey-market device with tampered firmware.",
+    "Counterfeit unit with substandard, failure-prone components.",
+    "Device beaconing to an unexpected external host.",
+    "Hidden account pre-installed on a counterfeit device."
+   ],
+   "mitigation": [
+    "Source network hardware only through authorized vendors/partners.",
+    "Validate serials and physical authenticity before deployment.",
+    "Verify firmware integrity and enforce secure boot where supported.",
+    "Monitor devices for unexpected accounts, services, and connections.",
+    "Include supply-chain integrity requirements in procurement (SA-12).",
+    "Maintain provenance records for network assets."
+   ],
+   "mitigationClientFacing": "Network equipment bought from unofficial or counterfeit sources can contain tampered software or hidden spying components, and placed at the core of your network that's an attacker embedded in your infrastructure. The fix is to buy network gear only through official channels, verify that devices are genuine and their software is the manufacturer's untampered version before use, and monitor devices for unexpected behaviour.",
+   "reference": {
+    "standard": "SA-12 (Supply Chain Protection)",
+    "cwe": "CWE-1357",
+    "tools": [
+     "sha256sum",
+     "nmap",
+     "tcpdump",
+     "vendor validation"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-12 Supply Chain Protection",
+     "MITRE ATT&CK T1195.003 (Compromise Hardware Supply Chain)",
+     "MITRE ATT&CK T1542 (Pre-OS Boot)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-6",
+     "name": "Access Control Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-177",
+   "domain": "NET",
+   "title": "Vendor Default / Backdoor Accounts on Network Appliances",
+   "sequence": 544,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-798",
+   "prerequisites": "Network reachability to appliance management interfaces and authorization to test authentication. Vendor default-credential and advisory references.",
+   "whatItIs": "Network appliances — load balancers, VPN concentrators, WAN optimizers, management platforms — frequently ship with default administrative accounts, and some have carried undocumented support/backdoor accounts. If these are not removed or changed at deployment, an attacker who reaches the management interface gains control. This test checks for default and backdoor accounts on network appliances.",
+   "rootCause": "Appliances ship with working defaults for fast setup, and deployment often skips removing or changing them. Vendor backdoor accounts are undocumented and survive normal hardening.",
+   "impact": "Default/backdoor access to an appliance can mean full control of a load balancer, VPN concentrator, or management platform — traffic interception, VPN access, or estate-wide management — a severe compromise from one login.",
+   "realWorldContext": "Vendor advisories have repeatedly disclosed hardcoded and backdoor accounts in VPN, load-balancer, and management appliances, and default admin logins remain a leading cause of appliance compromise. These devices sit at trust boundaries, so one default login can be catastrophic.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Enumerate network appliance management interfaces (web, SSH, API).",
+    "Test documented vendor default credentials for the model/firmware.",
+    "Check vendor advisories for known hidden/backdoor accounts on that firmware.",
+    "Assess whether deployment mandated credential change and account removal.",
+    "Check for weak/reused admin passwords beyond defaults.",
+    "Determine the blast radius of appliance access."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to test authentication on appliance management interfaces.",
+    "Attempt vendor default credentials against each appliance's management.",
+    "Where a firmware is known to carry a backdoor account, test it (in scope, non-disruptive).",
+    "On success, demonstrate impact (config read, traffic/VPN control).",
+    "Show that no deployment process removed or changed these accounts.",
+    "Document the finding and full impact."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test default web login",
+     "command": "curl -sk -u admin:admin https://<appliance-ip>/api/system | head"
+    },
+    {
+     "label": "Test default SSH creds",
+     "command": "hydra -C vendor_defaults.txt ssh://<appliance-ip>"
+    },
+    {
+     "label": "Check advisories for backdoors",
+     "command": "searchsploit <vendor> <appliance> backdoor   # and review vendor PSIRT"
+    },
+    {
+     "label": "Demonstrate impact after login",
+     "command": "# read config / list VPN users / show traffic policy, within scope"
+    }
+   ],
+   "variants": [
+    "Factory default admin/admin on a VPN concentrator.",
+    "Undocumented vendor support/backdoor account.",
+    "Reused admin password across appliance fleet.",
+    "Default API key or SNMP RW community on the appliance."
+   ],
+   "mitigation": [
+    "Require removal/rotation of default and hidden accounts as a deployment gate.",
+    "Change all management credentials to strong, unique values in a vault.",
+    "Subscribe to vendor advisories and remediate disclosed backdoors promptly.",
+    "Restrict management to an isolated admin network with MFA where supported.",
+    "Monitor and alert on appliance management logins.",
+    "Include credential hardening in the appliance build standard."
+   ],
+   "mitigationClientFacing": "Network appliances like VPN boxes and load balancers often come with a default admin password, and some have had hidden 'backdoor' logins. If those aren't removed when the device is set up, anyone who reaches the management screen can take control — and these devices guard your network's edges. The fix is to change every default password and remove hidden accounts as a standard setup step, keep management on a locked-down network, and alert on admin logins.",
+   "reference": {
+    "standard": "SA-4 (Acquisition Process)",
+    "cwe": "CWE-798",
+    "tools": [
+     "curl",
+     "hydra",
+     "searchsploit",
+     "ssh"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-4 / IA-5",
+     "MITRE ATT&CK T1078.001 (Default Accounts)",
+     "MITRE ATT&CK T1133 (External Remote Services)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1552.001",
+     "name": "Credentials In Files",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-5",
+     "name": "Account Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-178",
+   "domain": "NET",
+   "title": "No Security Requirements in Network Hardware Procurement",
+   "sequence": 545,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-1053",
+   "prerequisites": "Access to procurement documentation and network build standards (or evidence of their absence), within an authorized review.",
+   "whatItIs": "Whether network hardware is secure depends heavily on what was specified at purchase: does it support secure management, signed firmware, timely patching, and no default backdoors? If procurement never states security requirements, security is left to chance. This test reviews whether network acquisition includes security requirements.",
+   "rootCause": "Procurement is driven by cost, capability, and delivery, and security requirements are simply not part of the specification. Teams then buy whatever fits budget, inheriting its weaknesses.",
+   "impact": "Missing acquisition requirements let insecure-by-default gear, unsupported firmware, and default backdoors enter the network — the root cause behind many other device findings.",
+   "realWorldContext": "A large share of network-device weaknesses trace back to a purchase decision made with no security criteria. Building requirements like signed firmware, secure management, vendor support, and no default backdoors into procurement is how mature programs stop these issues from ever arriving.",
+   "difficulty": "Beginner",
+   "timeEstimate": "30-60 min",
+   "stepsToIdentify": [
+    "Request the network procurement/acquisition standard and its security requirements.",
+    "Check whether requirements cover secure management, signed firmware, patch/support terms, and no default backdoors.",
+    "Compare recently acquired hardware against these criteria.",
+    "Identify gear that would not have passed a proper acquisition gate.",
+    "Assess whether vendor security posture is evaluated during selection.",
+    "Document the acquisition-control gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to review procurement documentation.",
+    "Review the acquisition process for explicit network security requirements.",
+    "Map recent purchases to the (missing) requirements.",
+    "Show at least one device a proper requirement would have rejected.",
+    "Correlate the gap with concrete downstream findings.",
+    "Recommend acquisition-stage security requirements."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Inventory recently acquired devices",
+     "command": "# list models purchased and their security capabilities"
+    },
+    {
+     "label": "Check each model's security features",
+     "command": "# signed firmware? secure mgmt? vendor support/EOL commitment?"
+    },
+    {
+     "label": "Cross-check vendor support terms",
+     "command": "# review lifecycle/support commitments for each acquired model"
+    },
+    {
+     "label": "Compare to (missing) standard",
+     "command": "# document which purchases would fail a security-requirements gate"
+    }
+   ],
+   "variants": [
+    "Purchases with no requirement for signed firmware.",
+    "No requirement for a maintained patch/support contract.",
+    "No vendor security-posture evaluation during selection.",
+    "No prohibition on default/backdoor accounts."
+   ],
+   "mitigation": [
+    "Add network security requirements to procurement (secure management, signed firmware, patch/support, no default backdoors).",
+    "Evaluate vendor security posture and advisory history during selection.",
+    "Maintain an approved-hardware list meeting the standard.",
+    "Require lifecycle/EOL commitments in purchase terms.",
+    "Gate acquisitions on security requirements before purchase.",
+    "Review the standard periodically as threats evolve."
+   ],
+   "mitigationClientFacing": "How secure your network gear is often comes down to what you asked for when buying it — secure management, genuine firmware, and ongoing updates. If none of that is required, security is left to luck. The fix is to build clear security requirements into how you buy network equipment, keep an approved-gear list, and check vendors' security track record before choosing.",
+   "reference": {
+    "standard": "SA-4 (Acquisition Process)",
+    "cwe": "CWE-1053",
+    "tools": [
+     "procurement review",
+     "vendor lifecycle pages"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-4 Acquisition Process",
+     "MITRE ATT&CK T1195 (Supply Chain Compromise)",
+     "MITRE ATT&CK T1078.001 (Default Accounts)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1200",
+     "name": "Hardware Additions",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-179",
+   "domain": "NET",
+   "title": "Third-Party-Managed Network Devices with Unclear Security Ownership",
+   "sequence": 546,
+   "severity": "medium",
+   "severityLabel": "Medium",
+   "cwe": "CWE-668",
+   "prerequisites": "Information about third-party-managed network services (MSP/ISP-managed routers, SD-WAN, managed firewalls) and the contract/SLA, plus authorization to assess. Reachability to the managed devices.",
+   "whatItIs": "Many organizations outsource management of network devices to an MSP, ISP, or SD-WAN provider. If the security responsibilities — patching, hardening, monitoring, access control, credential ownership — are not clearly assigned in the contract, gaps appear that neither party addresses. This test checks the security of, and ownership over, third-party-managed network devices.",
+   "rootCause": "Outsourcing shifts operation but not always accountability. Without a clear responsibility matrix and contractual security requirements, both parties assume the other handles patching, hardening, and monitoring.",
+   "impact": "Unclear ownership can leave managed devices unpatched, weakly configured, or accessible via provider back-channels — and the provider's remote access is itself a high-value target — with no one accountable for the fix.",
+   "realWorldContext": "MSP and managed-network compromises have repeatedly cascaded into their customers precisely because the provider's remote access and unclear security ownership created gaps. 'Who patches this router?' answered with a shrug is a recurring root cause behind managed-device findings.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Identify network devices managed by a third party (MSP/ISP/SD-WAN).",
+    "Review the contract/SLA for security responsibilities: patching, hardening, monitoring, access.",
+    "Assess the actual security posture of managed devices.",
+    "Examine the provider's remote-access method and its exposure.",
+    "Determine who owns credentials and whether they are shared/rotated.",
+    "Identify any control that neither party clearly owns."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess third-party-managed devices.",
+    "Map the responsibility split between the organization and the provider.",
+    "Assess managed-device patch level, hardening, and monitoring.",
+    "Evaluate the provider's remote-access exposure and controls.",
+    "Identify controls that fall between the parties.",
+    "Document the ownership gaps and any exploitable weakness they cause."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Assess managed-device posture",
+     "command": "nmap -sV --script vuln <managed-device-ip>"
+    },
+    {
+     "label": "Examine provider remote-access exposure",
+     "command": "nmap -p22,443,500,4500 --open <managed-device-ip>   # mgmt/VPN back-channel"
+    },
+    {
+     "label": "Check for shared/provider credentials",
+     "command": "# review who holds admin credentials and whether they are shared/rotated"
+    },
+    {
+     "label": "Map responsibility gaps",
+     "command": "# compare contract responsibilities to actual configured controls"
+    }
+   ],
+   "variants": [
+    "Managed router unpatched with no clear patch owner.",
+    "Provider remote-access channel exposed and weakly controlled.",
+    "Shared provider credentials never rotated.",
+    "Monitoring assumed by the organization but not performed by the provider."
+   ],
+   "mitigation": [
+    "Define a clear security responsibility matrix in the contract (patching, hardening, monitoring, access).",
+    "Contractually require secure configuration, timely patching, and monitored access.",
+    "Control and audit the provider's remote-access method; require MFA and least privilege.",
+    "Own or jointly manage credentials; ensure rotation.",
+    "Independently verify managed-device posture rather than assuming.",
+    "Review the managed service's security periodically."
+   ],
+   "mitigationClientFacing": "When an outside company manages your network devices, security duties — patching, secure setup, monitoring, and their remote access — can fall through the cracks if the contract doesn't say who's responsible, and the provider's access is itself a target. The fix is to spell out exactly who owns each security duty, tightly control and monitor the provider's access, and independently check that the managed devices are actually secure.",
+   "reference": {
+    "standard": "SA-9 (External System Services)",
+    "cwe": "CWE-668",
+    "tools": [
+     "nmap",
+     "contract review",
+     "access review"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-9 External System Services",
+     "MITRE ATT&CK T1199 (Trusted Relationship)",
+     "MITRE ATT&CK T1133 (External Remote Services)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1046",
+     "name": "Network Service Discovery",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-3",
+     "name": "Data Protection"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "REVIEW",
+     "name": "Review techniques"
+    }
+   ]
+  },
+  {
+   "id": "NET-180",
+   "domain": "NET",
+   "title": "Unsupported Vendor Firmware with No Maintenance Contract",
+   "sequence": 547,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-1104",
+   "prerequisites": "Ability to enumerate device firmware and support status, and authorization to assess. Vendor support-contract and advisory references.",
+   "whatItIs": "Network devices depend on the vendor for security patches, which usually require an active support/maintenance contract. When contracts lapse or devices run firmware the vendor no longer patches, the organization cannot obtain fixes for newly-disclosed vulnerabilities. This test checks whether devices have active support and patchable firmware.",
+   "rootCause": "Support contracts are a recurring cost that gets cut, and lapsed maintenance is invisible until a patch is needed. Without a process tracking support status against devices, unsupported components accumulate.",
+   "impact": "Without patches, newly-disclosed device vulnerabilities remain exploitable indefinitely; an attacker can weaponize public advisories against devices the organization cannot fix, gaining a durable foothold at the network core.",
+   "realWorldContext": "When a serious device vulnerability drops, the organizations that suffer are often those whose support lapsed — they simply cannot get the fix. Attackers weaponize new advisories fast, so an unsupported, unpatchable device is a countdown to compromise, which is why support status is a real security control.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Enumerate device models and firmware and their support/maintenance status.",
+    "Check whether an active support contract exists for each device.",
+    "Cross-reference firmware against advisories and available patches.",
+    "Identify devices that cannot receive fixes (lapsed support or unpatched firmware).",
+    "Assess the exposure from unpatchable known vulnerabilities.",
+    "Document the support/maintenance gap."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess device support and firmware status.",
+    "Collect firmware/support data for the device estate.",
+    "Identify devices without active support or on unpatchable firmware.",
+    "Cross-reference against advisories to find unpatchable known issues.",
+    "For an in-scope, non-disruptive case, validate exploitability of such an issue.",
+    "Document the unsupported components and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Enumerate firmware/support",
+     "command": "show version && show license   # firmware and support/entitlement status"
+    },
+    {
+     "label": "Check support contract status",
+     "command": "# validate the device's support entitlement with the vendor"
+    },
+    {
+     "label": "Cross-check advisories for the firmware",
+     "command": "# map firmware version -> advisories and whether a patch requires active support"
+    },
+    {
+     "label": "Validate an unpatchable issue (in scope)",
+     "command": "nmap --script vuln -p443 <device-mgmt-ip>"
+    }
+   ],
+   "variants": [
+    "Lapsed support contract preventing patch access.",
+    "Firmware branch the vendor no longer patches.",
+    "Device with an unpatchable known vulnerability.",
+    "Mixed estate where only some devices have active support."
+   ],
+   "mitigation": [
+    "Maintain active support/maintenance for all production network devices.",
+    "Track support status alongside firmware in the asset inventory.",
+    "Replace or isolate devices that cannot be patched.",
+    "Prioritize renewal/replacement by exploitability of known issues.",
+    "Budget for support and lifecycle as an ongoing cost.",
+    "Feed support status into risk assessment and metrics."
+   ],
+   "mitigationClientFacing": "Network devices rely on the vendor for security patches, which usually need an active support contract. If support lapses or the firmware is no longer patched, you can't fix newly-discovered vulnerabilities — and attackers exploit new advisories fast. The fix is to keep active support on your production devices, track support status alongside your inventory, and replace or isolate anything that can no longer be patched.",
+   "reference": {
+    "standard": "SA-22 (Unsupported System Components)",
+    "cwe": "CWE-1104",
+    "tools": [
+     "show version",
+     "vendor support portal",
+     "nmap",
+     "advisory feeds"
+    ],
+    "links": [
+     "NIST SP 800-53 SA-22 Unsupported System Components",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1133 (External Remote Services)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SA",
+   "categoryName": "System and Services Acquisition",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-181",
+   "domain": "NET",
+   "title": "Unpatched Network Device OS with Public Exploit Available",
+   "sequence": 698,
+   "severity": "critical",
+   "severityLabel": "Critical",
+   "cwe": "CWE-1395",
+   "prerequisites": "Ability to fingerprint device OS/firmware versions and authorization to validate a known vulnerability. Vendor advisory and exploit references.",
+   "whatItIs": "Network device operating systems (IOS, IOS-XE, NX-OS, JunOS, PAN-OS, FortiOS) receive security patches for serious remote vulnerabilities, but devices are often left unpatched for months or years. When a device runs a version with a public, remotely-exploitable vulnerability, an attacker can take it over directly. This tests whether device OS flaw remediation keeps pace with disclosed, weaponized vulnerabilities.",
+   "rootCause": "Patching network devices is disruptive and requires maintenance windows, so it is deferred. Without a flaw-remediation process tied to advisories, devices linger on vulnerable versions after exploits are public.",
+   "impact": "A remotely-exploitable device-OS flaw can give an attacker full control of a router, switch, or firewall — traffic interception, configuration changes, persistence, and a pivot into the internal network — often pre-authentication and with public exploit code.",
+   "realWorldContext": "Mass-exploitation campaigns against unpatched network-device OS flaws (in edge routers, VPNs, and firewalls) are a documented and recurring threat, with nation-state and criminal actors weaponizing advisories within days. Devices left on vulnerable firmware are among the most reliably-exploited targets on the internet and internal networks alike.",
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Fingerprint device OS/firmware versions across the estate.",
+    "Cross-reference each version against vendor security advisories and public exploits.",
+    "Identify devices running versions with known remote vulnerabilities.",
+    "Prioritize by exploitability (pre-auth, remote, weaponized).",
+    "Check whether a flaw-remediation process/cadence exists for devices.",
+    "Validate a high-impact known issue safely, within scope."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to assess and validate device-OS vulnerabilities.",
+    "Collect OS/firmware versions from devices or by fingerprinting.",
+    "Match versions to advisories and available exploit code.",
+    "For an in-scope, non-disruptive case, validate a known remote vulnerability.",
+    "Show the absence of timely flaw remediation behind the outdated version.",
+    "Document exploitability, impact, and remediation priority."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Fingerprint device OS version",
+     "command": "nmap -sV -O <device-ip> ; snmpwalk -v2c -c public <device-ip> 1.3.6.1.2.1.1.1.0"
+    },
+    {
+     "label": "Cross-check advisories/exploits",
+     "command": "searchsploit <vendor> <os> <version>   # and review the vendor PSIRT advisory"
+    },
+    {
+     "label": "Safely validate a known remote flaw (in scope)",
+     "command": "nmap --script <vendor>-vuln* -p443,22 <device-ip>"
+    },
+    {
+     "label": "Confirm patch gap",
+     "command": "# compare running version to the vendor's fixed release for the CVE"
+    }
+   ],
+   "variants": [
+    "Pre-auth remote code execution on an unpatched device OS.",
+    "Management-plane vulnerability exploited for takeover.",
+    "VPN/firewall OS flaw enabling external access.",
+    "Chained device-OS flaws for persistence."
+   ],
+   "mitigation": [
+    "Establish a flaw-remediation process with a defined patch cadence for network devices.",
+    "Track vendor advisories and prioritize weaponized, remote, pre-auth issues.",
+    "Patch in controlled maintenance windows to manage disruption risk.",
+    "Isolate or replace devices that cannot be patched.",
+    "Restrict management interfaces to reduce exposure of unpatched flaws.",
+    "Feed device patch status into vulnerability management and metrics."
+   ],
+   "mitigationClientFacing": "Switches, routers, and firewalls run software that gets serious security fixes, but they're often left unpatched for a long time — and attackers weaponize these flaws within days of disclosure. A device on a vulnerable version can be taken over remotely, sometimes without even logging in. The fix is to set a routine for patching network-device software, prioritize the most dangerous remotely-exploitable flaws, patch in planned windows, and replace devices that can no longer be updated.",
+   "reference": {
+    "standard": "SI-2 (Flaw Remediation)",
+    "cwe": "CWE-1395",
+    "tools": [
+     "nmap",
+     "searchsploit",
+     "snmpwalk",
+     "vendor PSIRT feeds"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-2 Flaw Remediation",
+     "MITRE ATT&CK T1190 (Exploit Public-Facing Application)",
+     "MITRE ATT&CK T1133 (External Remote Services)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1195.001",
+     "name": "Compromise Software Dependencies and Development Tools",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-7",
+     "name": "Continuous Vulnerability Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
+  },
+  {
+   "id": "NET-182",
+   "domain": "NET",
+   "title": "No Malware/IOC Detection on Network Traffic",
+   "sequence": 699,
+   "severity": "high",
+   "severityLabel": "High",
+   "cwe": "CWE-778",
+   "prerequisites": "Access to review network-based malware/IOC detection capability (IDS/IPS, DNS filtering, egress inspection) or its absence, and authorization to run benign test traffic. Standard tooling.",
+   "whatItIs": "Network-level detection — IDS/IPS signatures, DNS filtering, egress inspection, and threat-intel/IOC matching — catches malware command-and-control, known-bad domains, and exploit traffic that endpoint tools may miss. Without it, malicious network activity flows undetected. This tests whether the network detects malicious code and its communications.",
+   "rootCause": "Network malware detection requires IDS/IPS, DNS filtering, and threat-intel integration that are often not deployed or not tuned. Endpoint-only defenses leave network-level C2 and IOC traffic invisible.",
+   "impact": "Without network malware/IOC detection, command-and-control beaconing, known-bad domain lookups, and exploit traffic pass unnoticed, letting compromise persist and spread while defenders lack any network-level signal.",
+   "realWorldContext": "Real intrusions are frequently caught (or missed) at the network layer — a beacon to a known-bad domain, an IOC match on C2 traffic. Organizations relying on endpoint tools alone repeatedly miss network-level indicators that IDS/IPS, DNS filtering, and threat-intel matching would have flagged, letting attackers dwell far longer.",
+   "difficulty": "Intermediate",
+   "timeEstimate": "1-2 hours",
+   "stepsToIdentify": [
+    "Review network-based detection (IDS/IPS, DNS filtering, egress inspection, threat-intel/IOC matching).",
+    "Assess coverage across ingress and egress paths.",
+    "Check whether known-bad domain lookups and C2 patterns would be detected.",
+    "With authorization, generate benign IOC-like traffic (e.g. an EICAR-style test or a known test domain).",
+    "Observe whether any alert is produced.",
+    "Document the network malware-detection gaps."
+   ],
+   "exploitationSteps": [
+    "Confirm authorization to run benign test traffic for detection testing.",
+    "Review deployed network detection and its coverage.",
+    "Generate benign test traffic that should match a signature/IOC (e.g. the EICAR test string over an inspected channel, or a benign test domain).",
+    "Check whether IDS/IPS/DNS filtering/threat-intel produces an alert.",
+    "Assess the gap between endpoint-only and network detection.",
+    "Document the coverage and detection gaps."
+   ],
+   "examplePayloads": [
+    {
+     "label": "Test DNS filtering with a benign test domain",
+     "command": "dig @<resolver> testsafebrowsing.example.test ; # observe whether known-bad categories are blocked/logged"
+    },
+    {
+     "label": "Generate an EICAR-style detection test (inspected channel)",
+     "command": "curl -s http://<inspected-path>/eicar.txt   # standard AV test string, benign"
+    },
+    {
+     "label": "Simulate beaconing pattern (benign)",
+     "command": "for i in $(seq 1 5); do curl -s http://<test-listener>/beacon; sleep 30; done"
+    },
+    {
+     "label": "Check egress inspection",
+     "command": "# attempt a benign connection to an uncommon port/protocol and check for alert/block"
+    }
+   ],
+   "variants": [
+    "No IDS/IPS on ingress/egress.",
+    "No DNS filtering of known-bad domains.",
+    "C2 beaconing undetected on egress.",
+    "No threat-intel/IOC matching on network traffic."
+   ],
+   "mitigation": [
+    "Deploy IDS/IPS with maintained signatures on ingress and egress.",
+    "Implement DNS filtering against known-bad and newly-registered domains.",
+    "Inspect and control egress traffic; alert on anomalies and beaconing.",
+    "Integrate threat-intel/IOC feeds into network detection and the SIEM.",
+    "Tune detection to reduce noise while keeping coverage.",
+    "Combine network detection with endpoint defenses for defense in depth."
+   ],
+   "mitigationClientFacing": "Watching network traffic can catch malware phoning home, lookups of known-bad websites, and attack traffic that antivirus on individual computers might miss — but many networks don't do this. The fix is to deploy network intrusion detection, filter dangerous domains at the DNS level, inspect and control outbound traffic, and feed threat-intelligence into your monitoring so malicious activity is spotted on the network too.",
+   "reference": {
+    "standard": "SI-3 (Malicious Code Protection)",
+    "cwe": "CWE-778",
+    "tools": [
+     "Suricata/Snort",
+     "DNS filtering",
+     "Zeek",
+     "threat-intel feeds"
+    ],
+    "links": [
+     "NIST SP 800-53 SI-3 Malicious Code Protection",
+     "MITRE ATT&CK T1071 (Application Layer Protocol)",
+     "MITRE ATT&CK T1568 (Dynamic Resolution)"
+    ]
+   },
+   "categoryStandard": "NIST SP 800-53 Rev. 5",
+   "categoryCode": "SI",
+   "categoryName": "System and Information Integrity",
+   "attack": [
+    {
+     "id": "T1685.002",
+     "name": "Disable or Modify Cloud Log",
+     "matrix": "enterprise"
+    }
+   ],
+   "frameworks": [
+    {
+     "standard": "CIS Controls v8",
+     "code": "CIS-8",
+     "name": "Audit Log Management"
+    },
+    {
+     "standard": "NIST SP 800-115",
+     "code": "VALID",
+     "name": "Target vulnerability validation"
+    }
+   ]
   }
  ]
 }

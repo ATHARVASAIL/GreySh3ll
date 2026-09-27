@@ -1,0 +1,48 @@
+/* =========================================================
+   fonts.css — self-hosted Carlito (Calibri-metric-compatible)
+
+   Calibri is a proprietary Microsoft face and cannot be redistributed,
+   so we self-host Carlito: the SIL Open Font License clone whose metrics
+   match Calibri exactly. The --font-calibri stack in base.css already
+   requests Calibri first (true Calibri on Windows) and falls to Carlito
+   next — bundling the actual files here means every other OS renders the
+   same Calibri metrics instead of dropping to Segoe UI / system-ui.
+
+   Four cuts cover the whole design: 400/700 x normal/italic. Carlito, like
+   Calibri, has no dedicated Light; the "light" end of the weight contrast is
+   achieved with colour, opacity and tracking rather than a thinner file.
+
+   font-display:swap keeps first paint instant on the system fallback and
+   swaps in Carlito when ready; the metric match makes the swap shift-free.
+   Served from 'self', so the existing font-src 'self' CSP already permits it.
+   Licence: assets/fonts/Carlito-OFL-LICENSE.txt
+========================================================= */
+
+@font-face{
+  font-family:'Carlito';
+  font-style:normal;
+  font-weight:400;
+  font-display:swap;
+  src:url('../assets/fonts/carlito-latin-400-normal.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Carlito';
+  font-style:italic;
+  font-weight:400;
+  font-display:swap;
+  src:url('../assets/fonts/carlito-latin-400-italic.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Carlito';
+  font-style:normal;
+  font-weight:700;
+  font-display:swap;
+  src:url('../assets/fonts/carlito-latin-700-normal.woff2') format('woff2');
+}
+@font-face{
+  font-family:'Carlito';
+  font-style:italic;
+  font-weight:700;
+  font-display:swap;
+  src:url('../assets/fonts/carlito-latin-700-italic.woff2') format('woff2');
+}

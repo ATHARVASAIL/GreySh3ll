@@ -450,6 +450,11 @@ function buildCustomCaseItem(input){
     // user adding a case in a hurry should not be forced to write client copy.
     // Both render paths already guard on it being empty.
     mitigationClientFacing: (input.mitigationClientFacing || '').trim(),
+    // Engagement fields — optional on custom cases; both render paths guard on
+    // them being empty, so a user adding a quick case is not forced to fill them.
+    realWorldContext: (input.realWorldContext || '').trim(),
+    difficulty: (input.difficulty || '').trim(),
+    timeEstimate: (input.timeEstimate || '').trim(),
     // Secondary framework mappings are assigned by tools/map-frameworks.py for
     // the generated corpus; a runtime custom case carries an empty list, which
     // both the detail pane and the report render as "—" rather than undefined.

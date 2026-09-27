@@ -1,0 +1,148 @@
+/* =========================================================
+   app-cohesion.css  —  one visual system across both pages
+   Loaded LAST on BOTH index.html and assessment.html. Two jobs:
+     A. make the Assessment Workspace feel like the same premium
+        site as the landing (shared atmosphere, glassy topbar,
+        cyan brand accent, matching surfaces) — presentation only,
+        no layout or logic change.
+     B. fix the light theme on both pages so it reads crisp and
+        on-brand (blue/cyan, not the old green tint) with real
+        surface separation — while keeping every AA-tuned token.
+
+   CSP-clean: no inline styles; all colour via tokens/classes.
+   Scoped so it never fights the app's own component rules.
+========================================================= */
+
+/* ---------------------------------------------------------
+   Shared accent token both pages can lean on (cyan secondary)
+--------------------------------------------------------- */
+:root{
+  --c-cyan:#43E0FF;
+  --c-cyan-rgb:67,224,255;
+}
+:root[data-theme="light"]{
+  /* a deeper cyan so it clears AA on white surfaces */
+  --c-cyan:#0E7C9B;
+  --c-cyan-rgb:14,124,155;
+}
+
+/* =========================================================
+   A. ASSESSMENT ↔ LANDING COHESION
+   These rules only add atmosphere/finish; they never move or
+   resize the workspace's own components.
+========================================================= */
+
+/* Shared atmospheric backdrop (same layered depth as the landing).
+   Applied to <body> on both pages; the app content sits above it. */
+body{
+  background:
+    radial-gradient(1200px 720px at 12% -8%, rgba(var(--accent-rgb),.10), transparent 60%),
+    radial-gradient(1000px 680px at 100% 0%, rgba(var(--c-cyan-rgb),.07), transparent 58%),
+    radial-gradient(900px 900px at 50% 120%, rgba(var(--accent-2-rgb),.05), transparent 60%),
+    var(--bg);
+}
+
+/* Glassy topbar, matching the landing's treatment, on the workspace too. */
+.topbar{
+  background:linear-gradient(180deg, rgba(6,9,14,.92), rgba(6,9,14,.78));
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
+  border-bottom:1px solid var(--border);
+}
+.topbar .brand .dot{ box-shadow:0 0 12px 2px rgba(var(--accent-rgb),.5); }
+
+/* Brand wordmark: the landing shows GREY//SH3LL with a cyan-tinted second
+   half via the app's own .title span; nudge that accent to the shared cyan
+   so both pages read identically. */
+.brand .title span{ color:var(--accent); }
+
+/* Light theme: the glass topbar must flip to a light glass, not stay dark. */
+:root[data-theme="light"] .topbar{
+  background:linear-gradient(180deg, rgba(255,255,255,.94), rgba(255,255,255,.82));
+}
+:root[data-theme="light"] .topbar .brand .dot{ box-shadow:0 0 12px 2px rgba(var(--accent-rgb),.35); }
+
+/* =========================================================
+   B. LIGHT-THEME AESTHETIC FIX  (both pages)
+   The tokens were AA-correct but the surfaces sat too close in
+   value and the ambient tint was green. Fix: on-brand blue/cyan
+   ambient, deeper page base so white panels lift, slightly firmer
+   borders. No token that affects text contrast is weakened.
+--------------------------------------------------------- */
+:root[data-theme="light"]{
+  /* deepen the page base so #FFFFFF panels clearly separate from it */
+  --bg:#E2E8F1;
+  --surface-1:#FFFFFF;
+  --surface-2:#F5F8FC;
+  --surface-3:#EAEFF6;
+  --surface-4:#DCE3EE;
+  /* firmer, on-brand (blue) borders — still subtle, but clearly visible */
+  --border:rgba(29,78,216,.18);
+  --border-soft:rgba(29,78,216,.10);
+  --border-strong:rgba(29,78,216,.32);
+}
+
+/* On-brand ambient wash instead of the old green radial tint. */
+:root[data-theme="light"] body{
+  background:
+    radial-gradient(1100px 640px at 12% -8%, rgba(29,78,216,.07), transparent 60%),
+    radial-gradient(900px 600px at 100% 0%, rgba(14,124,155,.06), transparent 58%),
+    var(--bg);
+}
+/* the engineered grid: blue hairlines, not green dots */
+:root[data-theme="light"] .bg-grid{
+  opacity:.6;
+  background-image:
+    linear-gradient(rgba(29,78,216,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(29,78,216,.05) 1px, transparent 1px);
+  background-size:64px 64px, 64px 64px;
+}
+
+/* Give light-theme panels a hair of lift so the UI doesn't read flat.
+   Kept extremely subtle to preserve the clean, professional feel. */
+:root[data-theme="light"] .dash-ring-card,
+:root[data-theme="light"] .dash-stat-card,
+:root[data-theme="light"] .chart-card,
+:root[data-theme="light"] .domain-card,
+:root[data-theme="light"] .identity,
+:root[data-theme="light"] .cat-section,
+:root[data-theme="light"] .test-item,
+:root[data-theme="light"] .side-card,
+:root[data-theme="light"] .l-chip,
+:root[data-theme="light"] .l-flow-card{
+  box-shadow:0 1px 2px rgba(20,40,80,.04), 0 8px 24px -16px rgba(20,40,80,.14);
+}
+
+/* The coverage ring track was nearly invisible on the pale bg — darken it. */
+:root[data-theme="light"] .dash-ring-track,
+:root[data-theme="light"] .dash-ring track{ stroke:rgba(29,78,216,.14); }
+
+/* Phase / category cards read flat when the border is faint — give the
+   workspace's .cat-section and side cards a clearer edge + gentle lift so
+   each phase is a distinct, tappable surface in light mode. */
+:root[data-theme="light"] .cat-section{
+  border-color:rgba(29,78,216,.20);
+}
+:root[data-theme="light"] .cat-head:hover{ background:rgba(29,78,216,.04); }
+:root[data-theme="light"] .cat-next-hint{ background:rgba(29,78,216,.05); }
+:root[data-theme="light"] .side-card,
+:root[data-theme="light"] .toolbar,
+:root[data-theme="light"] .dash-search,
+:root[data-theme="light"] .filter-panel{
+  border-color:rgba(29,78,216,.16);
+}
+
+/* Landing light tokens should follow the same on-brand cyan/blue as the app,
+   overriding the standalone light block in landing-premium.css so the two
+   pages share one light palette. */
+:root[data-theme="light"]{
+  --l-ink:#EAEEF4;
+  --l-ink-2:#E3E9F1;
+  --l-panel:#FFFFFF;
+  --l-panel-2:#F4F7FB;
+  --l-line:rgba(29,78,216,.14);
+  --l-line-soft:rgba(29,78,216,.07);
+  --l-line-strong:rgba(29,78,216,.30);
+  --l-cyan:#0E7C9B;
+  --l-cyan-rgb:14,124,155;
+}

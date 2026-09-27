@@ -100,23 +100,35 @@ body{
   opacity:.5;
 }
 
-/* drifting aurora + grain — injected once by landing-motion.js */
+/* Ambient glow + grain — injected once by landing-motion.js.
+   PERFORMANCE: the glow is painted with radial-gradients (no blur filter)
+   and is otherwise static — animating a large blurred layer forces a GPU
+   re-raster every frame, which was the main source of dashboard lag. A
+   single, very slow opacity pulse is the only motion; opacity animates on
+   the compositor and does not re-raster. Grain is a static tiled image. */
 .l-atmos{ position:fixed; inset:0; z-index:0; pointer-events:none; overflow:hidden; }
-.l-aurora{
-  position:absolute; width:60vw; height:60vw; max-width:820px; max-height:820px;
-  border-radius:50%; filter:blur(90px); opacity:.55; mix-blend-mode:screen;
-  will-change:transform;
+.l-aurora{ position:absolute; border-radius:50%; }
+.l-aurora.a1{
+  top:-20vw; left:-10vw; width:70vw; height:70vw; max-width:900px; max-height:900px;
+  background:radial-gradient(circle at 40% 40%, var(--l-glow-blue), transparent 60%);
+  opacity:.5; animation:l-pulse 14s ease-in-out infinite;
 }
-.l-aurora.a1{ top:-18vw; left:-6vw;  background:radial-gradient(circle at 30% 30%, var(--l-glow-blue), transparent 66%); animation:l-drift1 26s var(--l-ease) infinite alternate; }
-.l-aurora.a2{ top:-6vw;  right:-10vw; background:radial-gradient(circle at 60% 40%, var(--l-glow-cyan), transparent 66%); animation:l-drift2 32s var(--l-ease) infinite alternate; }
-.l-aurora.a3{ bottom:-24vw; left:38vw; width:44vw; height:44vw; background:radial-gradient(circle at 50% 50%, rgba(var(--l-amber-rgb),.16), transparent 68%); animation:l-drift3 38s var(--l-ease) infinite alternate; }
+.l-aurora.a2{
+  top:-8vw; right:-14vw; width:62vw; height:62vw; max-width:820px; max-height:820px;
+  background:radial-gradient(circle at 60% 40%, var(--l-glow-cyan), transparent 62%);
+  opacity:.4; animation:l-pulse 18s ease-in-out infinite reverse;
+}
+.l-aurora.a3{
+  bottom:-26vw; left:34vw; width:46vw; height:46vw; max-width:640px; max-height:640px;
+  background:radial-gradient(circle at 50% 50%, rgba(var(--l-amber-rgb),.14), transparent 66%);
+  opacity:.5;
+}
 .l-grain{
-  position:absolute; inset:-50%; opacity:.035; pointer-events:none;
+  position:absolute; inset:0; opacity:.03; pointer-events:none;
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
-@keyframes l-drift1{ from{ transform:translate3d(0,0,0) scale(1);} to{ transform:translate3d(6vw,4vw,0) scale(1.12);} }
-@keyframes l-drift2{ from{ transform:translate3d(0,0,0) scale(1.05);} to{ transform:translate3d(-5vw,5vw,0) scale(1);} }
-@keyframes l-drift3{ from{ transform:translate3d(0,0,0) scale(1);} to{ transform:translate3d(-4vw,-3vw,0) scale(1.15);} }
+/* opacity-only pulse: cheap on the compositor, no re-raster of the glow */
+@keyframes l-pulse{ 0%,100%{ opacity:.5; } 50%{ opacity:.3; } }
 
 /* keep real content above the atmosphere */
 .topbar,.identity-wrap,.dash-main,.l-hero,.l-ticker,.l-story,.l-standards,.l-footer{ position:relative; z-index:1; }
@@ -167,9 +179,13 @@ body{ letter-spacing:.1px; }
    3. TOPBAR refinement — glassy, quieter, premium
 --------------------------------------------------------- */
 .topbar{
-  background:linear-gradient(180deg, rgba(8,11,17,.86), rgba(8,11,17,.55));
-  backdrop-filter:blur(14px) saturate(1.2);
-  -webkit-backdrop-filter:blur(14px) saturate(1.2);
+  /* Nearly-opaque background instead of a heavy live blur: a backdrop-filter
+     is recomputed against everything behind it on every scroll frame, which
+     is costly. A solid-ish gradient reads the same and is free. A light 6px
+     blur is kept only as a subtle touch. */
+  background:linear-gradient(180deg, rgba(6,9,14,.94), rgba(6,9,14,.82));
+  backdrop-filter:blur(6px);
+  -webkit-backdrop-filter:blur(6px);
   border-bottom:1px solid var(--l-line);
   padding-inline:var(--l-gutter);
 }
@@ -205,7 +221,6 @@ body{ letter-spacing:.1px; }
   border:1px solid var(--l-line-strong); color:var(--text-bright);
   background:rgba(255,255,255,.02);
   transition:transform .3s var(--l-ease-spring), box-shadow .3s var(--l-ease), border-color .3s, background .3s;
-  will-change:transform;
 }
 .l-btn .icn{ width:17px; height:17px; transition:transform .3s var(--l-ease); }
 .l-btn-primary{
@@ -271,7 +286,6 @@ body{ letter-spacing:.1px; }
   background:linear-gradient(160deg, var(--l-panel), var(--l-panel-2));
   border:1px solid var(--l-line);
   overflow:hidden; transition:transform .4s var(--l-ease), border-color .4s, box-shadow .4s;
-  will-change:transform;
 }
 .l-flow-card::before{
   content:''; position:absolute; inset:0;
@@ -335,7 +349,7 @@ body{ letter-spacing:.1px; }
   background:linear-gradient(160deg, var(--l-panel), var(--l-panel-2));
 }
 .dash-ring-card,.chart-card{ box-shadow:var(--l-shadow-float); border-radius:var(--r-xl); }
-.dash-stat-card{ border-radius:var(--r-lg); transition:transform .35s var(--l-ease), border-color .35s, box-shadow .35s; will-change:transform; }
+.dash-stat-card{ border-radius:var(--r-lg); transition:transform .35s var(--l-ease), border-color .35s, box-shadow .35s; }
 .dash-stat-card:hover{ transform:translateY(-4px); border-color:var(--l-line-strong); box-shadow:var(--l-shadow-float); }
 .dash-stat-card b{ font-weight:700; letter-spacing:-.01em; }
 .dash-ring-label b,.dash-stat-card b,.chart-legend-val{ font-family:var(--font-calibri); }
@@ -358,7 +372,6 @@ body{ letter-spacing:.1px; }
   border-radius:var(--r-xl);
   background:linear-gradient(160deg, var(--l-panel), var(--l-panel-2));
   transition:transform .45s var(--l-ease-spring), border-color .4s, box-shadow .45s;
-  will-change:transform;
 }
 .domain-card::before{
   content:''; position:absolute; inset:0; pointer-events:none;
@@ -390,7 +403,7 @@ body{ letter-spacing:.1px; }
   display:inline-flex; flex-direction:column; gap:4px; align-items:flex-start;
   padding:18px 24px; border-radius:var(--r-lg);
   border:1px solid var(--l-line); background:linear-gradient(160deg,var(--l-panel),var(--l-panel-2));
-  transition:transform .35s var(--l-ease), border-color .35s, box-shadow .35s; will-change:transform;
+  transition:transform .35s var(--l-ease), border-color .35s, box-shadow .35s;
 }
 .l-chip:hover{ transform:translateY(-4px); border-color:var(--l-line-strong); box-shadow:var(--l-shadow-float); }
 .l-chip b{ font-weight:700; font-size:15px; color:var(--text-bright); letter-spacing:.01em; }
@@ -437,7 +450,7 @@ body{ letter-spacing:.1px; }
 .l-reveal.in-view{ opacity:1; transform:none; }
 
 /* hero parallax layer offset driven by --py (JS rAF) */
-.l-parallax{ will-change:transform; transform:translate3d(0, var(--py,0px), 0); }
+.l-parallax{ transform:translate3d(0, var(--py,0px), 0); }
 
 @media (prefers-reduced-motion: reduce){
   .l-aurora,.l-ticker-track,.l-scroll-hint .l-mouse::after{ animation:none !important; }

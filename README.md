@@ -963,7 +963,7 @@ ones: 6 identification steps, 6 exploitation steps, 6 labeled payloads,
   leave freshly-rendered content unpainted until an unrelated click.
 - Status/flag/checkbox changes on a test case now patch just that item
   and its category header in place instead of re-rendering the entire
-  577-case list.
+  case list.
 - Fixed the Expand/Collapse-all toggle's label being out of sync with
   actual state, and a hero-card button that was rendering directly on
   top of another button at the same coordinates.

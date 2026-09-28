@@ -126,7 +126,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “DNS Amplification DDoS” is a finding that surfaces more often than clients expect. The stake is real: a sustained flood can saturate the victim's inbound bandwidth completely, taking down public-facing services — websites, VPN concentrators, mail gateways — for as long as it continues. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-002",
@@ -226,7 +229,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “DNS Spoofing / Cache Poisoning” is a finding that surfaces more often than clients expect. The stake is real: once a poisoned answer is cached, every later request for that hostname resolves to the attacker's address for as long as the cache entry lives. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-003",
@@ -326,7 +332,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “DNS Tunneling” is a finding that surfaces more often than clients expect. The stake is real: an attacker with code execution on an internal host, but blocked from making direct outbound connections, can still get data out and keep command-and-control running over DNS. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-004",
@@ -426,7 +435,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Multicast DNS Cache Poisoning” is a finding that surfaces more often than clients expect. The stake is real: an attacker can make a victim's device cache a poisoned answer, pointing a legitimate local service name at an address they control. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-005",
@@ -525,7 +537,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Multicast Listener Discovery (MLD) Spoofing” is a finding that surfaces more often than clients expect. The stake is real: an attacker can manipulate how multicast traffic is forwarded on the segment, intercepting or disrupting applications that depend on it. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-006",
@@ -624,7 +639,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Service Banner Disclosure” is a finding that surfaces more often than clients expect. The stake is real: an attacker can fingerprint the exact software version a service is running without attempting any exploitation at all. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-007",
@@ -724,7 +742,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure SMBv2/v3 Null Session Enumeration” is a finding that surfaces more often than clients expect. The stake is real: an attacker gains detailed reconnaissance without holding any valid credential. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-008",
@@ -824,7 +845,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure mDNS/DNS-SD Service Disclosure” is a finding that surfaces more often than clients expect. The stake is real: an attacker on the local segment can passively build a detailed inventory of devices, services, versions and naming conventions. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-009",
@@ -924,7 +948,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Network Time-of-Check Race” is a finding that surfaces more often than clients expect. The stake is real: which protocol's race the attacker wins decides the outcome. Gaps in system and information integrity are why malicious activity on a network goes unnoticed until damage is done. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-010",
@@ -1023,7 +1050,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Open DNS Resolver” is a finding that surfaces more often than clients expect. The stake is real: beyond the amplification risk covered separately, an open resolver leaks reconnaissance: an attacker can check whether specific domains are already cached and learn which sites the organisation's users have recently visited. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-011",
@@ -1123,7 +1153,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Rogue DNS-over-HTTPS (DoH) Resolver Bypass of Network Monitoring” is a finding that surfaces more often than clients expect. The stake is real: malware or a malicious insider can use a rogue encrypted-DNS configuration to resolve command-and-control or exfiltration domains that the organisation's blocklists would otherwise catch. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-012",
@@ -1154,11 +1187,11 @@
    "examplePayloads": [
     {
      "label": "Query CT logs for all certificates issued for the organization's domain",
-     "command": "curl -s \"https://crt.sh/?q=%25.target.com&output=json\" | jq -r '.[].name_value' | sort -u"
+     "command": "curl -s \"https://crt.sh/?q=%25.example.test&output=json\" | jq -r '.[].name_value' | sort -u"
     },
     {
      "label": "Check for CAA records restricting authorized certificate issuers",
-     "command": "dig target.com CAA"
+     "command": "dig example.test CAA"
     },
     {
      "label": "Cross-reference discovered subdomains against known DNS records",
@@ -1222,7 +1255,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “TLS Certificate Transparency Gaps” is a finding that surfaces more often than clients expect. The stake is real: an unauthorised certificate issued for the organisation's domain can go undetected indefinitely. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-013",
@@ -1319,7 +1355,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “VoIP/SIP Enumeration & Abuse” is a finding that surfaces more often than clients expect. The stake is real: toll fraud is the most immediately monetisable outcome: an attacker registers as a valid extension and places expensive international or premium-rate calls billed to the organisation. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-014",
@@ -1419,7 +1458,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “mDNS Spoofing” is a finding that surfaces more often than clients expect. The stake is real: rather than targeting one hostname, the attacker takes up an interception position across every service on the segment that relies on local discovery, all at once. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-015",
@@ -1518,7 +1560,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “DTLS/QUIC Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: the consequences mirror the classic encrypted-web equivalents: weak cipher suites allowing practical decryption, missing certificate validation allowing interception, or an outdated protocol version carrying known flaws. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-016",
@@ -1617,7 +1662,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Monitoring Dashboard Default Credentials” is a finding that surfaces more often than clients expect. The stake is real: the attacker gains full administrative control of the monitoring platform. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-017",
@@ -1715,7 +1763,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Zabbix/Nagios Monitoring Server Default Credentials” is a finding that surfaces more often than clients expect. The stake is real: the attacker gains full administrative control of the network monitoring platform, which typically sees the entire infrastructure — every monitored host, its address, its running services, and often stored credentials used for agent or remote-check authentication. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-018",
@@ -1815,7 +1866,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Configuration Management Server Exposure” is a finding that surfaces more often than clients expect. The stake is real: an attacker reaching an unauthenticated configuration-management interface can push a malicious configuration or command to every host under that server's control in a single action. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-019",
@@ -1913,7 +1967,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Multicast (PIM/IGMP) Configuration” is a finding that surfaces more often than clients expect. The stake is real: an attacker can disrupt services that depend on multicast by manipulating group membership or routing state. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-020",
@@ -2012,7 +2069,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Time Protocol Autokey Configuration” is a finding that surfaces more often than clients expect. The stake is real: an attacker may be able to defeat the authentication this mechanism was specifically deployed to provide, allowing time spoofing despite its presence. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-021",
@@ -2112,7 +2172,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure RADIUS/TACACS+ Configuration” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can observe this traffic, from a position on the network path or a compromised device, may recover the shared secret by cracking it offline where it is weak. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-022",
@@ -2210,7 +2273,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure SNMP v3 Configuration” is a finding that surfaces more often than clients expect. The stake is real: anyone with visibility of the network path can capture and read this traffic in full, exposing device configuration, interface and routing state, and whatever else is queried. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-023",
@@ -2309,7 +2375,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure SSH Configuration” is a finding that surfaces more often than clients expect. The stake is real: an attacker positioned to influence the negotiation, or in some cases to force a downgrade, may exploit the weak algorithm's known flaw to recover session key material or otherwise weaken the connection's guarantees. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-024",
@@ -2340,15 +2409,15 @@
    "examplePayloads": [
     {
      "label": "Check for the HSTS header in the HTTPS response",
-     "command": "curl -sI https://app.target.com/ | grep -i strict-transport-security"
+     "command": "curl -sI https://app.example.test/ | grep -i strict-transport-security"
     },
     {
      "label": "Confirm HTTP-to-HTTPS redirect behavior separately",
-     "command": "curl -sI http://app.target.com/"
+     "command": "curl -sI http://app.example.test/"
     },
     {
      "label": "Check HSTS preload-list status",
-     "command": "curl -s \"https://hstspreload.org/api/v2/status?domain=target.com\""
+     "command": "curl -s \"https://hstspreload.org/api/v2/status?domain=example.test\""
     },
     {
      "label": "Confirm the strict-transport header is absent",
@@ -2408,7 +2477,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Missing HSTS” is a finding that surfaces more often than clients expect. The stake is real: an attacker on the network path can intercept the victim's very first request, before any redirect to a secure connection happens. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-025",
@@ -2506,7 +2578,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “NFS Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: any client that can reach the service can mount the export and read everything in it, potentially including sensitive files. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-026",
@@ -2604,7 +2679,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak VPN Configuration” is a finding that surfaces more often than clients expect. The stake is real: depending on the algorithm, an attacker with sufficient resources and the right network position may weaken or defeat the VPN's confidentiality and integrity guarantees. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-027",
@@ -2702,7 +2780,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak WireGuard/OpenVPN Static Key Configuration” is a finding that surfaces more often than clients expect. The stake is real: extracting the shared key from any single compromised device — a stolen laptop, a compromised branch router — lets an attacker decrypt traffic from, or impersonate, every other device using that same key. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-028",
@@ -2801,7 +2882,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Container Registry Without Authentication” is a finding that surfaces more often than clients expect. The stake is real: anyone who finds the registry can pull and reverse-engineer the organisation's private images, extracting source code, configuration files, and any credentials baked into the image layers. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-029",
@@ -2899,7 +2983,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Management VPN Without MFA” is a finding that surfaces more often than clients expect. The stake is real: a single compromised credential, obtained through phishing, password reuse or credential stuffing, is enough on its own to reach the organisation's most sensitive management segment. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-030",
@@ -2999,7 +3086,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “IPMI Authentication Bypass” is a finding that surfaces more often than clients expect. The stake is real: an attacker can extract the management controller's password hash with no prior authentication, then crack it offline. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-031",
@@ -3098,7 +3188,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure NAC MAC Authentication Bypass (MAB) Fallback Abuse” is a finding that surfaces more often than clients expect. The stake is real: by spoofing an observed MAC address, an attacker gains the same network access as a legitimate device authenticated that way. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-032",
@@ -3198,7 +3291,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “SSH Weak Host Key Algorithm Negotiation” is a finding that surfaces more often than clients expect. The stake is real: a weak SSH algorithm configuration grants no immediate access by itself. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-033",
@@ -3297,7 +3393,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak or Missing Network Access Control” is a finding that surfaces more often than clients expect. The stake is real: anyone who gains brief physical access to the building can plug in a device and reach the internal network immediately, with whatever access that segment grants. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-034",
@@ -3397,7 +3496,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “DHCP Option Injection” is a finding that surfaces more often than clients expect. The stake is real: an attacker can redirect specific traffic, or the victim's proxy configuration, through an intermediary they control. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-035",
@@ -3495,7 +3597,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Database Port” is a finding that surfaces more often than clients expect. The stake is real: direct network reachability to the database engine opens three routes. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-036",
@@ -3593,7 +3698,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Database Port” is a finding that surfaces more often than clients expect. The stake is real: direct reachability allows credential brute-forcing, exploitation of any known vulnerability in that engine version, and direct data access where weak or default credentials are found — bypassing the application's access control entirely. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-037",
@@ -3692,7 +3800,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “STARTTLS Injection” is a finding that surfaces more often than clients expect. The stake is real: depending on the implementation bug, an attacker can inject commands that execute inside the authenticated session once encryption is established, manipulating mailbox state or extracting data. Gaps in system and information integrity are why malicious activity on a network goes unnoticed until damage is done. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-038",
@@ -3792,7 +3903,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Anonymous Cipher Suites” is a finding that surfaces more often than clients expect. The stake is real: a client negotiating an anonymous cipher suite establishes an encrypted connection with no verification of the server's identity whatsoever. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-039",
@@ -3890,7 +4004,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Certificate Hostname Mismatch” is a finding that surfaces more often than clients expect. The stake is real: the visible symptom is a certificate warning, which erodes trust and trains users to click through security warnings generally — weakening certificate validation everywhere, not just here. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-040",
@@ -3988,7 +4105,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Expired Certificate” is a finding that surfaces more often than clients expect. The stake is real: strict clients and automated integrations reject the connection outright, which is a genuine service outage for whatever depends on it. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-041",
@@ -4087,7 +4207,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed CoAP IoT Protocol Without DTLS” is a finding that surfaces more often than clients expect. The stake is real: anyone with visibility of the network path can read this traffic in full, exposing sensor readings, device state and control commands. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-042",
@@ -4187,7 +4310,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Legacy SSLv3/TLS 1.0 Support on Internal Management Interfaces” is a finding that surfaces more often than clients expect. The stake is real: an attacker who has already gained an internal foothold and can reach the management interface can exploit the known weaknesses of these obsolete protocol versions to decrypt session content or force a downgrade. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-043",
@@ -4286,7 +4412,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Storage Protocol” is a finding that surfaces more often than clients expect. The stake is real: anyone with passive access to the segment carrying storage traffic can capture and reconstruct exactly what is being transferred — an entire disk volume, a database file, a set of shared documents. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-044",
@@ -4386,7 +4515,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “IPv6 SLAAC Rogue Router Advertisement Takeover” is a finding that surfaces more often than clients expect. The stake is real: a successful SLAAC takeover gives the attacker a full on-path position for every dual-stack host that accepts the rogue advertisement, enabling traffic interception, credential capture on any unencrypted protocol, and selective manipulation of DNS responses via the rogue RDNSS option. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-045",
@@ -4485,7 +4617,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “NULL Cipher Suites” is a finding that surfaces more often than clients expect. The stake is real: a client negotiating a NULL cipher suite transmits everything in complete cleartext, readable by anyone watching the network path. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-046",
@@ -4584,7 +4719,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “SSL Stripping” is a finding that surfaces more often than clients expect. The stake is real: the victim's entire session for the targeted site is silently downgraded, exposing credentials, session cookies and all page content to interception. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-047",
@@ -4682,7 +4820,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Self-Signed Certificate” is a finding that surfaces more often than clients expect. The stake is real: the immediate symptom is connection warnings, but the more significant risk is behavioural. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-048",
@@ -4780,7 +4921,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “TLS Compression” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can inject chosen content into requests carrying the victim's session cookie can recover that cookie incrementally, by observing how the compressed size changes. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-049",
@@ -4879,7 +5023,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “TLS Renegotiation Vulnerability” is a finding that surfaces more often than clients expect. The stake is real: an attacker prepends their own request to a connection, then allows the victim's legitimate authenticated request to be spliced in behind it. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-050",
@@ -4978,7 +5125,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Unencrypted Backups” is a finding that surfaces more often than clients expect. The stake is real: anyone who obtains a backup archive gets the complete plaintext contents of whatever was backed up. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-051",
@@ -5078,7 +5228,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak Ciphers” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can force or exploit a weak cipher negotiation can, depending on the algorithm, practically decrypt captured traffic, exploit a collision attack against older block ciphers, or trivially break a deliberately weakened export-grade cipher. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-052",
@@ -5176,7 +5329,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak Kerberos Encryption Types (RC4-HMAC) Still Enabled” is a finding that surfaces more often than clients expect. The stake is real: any authenticated domain user can request a service ticket for any service account with a registered service name. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-053",
@@ -5274,7 +5430,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “802.1X Bypass” is a finding that surfaces more often than clients expect. The stake is real: an attacker with brief physical access can insert a small device between an authenticated machine and its wall jack, then piggyback on that machine's authentication. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-054",
@@ -5373,7 +5532,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “ARP Spoofing” is a finding that surfaces more often than clients expect. The stake is real: a successful attack gives the attacker a durable, transparent position between the victim and whatever address was spoofed — typically the default gateway, which captures all of the victim's outbound traffic. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-055",
@@ -5471,7 +5633,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “BEAST Attack” is a finding that surfaces more often than clients expect. The stake is real: where exploited, an attacker can incrementally recover encrypted content from the victim's connection, most valuably a session cookie, which enables session hijacking. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-056",
@@ -5570,7 +5735,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “BGP Hijacking” is a finding that surfaces more often than clients expect. The stake is real: a successful hijack redirects traffic destined for the organisation's address space to the attacker's network. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-057",
@@ -5668,7 +5836,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “BGP Route Leak via Missing Prefix Filtering” is a finding that surfaces more often than clients expect. The stake is real: without prefix filtering, the organisation's network can accept and pass on an accidental or malicious route leak from a peer, adding to broader internet routing instability. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-058",
@@ -5767,7 +5938,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Bluetooth Attacks” is a finding that surfaces more often than clients expect. The stake is real: on an unpatched device, one class of these flaws lets an attacker within Bluetooth range achieve remote code execution or establish an interception position, with no pairing and no user interaction at all. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-059",
@@ -5864,7 +6038,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On internal and external network engagements, “CDP/LLDP Information Disclosure” is a finding that surfaces more often than clients expect. The stake is real: an attacker with access to a switch port receives detailed topology and device version information without probing anything. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-060",
@@ -5963,7 +6140,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Cisco Smart Install Abuse” is a finding that surfaces more often than clients expect. The stake is real: an attacker can extract a switch's configuration, which often exposes credentials and monitoring community strings. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-061",
@@ -6061,7 +6241,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Cleartext Protocol” is a finding that surfaces more often than clients expect. The stake is real: anyone with passive visibility of the network path can read credentials and full message content in cleartext. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-062",
@@ -6159,7 +6342,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “DHCP Starvation/Spoofing” is a finding that surfaces more often than clients expect. The stake is real: legitimate clients are denied connectivity once the address pool is exhausted. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-063",
@@ -6257,7 +6443,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “DHCPv6 Spoofing” is a finding that surfaces more often than clients expect. The stake is real: this technique yields credential-relay opportunities in a large proportion of real Windows environments. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-064",
@@ -6355,7 +6544,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “DROWN” is a finding that surfaces more often than clients expect. The stake is real: an attacker can decrypt captured sessions from a properly-configured modern service by exploiting a completely different, obsolete service that happens to share the same private key. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-065",
@@ -6453,7 +6645,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed CUPS Print Server Remote Code Execution” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can reach the exposed printing service can, depending on the version and vulnerability chain, achieve remote code execution on the host running it. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-066",
@@ -6551,7 +6746,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Coordination/Cluster Service” is a finding that surfaces more often than clients expect. The stake is real: anyone reaching an unauthenticated instance can read the complete cluster state, including secrets unless they are separately encrypted at rest. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-067",
@@ -6651,7 +6849,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Docker API” is a finding that surfaces more often than clients expect. The stake is real: an attacker reaching an unauthenticated Docker API can start a container with the host's filesystem attached, which gives them full root access to the underlying host. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-068",
@@ -6750,7 +6951,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Git/SVN Service” is a finding that surfaces more often than clients expect. The stake is real: full repository reconstruction gives an attacker the complete source code and commit history, including any credentials, API keys or sensitive comments ever committed. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-069",
@@ -6848,7 +7052,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Jenkins/CI Console” is a finding that surfaces more often than clients expect. The stake is real: build servers are extraordinarily high-value targets, because they typically hold access to source control, cloud infrastructure and deployment credentials across the entire delivery pipeline. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-070",
@@ -6948,7 +7155,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Kubernetes API/Kubelet” is a finding that surfaces more often than clients expect. The stake is real: unauthenticated access to the cluster API exposes the complete resource inventory, including credentials, tokens and keys, across every namespace the anonymous role can reach. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-071",
@@ -7048,7 +7258,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Management Interface” is a finding that surfaces more often than clients expect. The stake is real: anyone reaching the management interface with a valid — often still default — credential gains complete control of the physical server, independent of its operating system. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-072",
@@ -7146,7 +7359,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Message Queue Management Console” is a finding that surfaces more often than clients expect. The stake is real: an attacker with console access can read message content flowing through the queue, which frequently exposes sensitive business data and sometimes credentials carried as payloads. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-073",
@@ -7244,7 +7460,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Printer/IoT Device” is a finding that surfaces more often than clients expect. The stake is real: an attacker with default credentials can reconfigure the device so that scanned documents are sent to a destination they control. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-074",
@@ -7343,7 +7562,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed RPC/DCOM” is a finding that surfaces more often than clients expect. The stake is real: an attacker who reaches these services beyond the intended trust boundary gains a rich reconnaissance surface, since the enumerable interface lists reveal what is running on the host. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-075",
@@ -7441,7 +7663,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Redis/Memcached Without Auth” is a finding that surfaces more often than clients expect. The stake is real: anyone reaching an unauthenticated instance can read everything stored in it, which commonly includes session tokens, cached responses containing personal data, and application credentials. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-076",
@@ -7539,7 +7764,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Service Mesh Control Plane API” is a finding that surfaces more often than clients expect. The stake is real: unauthenticated access exposes the complete internal service topology along with any secrets held in the key-value store. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-077",
@@ -7638,7 +7866,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed Syslog/Log Service” is a finding that surfaces more often than clients expect. The stake is real: an attacker can inject forged log entries, which undermines the reliability of any subsequent incident response or forensic investigation. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-078",
@@ -7737,7 +7968,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Exposed Telnet/Serial-over-IP Console Server” is a finding that surfaces more often than clients expect. The stake is real: console access to the connected device provides complete control, independent of its operating system or application. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-079",
@@ -7836,7 +8070,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Exposed WinRM” is a finding that surfaces more often than clients expect. The stake is real: an attacker who authenticates to this service, using a weak, default or previously compromised credential, gains a full interactive shell on the host with that account's privileges. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-080",
@@ -7934,7 +8171,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “FREAK” is a finding that surfaces more often than clients expect. The stake is real: where both the server-side and client-side preconditions are met, an attacker on the path can force the connection down to an easily-broken key strength and decrypt the session entirely. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-081",
@@ -8032,7 +8272,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “FTP Cleartext” is a finding that surfaces more often than clients expect. The stake is real: anyone with passive visibility of the network path can capture credentials and complete file contents in cleartext. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-082",
@@ -8129,7 +8372,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Firmware Downgrade Attack on Network Appliance” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can influence the firmware update process forces a downgrade to a specific older version, chosen because it carries a known exploitable flaw. Gaps in system and information integrity are why malicious activity on a network goes unnoticed until damage is done. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-083",
@@ -8227,7 +8473,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “GRE/Tunnel Protocol Abuse” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can reach a tunnel endpoint can inject forged traffic that gets unwrapped and forwarded onto the destination network. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-084",
@@ -8327,7 +8576,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “HSRP/VRRP Hijacking” is a finding that surfaces more often than clients expect. The stake is real: an attacker who wins the gateway election becomes the segment's active default gateway. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-085",
@@ -8425,7 +8677,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Heartbleed” is a finding that surfaces more often than clients expect. The stake is real: repeated exploitation leaks a substantial amount of server process memory over time. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-086",
@@ -8523,7 +8778,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “ICMP Redirect Attack” is a finding that surfaces more often than clients expect. The stake is real: a successful attack causes the victim to route traffic for one attacker-chosen destination through the attacker's machine instead of the legitimate path. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-087",
@@ -8621,7 +8879,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “ICMP/Protocol Tunneling Exfiltration” is a finding that surfaces more often than clients expect. The stake is real: an attacker with code execution on an internal host, but blocked from obvious outbound channels by egress filtering, can still get data out and keep command-and-control running over this channel. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-088",
@@ -8720,7 +8981,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “IKE/IPsec Aggressive Mode PSK” is a finding that surfaces more often than clients expect. The stake is real: an attacker can capture the shared secret's hash in a single unauthenticated exchange, then crack it offline at whatever speed their hardware allows. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-089",
@@ -8818,7 +9082,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “IPv6 Enabled Unnecessarily” is a finding that surfaces more often than clients expect. The stake is real: this is a root-cause condition rather than a single exploitable flaw. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-090",
@@ -8916,7 +9183,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure CDP/LLDP Spoofing” is a finding that surfaces more often than clients expect. The stake is real: an attacker can disrupt or corrupt topology-monitoring tools that depend on this data for accuracy. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-091",
@@ -9023,7 +9293,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Cloud Network Exposure” is a finding that surfaces more often than clients expect. The stake is real: overly permissive rules expose services to the internet, or to far broader internal networks than intended. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-092",
@@ -9127,7 +9400,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure FTP Bounce / Active Mode Abuse” is a finding that surfaces more often than clients expect. The stake is real: a bounce attack lets an attacker scan internal networks by making an open server probe targets on their behalf, reading which ports are open from which connection attempts succeed. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-093",
@@ -9253,7 +9529,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Industrial Protocol” is a finding that surfaces more often than clients expect. The stake is real: write access here translates directly into control over physical equipment — pumps, valves, breakers, motors. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-094",
@@ -9357,7 +9636,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Jumbo/Fragmentation Handling” is a finding that surfaces more often than clients expect. The stake is real: successful exploitation can crash a device or trap it in a processing loop. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-095",
@@ -9461,7 +9743,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Multicast VLAN Registration Protocol (MVRP) Exposure” is a finding that surfaces more often than clients expect. The stake is real: an attacker can join multicast groups used by network services and intercept their traffic, or spoof membership to disrupt delivery to legitimate members. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-096",
@@ -9565,7 +9850,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Backup Service” is a finding that surfaces more often than clients expect. The stake is real: unauthenticated access to a backup service lets an attacker enumerate what is being backed up, steal the backup copies, or start restore operations that overwrite production data. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-097",
@@ -9672,7 +9960,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Device Defaults” is a finding that surfaces more often than clients expect. The stake is real: an attacker who compromises the device can fully control it — reconfiguring routing and firewall rules, extracting configuration data that frequently contains credentials for other systems, and pivoting to manage the connected network. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-098",
@@ -9777,7 +10068,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Load Balancer Health-Check Endpoint Disclosure” is a finding that surfaces more often than clients expect. The stake is real: information leaked in these responses can reveal internal server names, database connection state, cloud infrastructure details, or debugging hints that help an attacker find application flaws. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-099",
@@ -9899,7 +10193,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Print Spooler Remote Code Execution” is a finding that surfaces more often than clients expect. The stake is real: an attacker can achieve unauthenticated remote code execution on Windows hosts running the print service, leading to full system compromise and lateral movement. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-100",
@@ -10026,7 +10323,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Segmentation” is a finding that surfaces more often than clients expect. The stake is real: an attacker with access to one network segment can pivot into restricted segments never meant to be reachable — database servers, management networks, production systems. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-101",
@@ -10131,7 +10431,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Network Time” is a finding that surfaces more often than clients expect. The stake is real: time poisoning degrades logging accuracy, can cause certificate validation to fail, and can disable time-based authentication codes. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-102",
@@ -10236,7 +10539,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Out-of-Band Management Network” is a finding that surfaces more often than clients expect. The stake is real: access here is equivalent to physical access to the servers: power control, console access, firmware manipulation, or remote wipe. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-103",
@@ -10341,7 +10647,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure PXE Boot” is a finding that surfaces more often than clients expect. The stake is real: this is full system compromise at the firmware and bootloader level, persisting across operating system reinstalls and avoiding most detection. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-104",
@@ -10466,7 +10775,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On internal and external network engagements, “Insecure Remote Access” is a finding that surfaces more often than clients expect. The stake is real: an attacker reaching an open session has the same capability as someone sitting at the keyboard. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-105",
@@ -10571,7 +10883,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure SIP/RTP” is a finding that surfaces more often than clients expect. The stake is real: eavesdropping leaks whatever sensitive business or personal information is discussed during calls. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-106",
@@ -10676,7 +10991,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Wireless Guest Isolation” is a finding that surfaces more often than clients expect. The stake is real: unauthenticated guests reach internal network resources, which defeats the entire purpose of separating the guest network. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-107",
@@ -10780,7 +11098,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insecure Zero-Touch Provisioning (ZTP) Process” is a finding that surfaces more often than clients expect. The stake is real: a device receives malicious configuration or firmware during provisioning, so it is compromised before it ever joins the network properly. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-108",
@@ -10885,7 +11206,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Insufficient Anti-Spoofing” is a finding that surfaces more often than clients expect. The stake is real: the network can be used as a source or amplification point for attacks against external targets, and the organisation may face legal liability for originating that traffic. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-109",
@@ -10945,7 +11269,7 @@
    "mitigationClientFacing": "Some accounts in your directory have pre-authentication disabled, which lets an attacker request a crackable authentication response for those accounts without any credential — and then recover the password offline. The fix is to require pre-authentication for all accounts, removing the ability to obtain that crackable response. This is a common route in internal attacks because it turns any account with this setting into an offline password-cracking target, with no interaction with the account itself, so it warrants prompt correction.",
    "reference": {
     "standard": "A07:2021 - Identification and Authentication Failures",
-    "cwe": "CWE-262",
+    "cwe": "CWE-522",
     "tools": [
      "impacket GetNPUsers.py (AS-REP enumeration)",
      "Hashcat (password cracking)",
@@ -10990,7 +11314,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Kerberos Pre-Auth Disabled” is a finding that surfaces more often than clients expect. The stake is real: an attacker can crack passwords offline for service or user accounts with pre-authentication disabled, potentially reaching high-privilege accounts. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-110",
@@ -11095,7 +11422,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “LDAP Anonymous Bind” is a finding that surfaces more often than clients expect. The stake is real: unauthenticated enumeration of users, groups and organisational structure supports reconnaissance for social engineering, targeted phishing and privilege escalation. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-111",
@@ -11200,7 +11530,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “LLMNR/NBT-NS Poisoning” is a finding that surfaces more often than clients expect. The stake is real: this enables interception of network traffic, particularly for file shares and other services relying on name resolution. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-112",
@@ -11305,7 +11638,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Logjam” is a finding that surfaces more often than clients expect. The stake is real: a successful attack allows decryption of traffic using the downgraded, deliberately weakened key exchange. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-113",
@@ -11409,7 +11745,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Lucky13” is a finding that surfaces more often than clients expect. The stake is real: partial plaintext recovery through timing analysis of many crafted TLS records. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-114",
@@ -11514,7 +11853,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “MAC Flooding” is a finding that surfaces more often than clients expect. The stake is real: once the switch's address table is full, an attacker can sniff all traffic on the segment, eavesdropping on plaintext protocols and capturing passwords. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-115",
@@ -11619,7 +11961,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “NTP Amplification DDoS” is a finding that surfaces more often than clients expect. The stake is real: used as an amplification vector in volumetric DDoS attacks against external targets. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-116",
@@ -11724,7 +12069,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “OSPF/EIGRP Routing Attack” is a finding that surfaces more often than clients expect. The stake is real: traffic destined for internal or external networks is redirected through the attacker's machine, enabling interception on a large scale. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-117",
@@ -11829,7 +12177,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Open Elasticsearch” is a finding that surfaces more often than clients expect. The stake is real: full read/write access to Elasticsearch data, leaking logs, credentials, and sensitive operational details. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-118",
@@ -11933,7 +12284,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Open Memcached” is a finding that surfaces more often than clients expect. The stake is real: leakage of cached sessions and secrets, and potential denial-of-service if the cache is flushed. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-119",
@@ -12038,7 +12392,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Open MongoDB” is a finding that surfaces more often than clients expect. The stake is real: full database compromise: data theft, data modification, or destruction of data. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-120",
@@ -12143,7 +12500,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Open NTP Server” is a finding that surfaces more often than clients expect. The stake is real: dDoS amplification, time poisoning, or reconnaissance of NTP infrastructure. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-121",
@@ -12248,7 +12608,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “Open Redis” is a finding that surfaces more often than clients expect. The stake is real: an attacker can hijack sessions, poison the cache, or steal credentials, compromising every application relying on that cache. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-122",
@@ -12353,7 +12716,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “POODLE Attack” is a finding that surfaces more often than clients expect. The stake is real: a downgrade attack allows decryption of traffic, most valuably session cookies and credentials. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-123",
@@ -12458,7 +12824,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Port Security Bypass / MAC Spoofing” is a finding that surfaces more often than clients expect. The stake is real: an attacker can bypass port security by spoofing a legitimate device's address, connecting a rogue device to a restricted port. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-124",
@@ -12563,7 +12932,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “RC4 Biases” is a finding that surfaces more often than clients expect. The stake is real: rC4 stream cipher has known statistical biases allowing plaintext recovery from captured ciphertext with sufficient samples. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-125",
@@ -12624,7 +12996,7 @@
    "mitigationClientFacing": "A remote-desktop service on your network runs a version with a known pre-authentication remote-code weakness, letting an attacker run their own code on the system without any credential. The fix is to update the service to a patched version and restrict where it can be reached from. This is a critical exposure because it grants code execution with no authentication, and weaknesses of this class have been used by widespread worms, so it warrants prompt attention across every exposed system.",
    "reference": {
     "standard": "A06:2021 - Vulnerable and Outdated Components",
-    "cwe": "CWE-306",
+    "cwe": "CWE-416",
     "tools": [
      "nmap (rdp-enum-encryption and vuln-focused NSE scripts",
      "plus rdp-ntlm-info for host fingerprinting)",
@@ -12668,7 +13040,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “RDP Exposure” is a finding that surfaces more often than clients expect. The stake is real: remote code execution on Windows systems via RDP vulnerabilities, leading to system compromise without requiring valid credentials. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-126",
@@ -12773,7 +13148,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “ROBOT Attack” is a finding that surfaces more often than clients expect. The stake is real: an attacker can recover plaintext from captured ciphertexts against services still using RSA key transport. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-127",
@@ -12878,7 +13256,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Raccoon Attack” is a finding that surfaces more often than clients expect. The stake is real: attack on Diffie-Hellman key exchange allowing partial key recovery from captured TLS handshakes. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-128",
@@ -12984,7 +13365,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Rogue Access Point / Evil Twin” is a finding that surfaces more often than clients expect. The stake is real: attackers can create fake WiFi networks matching legitimate SSIDs, interceping all user traffic and credentials from connected users. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-129",
@@ -13089,7 +13473,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Rogue LLDP-MED VoIP VLAN Assignment Abuse” is a finding that surfaces more often than clients expect. The stake is real: attackers can spoof LLDP-MED announcements assigning themselves to voice/management VLANs, gaining access to VoIP phones and critical infrastructure. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-130",
@@ -13194,7 +13581,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Router Advertisement (RA) Spoofing” is a finding that surfaces more often than clients expect. The stake is real: iPv6 gateway hijacking via rogue RA, enabling man-in-the-middle of all IPv6 traffic on dual-stack networks. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-131",
@@ -13299,7 +13689,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “SMB Signing Disabled” is a finding that surfaces more often than clients expect. The stake is real: unsigned SMB traffic allows man-in-the-middle modification of SMB messages, enabling attacks on file shares and authentication. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-132",
@@ -13360,7 +13753,7 @@
    "mitigationClientFacing": "An obsolete version of the file-sharing protocol is enabled on your network, and it carries a known wormable remote-code weakness that lets an attacker run their own code on the system. The fix is to disable this legacy protocol version entirely. This is a critical exposure because weaknesses of this class have driven some of the most damaging worms seen, spreading automatically across networks, so any system still speaking the legacy protocol is a high-priority risk to close.",
    "reference": {
     "standard": "A06:2021 - Vulnerable and Outdated Components",
-    "cwe": "CWE-306",
+    "cwe": "CWE-787",
     "tools": [
      "nmap (smb-protocols NSE script to enumerate supported dialects)",
      "CrackMapExec/NetExec (bulk SMBv1 enumeration)",
@@ -13404,7 +13797,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “SMBv1 Enabled” is a finding that surfaces more often than clients expect. The stake is real: sMBv1 contains critical vulnerabilities (EternalBlue) allowing remote code execution without authentication, leading to system compromise. Configuration drift and insecure defaults are the quiet findings that accumulate until one of them becomes the way in. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-133",
@@ -13465,7 +13861,7 @@
    "mitigationClientFacing": "A mail service on your network relays mail for unauthorised senders, so an attacker can send spoofed or spam mail through it — abusing your infrastructure and damaging your domain's reputation. The fix is to restrict relaying to authenticated senders and your own domains, refusing to relay for arbitrary senders. An open relay is quickly discovered and abused at scale, which can get your mail infrastructure blacklisted and your domain used to lend credibility to fraud, so it warrants prompt correction.",
    "reference": {
     "standard": "A05:2021 - Security Misconfiguration",
-    "cwe": "CWE-269",
+    "cwe": "CWE-306",
     "tools": [
      "nmap (smtp-open-relay NSE script)",
      "swaks (manual SMTP relay testing with crafted envelope)",
@@ -13509,7 +13905,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “SMTP Open Relay” is a finding that surfaces more often than clients expect. The stake is real: attackers can use the mail server to send spam, malware or phishing that appears to come from internal addresses or legitimate senders. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-134",
@@ -13614,7 +14013,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “SNMP Community Strings” is a finding that surfaces more often than clients expect. The stake is real: with default or weak community strings, an attacker can enumerate every network device and its configuration. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-135",
@@ -13719,7 +14121,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “SSDP/UPnP Amplification” is a finding that surfaces more often than clients expect. The stake is real: sSDP can be abused as an amplification vector in DDoS attacks, using UPnP devices to generate large responses for small requests. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-136",
@@ -13823,7 +14228,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Spanning Tree Attacks” is a finding that surfaces more often than clients expect. The stake is real: attackers can manipulate spanning tree protocol (STP) to become the root bridge, intercepting all network traffic across VLANs. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-137",
@@ -13928,7 +14336,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Sweet32” is a finding that surfaces more often than clients expect. The stake is real: an attacker can recover plaintext from 64-bit block ciphers after capturing sufficient traffic under a single key. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-138",
@@ -14032,7 +14443,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “TCP Sequence Prediction / Spoofing” is a finding that surfaces more often than clients expect. The stake is real: predictable sequence numbers let an attacker forge packets and hijack connections without ever seeing the traffic, injecting commands or data. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-139",
@@ -14137,7 +14551,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “TFTP Exposure” is a finding that surfaces more often than clients expect. The stake is real: the protocol is unauthenticated, so exposure can leak system files or device configuration. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-140",
@@ -14242,7 +14659,10 @@
      "code": "IDENT",
      "name": "Target identification and analysis"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Telnet Enabled” is a finding that surfaces more often than clients expect. The stake is real: telnet transmits all credentials and traffic in plaintext, allowing complete credential capture and session hijacking. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-141",
@@ -14347,7 +14767,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Untrusted CA” is a finding that surfaces more often than clients expect. The stake is real: where clients trust a self-signed or internally-generated authority without proper validation, an attacker can create valid-appearing certificates for any domain. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-142",
@@ -14451,7 +14874,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “VLAN Hopping” is a finding that surfaces more often than clients expect. The stake is real: an attacker can break out of their assigned VLAN and reach other network segments. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "NET-143",
@@ -14556,7 +14982,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “WPAD Poisoning” is a finding that surfaces more often than clients expect. The stake is real: abusing proxy auto-discovery causes clients to route their traffic through the attacker's proxy, enabling interception of all web traffic. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-144",
@@ -14661,7 +15090,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak DH Parameters” is a finding that surfaces more often than clients expect. The stake is real: weak Diffie-Hellman parameters (< 1024 bits) can be factored, allowing session key recovery and traffic decryption. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-145",
@@ -14765,7 +15197,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Weak Firewall Egress Filtering” is a finding that surfaces more often than clients expect. The stake is real: without egress filtering, attackers can send spoofed packets with forged source addresses, enabling amplification attacks and obstructing attribution afterwards. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-146",
@@ -14871,7 +15306,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Wi-Fi WPA2 Handshake Capture” is a finding that surfaces more often than clients expect. The stake is real: a captured handshake can be cracked offline using dictionary or brute-force attacks where the passphrase is weak. Boundary and communications weaknesses like this are what let an attacker on the wire intercept, relay, or reach services that should have been segmented off. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-147",
@@ -14975,7 +15413,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “rsync Exposure” is a finding that surfaces more often than clients expect. The stake is real: unauthenticated rsync can leak files from the server or allow upload of malicious files if rsync is misconfigured. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-148",
@@ -15075,7 +15516,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On internal and external network engagements, “Kerberoasting” is a finding that surfaces more often than clients expect. The stake is real: cracking a service account's password opens the way to lateral movement or privilege escalation. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-149",
@@ -15176,7 +15620,10 @@
      "code": "REVIEW",
      "name": "Review techniques"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “AD CS Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: an attacker can obtain a certificate that authenticates as Domain Administrator, or as any other targeted account. Identification and authentication weaknesses — default credentials, weak protocols, exposed authentication — are how internal networks fall fastest. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-150",
@@ -15277,7 +15724,10 @@
      "code": "VALID",
      "name": "Target vulnerability validation"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On internal and external network engagements, “DCSync” is a finding that surfaces more often than clients expect. The stake is real: this is full compromise of the Active Directory domain. Weak access control on network services is the classic pivot point on internal engagements, turning one foothold into lateral movement. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "NET-151",

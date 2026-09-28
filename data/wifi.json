@@ -122,7 +122,10 @@
      "code": "OWE",
      "name": "Opportunistic Wireless Encryption / open network"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Rogue DNS Injection via Malicious Captive Portal” is a finding that surfaces more often than clients expect. The stake is real: the attacker controls the victim's DNS for as long as they stay connected. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-002",
@@ -226,7 +229,10 @@
      "code": "802.11w",
      "name": "Protected Management Frames (802.11w)"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On wireless and on-site engagements, “Wireless Reconnaissance / Information Disclosure” is a finding that surfaces more often than clients expect. The stake is real: an attacker within range can build a picture of the target without ever touching the network. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-003",
@@ -329,7 +335,10 @@
      "code": "OWE",
      "name": "Opportunistic Wireless Encryption / open network"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Rogue/Misconfigured Hotspot” is a finding that surfaces more often than clients expect. The stake is real: employee devices associate to attacker infrastructure silently, with no user interaction at all. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-004",
@@ -433,7 +442,10 @@
      "code": "802.11w",
      "name": "Protected Management Frames (802.11w)"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Deauthentication Attack” is a finding that surfaces more often than clients expect. The stake is real: repeated deauthentication keeps clients disconnected for as long as the attack runs. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-005",
@@ -538,7 +550,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On wireless and on-site engagements, “Insecure Guest Network Password Rotation Policy” is a finding that surfaces more often than clients expect. The stake is real: anyone who ever legitimately learned the passphrase keeps network access indefinitely — a past visitor, a contractor, a delivery driver, or an employee who has since left. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-006",
@@ -640,7 +655,10 @@
      "code": "WPA2-EAP",
      "name": "WPA2/WPA3-Enterprise (802.1X/EAP)"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “WPA2-Enterprise Credential Theft” is a finding that surfaces more often than clients expect. The stake is real: the attacker harvests domain credentials, or hashes that can be cracked offline. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-007",
@@ -746,7 +764,10 @@
      "code": "802.11w",
      "name": "Protected Management Frames (802.11w)"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Management Frame Injection” is a finding that surfaces more often than clients expect. The stake is real: beyond the denial of service already covered by the deauthentication finding, forged management frames allow an attacker to manipulate roaming — steering victims toward a weaker or attacker-controlled access point. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-008",
@@ -851,7 +872,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Insecure 802.11r Fast Transition Roaming Key Reuse” is a finding that surfaces more often than clients expect. The stake is real: where the flaw is present, an attacker can decrypt frames exchanged immediately after a fast roam, or have forged and replayed frames accepted because the replay counter was reset. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-009",
@@ -962,7 +986,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “KRACK” is a finding that surfaces more often than clients expect. The stake is real: on unpatched clients an attacker can decrypt traffic that was assumed to be protected. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-010",
@@ -1066,7 +1093,10 @@
      "code": "OWE",
      "name": "Opportunistic Wireless Encryption / open network"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Open/Unencrypted Network” is a finding that surfaces more often than clients expect. The stake is real: any unencrypted application traffic is readable by anyone nearby — plain web traffic, unencrypted DNS, legacy mail protocols, internal plaintext protocols. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-011",
@@ -1167,7 +1197,10 @@
      "code": "RSN",
      "name": "Robust Security Network / cipher negotiation"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On wireless and on-site engagements, “WEP Encryption” is a finding that surfaces more often than clients expect. The stake is real: the attacker recovers the WEP key completely, giving them the same network access as a legitimate client. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-012",
@@ -1270,7 +1303,10 @@
      "code": "WPA3-SAE",
      "name": "WPA3-Personal SAE"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Weak Pre-Shared Key Reuse” is a finding that surfaces more often than clients expect. The stake is real: once the passphrase is recovered the attacker has the same access as any legitimate client, plus the ability to decrypt traffic captured earlier. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-013",
@@ -1371,7 +1407,10 @@
      "code": "MFP-DoS",
      "name": "Management-frame / RF availability"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On wireless and on-site engagements, “Wireless Client MAC Randomization Bypass Tracking” is a finding that surfaces more often than clients expect. The stake is real: individuals can still be tracked by movement and dwell time across a monitored area, despite their device correctly randomising its address. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-014",
@@ -1478,7 +1517,10 @@
      "code": "MFP-DoS",
      "name": "Management-frame / RF availability"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Bluetooth/BLE Coexistence Attacks” is a finding that surfaces more often than clients expect. The stake is real: once the key length is forced down, the attacker brute-forces the session key in real time and can then decrypt or inject into the Bluetooth session. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-015",
@@ -1581,7 +1623,10 @@
      "code": "OWE",
      "name": "Opportunistic Wireless Encryption / open network"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Captive Portal Bypass” is a finding that surfaces more often than clients expect. The stake is real: the attacker gets free network access, bypassing whatever billing, terms-of-service or identity-tracking purpose the portal existed to serve. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-016",
@@ -1684,7 +1729,10 @@
      "code": "WPA2-EAP",
      "name": "WPA2/WPA3-Enterprise (802.1X/EAP)"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Evil Twin / Rogue Access Point” is a finding that surfaces more often than clients expect. The stake is real: employees and visitors connect believing they are on the legitimate network, which hands the attacker a transparent interception position over all their traffic. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-017",
@@ -1789,7 +1837,10 @@
      "code": "MFP-DoS",
      "name": "Management-frame / RF availability"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Insecure Wi-Fi Direct Pairing” is a finding that surfaces more often than clients expect. The stake is real: unauthorised pairing allows direct file transfer to the target device, hijacking of screen mirroring, or use of the peer connection as a pivot into whatever network access that device already holds. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-018",
@@ -1890,7 +1941,10 @@
      "code": "MFP-DoS",
      "name": "Management-frame / RF availability"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Insecure Wireless Printer Direct Connection” is a finding that surfaces more often than clients expect. The stake is real: an attacker in range gains an unauthenticated foothold. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-019",
@@ -2001,7 +2055,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Insufficient Client Isolation” is a finding that surfaces more often than clients expect. The stake is real: on a guest network, one visitor's device can attack another directly, with no network barrier in between — exposed file shares, or an unpatched service. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-020",
@@ -2111,7 +2168,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “PMKID Attack” is a finding that surfaces more often than clients expect. The stake is real: the passphrase can be cracked offline without waiting for, or forcing, a client handshake. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-021",
@@ -2214,7 +2274,10 @@
      "code": "MFP-DoS",
      "name": "Management-frame / RF availability"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “RF Jamming Denial of Service Susceptibility” is a finding that surfaces more often than clients expect. The stake is real: wireless service is denied completely for the duration and physical range of the jamming signal. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-022",
@@ -2315,7 +2378,10 @@
      "code": "MFP-DoS",
      "name": "Management-frame / RF availability"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “SSID Spoofing / Beacon Flooding” is a finding that surfaces more often than clients expect. The stake is real: at minimum this creates user confusion and support load, as staff and visitors struggle to pick the real network out of the decoys. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-023",
@@ -2421,7 +2487,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “WPA/WPA2-PSK Weak Passphrase” is a finding that surfaces more often than clients expect. The stake is real: full network compromise follows quickly through offline dictionary cracking, often almost immediately. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-024",
@@ -2526,7 +2595,10 @@
      "code": "WPA3-SAE",
      "name": "WPA3-Personal SAE"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “WPA3 Dragonblood Vulnerabilities” is a finding that surfaces more often than clients expect. The stake is real: where the side-channel is present and exploitable, an attacker recovers enough from a modest number of observed handshakes to run an accelerated offline dictionary attack against the passphrase. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-025",
@@ -2628,7 +2700,10 @@
      "code": "WPS",
      "name": "Wi-Fi Protected Setup"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “WPS PIN Vulnerability” is a finding that surfaces more often than clients expect. The stake is real: recovering the WPS PIN yields the full passphrase directly, because WPS is designed to hand the passphrase over once the PIN validates. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-026",
@@ -2736,7 +2811,10 @@
      "code": "WPA2-EAP",
      "name": "WPA2/WPA3-Enterprise (802.1X/EAP)"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “802.1X / RADIUS EAP Method Downgrade & MAB Bypass” is a finding that surfaces more often than clients expect. The stake is real: downgrade attacks yield challenge and response pairs that can often be cracked offline, or exchanged for a reusable hash, to obtain valid domain credentials. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-027",
@@ -2852,7 +2930,10 @@
      "code": "WPA2-EAP",
      "name": "WPA2/WPA3-Enterprise (802.1X/EAP)"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Absent or Ineffective Rogue Access Point Detection” is a finding that surfaces more often than clients expect. The stake is real: without detection, an evil twin, a Karma responder, or an unauthorised AP plugged into the corporate LAN can operate indefinitely. Missing wireless audit trails mean an intrusion over the air leaves nothing for responders. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-028",
@@ -2969,7 +3050,10 @@
      "code": "WPA3-SAE",
      "name": "WPA3-Personal SAE"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “WPA3 Transition Mode Downgrade to WPA2” is a finding that surfaces more often than clients expect. The stake is real: the offline dictionary resistance that motivated the WPA3 upgrade is lost entirely, and a weak passphrase becomes crackable exactly as it was before. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-029",
@@ -3085,7 +3169,10 @@
      "code": "OWE",
      "name": "Opportunistic Wireless Encryption / open network"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “OWE Transition Mode and Open Guest Network Downgrade” is a finding that surfaces more often than clients expect. The stake is real: guest traffic that the organisation believes is encrypted is transmitted in the clear for any client the attacker captures. Wireless transport weaknesses let traffic be intercepted or a client be lured onto an attacker-controlled network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-030",
@@ -3202,7 +3289,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Guest-to-Corporate Wireless Segmentation Failure” is a finding that surfaces more often than clients expect. The stake is real: an attacker needs only to be within wireless range and obtain a guest password that is often printed on a wall. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-031",
@@ -3319,7 +3409,10 @@
      "code": "WPA2-EAP",
      "name": "WPA2/WPA3-Enterprise (802.1X/EAP)"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Unauthorised Tethering and Ad-Hoc Bridging from Corporate Endpoints” is a finding that surfaces more often than clients expect. The stake is real: a bridged endpoint gives an attacker within wireless range a route onto a domain-joined machine while bypassing the perimeter firewall, proxy and inspection entirely. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-032",
@@ -3435,7 +3528,10 @@
      "code": "PMKID",
      "name": "PMKID / four-way handshake"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “Wi-Fi Easy Connect (DPP) Onboarding Weaknesses” is a finding that surfaces more often than clients expect. The stake is real: a photographed or reused code lets an unauthorised device join the network with legitimate credentials, appearing in logs as a properly onboarded device rather than an intrusion. Weak wireless authentication — captured handshakes cracked offline, or rogue access points — is the classic route onto an internal network. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "WIFI-033",
@@ -3553,7 +3649,10 @@
      "code": "OWE",
      "name": "Opportunistic Wireless Encryption / open network"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On wireless and on-site engagements, “IoT and OT Device SoftAP Provisioning Exposure” is a finding that surfaces more often than clients expect. The stake is real: an open provisioning access point typically allows reading the stored wireless credentials the device uses for the production network, which yields the passphrase directly. Wireless access-control weaknesses let an attacker in the car park onto the corporate network without ever touching the building. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "WIFI-034",

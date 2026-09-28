@@ -101,7 +101,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Exposed Debug/Backdoor Functionality” is a finding that surfaces more often than clients expect. The stake is real: what this exposes decides the severity. Secrets and connection strings stored in cleartext config are a staple thick-client finding, handing over the backend directly. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-002",
@@ -196,7 +199,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Registry Key Permissions Storing Configuration” is a finding that surfaces more often than clients expect. The stake is real: a local low-privileged attacker, or malware running as an ordinary user, can edit the application's configuration. Secrets and connection strings stored in cleartext config are a staple thick-client finding, handing over the backend directly. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-003",
@@ -290,7 +296,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Default/Weak Database Credentials” is a finding that surfaces more often than clients expect. The stake is real: any local user can log straight into the bundled database using the documented default credential. Weak authentication in a native client is often the easiest path, since the client can be observed and manipulated directly. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-004",
@@ -385,7 +394,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Auto-Login Credential Caching” is a finding that surfaces more often than clients expect. The stake is real: any other process or account with read access to the machine can recover the cached credential and impersonate the legitimate user against the backend. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-005",
@@ -480,7 +492,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Client-Side Authorization/Trust Boundary Violation” is a finding that surfaces more often than clients expect. The stake is real: a user, or malware acting on their behalf, can bypass licence tiers, unlock premium features, raise their own effective privilege inside the application, or approve transactions the server would have refused. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-006",
@@ -575,7 +590,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Improper Privilege Escalation” is a finding that surfaces more often than clients expect. The stake is real: a standard non-administrative user can make the privileged updater or service execute code they control, with SYSTEM or root privileges. Thick-client access-control checks enforced only in the UI are trivially bypassed by editing the client or its traffic. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-007",
@@ -670,7 +688,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Local Privilege Escalation via Insecure Service Permissions” is a finding that surfaces more often than clients expect. The stake is real: a standard non-administrative user can replace the service's program file, or repoint its registry entry to something else. Thick-client access-control checks enforced only in the UI are trivially bypassed by editing the client or its traffic. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-008",
@@ -770,7 +791,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Deserialization” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can supply or tamper with the serialised data achieves arbitrary code execution inside the process that loads it, which is usually the full application privilege level. Unverified auto-update channels are a classic way to turn a trusted desktop app into a malware delivery mechanism. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-009",
@@ -865,7 +889,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Runtime Manipulation” is a finding that surfaces more often than clients expect. The stake is real: an attacker can hook or patch any function whose behaviour they want to change. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-010",
@@ -960,7 +987,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Business Logic Bypass via Client Tampering” is a finding that surfaces more often than clients expect. The stake is real: a user can bypass the intended business rule entirely — applying a discount beyond the authorised maximum, ordering beyond stock or credit limits, or skipping a required approval step. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-011",
@@ -1054,7 +1084,10 @@
      "code": "V12",
      "name": "Secure Communication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Missing Certificate Pinning” is a finding that surfaces more often than clients expect. The stake is real: an attacker on the network path can silently read and modify all traffic between the client and its backend, including credentials, session tokens and business data. Insecure thick-client design pushes trust to the endpoint, where the user controls everything. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-012",
@@ -1149,7 +1182,10 @@
      "code": "V11",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Weak Local Cryptography / Key Management” is a finding that surfaces more often than clients expect. The stake is real: an attacker can decrypt all the protected local data regardless of how strong the encryption algorithm is on paper. Insecure thick-client design pushes trust to the endpoint, where the user controls everything. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-013",
@@ -1244,7 +1280,10 @@
      "code": "V11",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Weak Obfuscation of License Key Validation Algorithm” is a finding that surfaces more often than clients expect. The stake is real: once the obfuscation is unwound, the licence check can be patched in the binary so it always passes. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-014",
@@ -1338,7 +1377,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Client-Side Rate Limiting Bypass via Direct API Call” is a finding that surfaces more often than clients expect. The stake is real: an attacker can brute-force credentials, one-time codes, or any other rate-sensitive value at full speed by calling the backend API directly. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-015",
@@ -1433,7 +1475,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Local Data Storage” is a finding that surfaces more often than clients expect. The stake is real: any other local user, process or piece of malware running as the same operating system user can read the sensitive data directly. Insecure thick-client design pushes trust to the endpoint, where the user controls everything. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-016",
@@ -1528,7 +1573,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “DLL Hijacking / Insecure Library Loading” is a finding that surfaces more often than clients expect. The stake is real: a standard non-administrative user can plant a malicious library that the legitimate application loads and runs. Unverified auto-update channels are a classic way to turn a trusted desktop app into a malware delivery mechanism. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-017",
@@ -1625,7 +1673,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Format String / Buffer Overflow” is a finding that surfaces more often than clients expect. The stake is real: a buffer overflow corrupts adjacent memory, including other variables, saved return addresses and function pointers. Injection reaches thick clients through their own inputs and IPC channels, not just the web tier. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-018",
@@ -1721,7 +1772,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Hardcoded Secrets in Binary” is a finding that surfaces more often than clients expect. The stake is real: an extracted credential gives the attacker whatever it unlocks — direct database access, cloud infrastructure, a third-party API, or the ability to impersonate the application to its own backend. Weak authentication in a native client is often the easiest path, since the client can be observed and manipulated directly. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-019",
@@ -1816,7 +1870,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Improper Input Validation” is a finding that surfaces more often than clients expect. The stake is real: where the unchecked input ends up decides the outcome. Injection reaches thick clients through their own inputs and IPC channels, not just the web tier. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-020",
@@ -1910,7 +1967,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Auto-Update Rollback Vulnerability” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can intercept or modify the update channel forces the client back to a specific older version, chosen precisely because it has a known exploitable flaw. Unverified auto-update channels are a classic way to turn a trusted desktop app into a malware delivery mechanism. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-021",
@@ -2005,7 +2065,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Command-Line Argument Passing of Secrets” is a finding that surfaces more often than clients expect. The stake is real: any other user on the machine, or any lower-privileged process able to list running processes, can read the secret straight from the process list. Insecure thick-client design pushes trust to the endpoint, where the user controls everything. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-022",
@@ -2098,7 +2161,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Handling of Clipboard Data Containing Secrets” is a finding that surfaces more often than clients expect. The stake is real: any other application on the machine can silently read the value while it sits on the clipboard, including malware, a browser extension, or an ordinary installed program with clipboard access. Thick-client access-control checks enforced only in the UI are trivially bypassed by editing the client or its traffic. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-023",
@@ -2192,7 +2258,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Inter-Process Communication” is a finding that surfaces more often than clients expect. The stake is real: any other local process can connect to the channel, including malware or something running under attacker control. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-024",
@@ -2286,7 +2355,10 @@
      "code": "V12",
      "name": "Secure Communication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure Network Communication” is a finding that surfaces more often than clients expect. The stake is real: anyone on the network path can read the unencrypted traffic — on shared or public Wi-Fi, through a compromised router, or by positioning themselves on the local segment. Insecure thick-client design pushes trust to the endpoint, where the user controls everything. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-025",
@@ -2382,7 +2454,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Lack of Binary Protection” is a finding that surfaces more often than clients expect. The stake is real: the absence of binary protection lowers the effort for every other client-side attack in this domain — tampering with business logic, bypassing licence checks, extracting hardcoded secrets, hooking functions at runtime. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-026",
@@ -2477,7 +2552,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Sensitive Data Exposure in Crash Dumps/Logs” is a finding that surfaces more often than clients expect. The stake is real: anyone with access to the crash dump or log file can extract sensitive data that was never meant to leave the running application's memory. Thick clients that log sensitive data locally leave it for anyone with access to the machine. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-027",
@@ -2572,7 +2650,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Sensitive Data in Memory” is a finding that surfaces more often than clients expect. The stake is real: anyone able to read the application's process memory can recover secrets the application logic considered finished with. Insecure thick-client design pushes trust to the endpoint, where the user controls everything. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-028",
@@ -2666,7 +2747,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Unvalidated Update Mechanism” is a finding that surfaces more often than clients expect. The stake is real: this is complete compromise of any machine running the vulnerable updater. Supply-chain and update weaknesses let a thick client be repackaged or updated with attacker code. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-029",
@@ -2777,7 +2861,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Electron / Web-Hybrid Desktop Application Node Integration Abuse” is a finding that surfaces more often than clients expect. The stake is real: any content injection in a Node-enabled window yields arbitrary code execution with the logged-in user's privileges — reading and writing files, spawning processes, establishing persistence, and reaching internal network resources from a trusted endpoint. Unverified auto-update channels are a classic way to turn a trusted desktop app into a malware delivery mechanism. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-030",
@@ -2888,7 +2975,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Custom URI Protocol Handler Argument Injection” is a finding that surfaces more often than clients expect. The stake is real: depending on how the application consumes the argument, the outcome ranges from forcing the client into a debug or insecure mode, to pointing it at an attacker-controlled server, to command execution where the template passes through a shell. Injection reaches thick clients through their own inputs and IPC channels, not just the web tier. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-031",
@@ -3000,7 +3090,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Exposed Localhost HTTP API Surface in Desktop Clients” is a finding that surfaces more often than clients expect. The stake is real: what an attacker gains depends on what the API exposes, and these interfaces are usually privileged because they were meant to be internal: reading local files, triggering updates, retrieving stored credentials, or executing application functions. Weak authentication in a native client is often the easiest path, since the client can be observed and manipulated directly. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-032",
@@ -3111,7 +3204,10 @@
      "code": "V10",
      "name": "OAuth and OIDC"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Insecure OAuth and SSO Token Handling in Desktop Clients” is a finding that surfaces more often than clients expect. The stake is real: a recovered refresh token grants continuing access to the account without a password and without triggering multi-factor authentication, since the factor was satisfied when the token was issued. Bundled vulnerable libraries carry known CVEs onto every machine the client is installed on. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-033",
@@ -3223,7 +3319,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Installer and Repair-Mode Privilege Escalation” is a finding that surfaces more often than clients expect. The stake is real: a standard user obtains full system privileges on the endpoint, which defeats the separation the organisation relies on for endpoint management. Thick-client access-control checks enforced only in the UI are trivially bypassed by editing the client or its traffic. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-034",
@@ -3334,7 +3433,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Unsigned or Unvalidated Plugin and Add-In Loading” is a finding that surfaces more often than clients expect. The stake is real: code placed in the plugin directory runs inside a trusted application, which is both a persistence mechanism and a privilege inheritance. Unverified auto-update channels are a classic way to turn a trusted desktop app into a malware delivery mechanism. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "THICK-035",
@@ -3446,7 +3548,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Telemetry and Third-Party SDK Data Exfiltration” is a finding that surfaces more often than clients expect. The stake is real: sensitive data leaves the organisation to a third party that was never assessed and may be in a different jurisdiction, which is a regulatory problem independent of any attacker. Thick-client access-control checks enforced only in the UI are trivially bypassed by editing the client or its traffic. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-036",
@@ -3558,7 +3663,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On thick-client and desktop assessments, “Multi-User and Shared Workstation Data Exposure” is a finding that surfaces more often than clients expect. The stake is real: one user of a shared workstation can read another's documents, cached records, session state or credentials without any privilege escalation, using ordinary file access. Thick-client access-control checks enforced only in the UI are trivially bypassed by editing the client or its traffic. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "THICK-037",

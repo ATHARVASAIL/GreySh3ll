@@ -110,7 +110,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Cloud Storage Bucket Enumeration via Predictable Naming” is a finding that surfaces more often than clients expect. The stake is real: if a discovered bucket also has weak access rules, enumeration is the step immediately before full data exposure. Insecure cloud design — flat networks, shared credentials — means one compromised service reaches far more than it should. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-002",
@@ -215,7 +218,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Cloud DNS Zone Takeover” is a finding that surfaces more often than clients expect. The stake is real: the attacker fully controls what is served from an address that looks, to any visitor or automated system, like the organisation's own subdomain. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-003",
@@ -319,7 +325,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure CI/CD Pipeline OIDC Trust Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can trigger a workflow run in a context the trust policy does not properly restrict gets that workflow to assume the cloud role. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-004",
@@ -423,7 +432,10 @@
      "code": "CM",
      "name": "Configuration Management"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Default VPC Configuration Left Active” is a finding that surfaces more often than clients expect. The stake is real: resources launched into the default setup carry a wider network attack surface than they need. Unencrypted or weakly-encrypted cloud storage turns a single misconfiguration into a reportable data breach. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-005",
@@ -526,7 +538,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Missing MFA Delete on Critical Storage Buckets” is a finding that surfaces more often than clients expect. The stake is real: anyone holding ordinary delete permissions can permanently destroy critical data — backups, compliance logs, financial records — or switch off versioning so nothing can be recovered. Weak cloud authentication, especially long-lived keys, is repeatedly the root cause when a leaked credential becomes a full account takeover. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-006",
@@ -630,7 +645,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Container Escape via Privileged Docker Socket Mount” is a finding that surfaces more often than clients expect. The stake is real: this is a complete compromise of the underlying host. Unencrypted or weakly-encrypted cloud storage turns a single misconfiguration into a reportable data breach. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-007",
@@ -735,7 +753,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Kubernetes Pod Security Standards” is a finding that surfaces more often than clients expect. The stake is real: any workload running as a privileged pod effectively has root on the underlying node. Unencrypted or weakly-encrypted cloud storage turns a single misconfiguration into a reportable data breach. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-008",
@@ -840,7 +861,10 @@
      "code": "SC",
      "name": "System and Communications Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Cloud Cost Anomaly Indicating Cryptomining Compromise” is a finding that surfaces more often than clients expect. The stake is real: the financial loss is direct and grows for as long as the mining goes unnoticed. Without cloud logging and alerting, an intrusion into the environment leaves no trail for responders to follow. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-009",
@@ -945,7 +969,10 @@
      "code": "SC",
      "name": "System and Communications Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Cloud Load Balancer Listener Without TLS” is a finding that surfaces more often than clients expect. The stake is real: anyone able to observe the network path can read everything sent over the plaintext listener, including credentials, session cookies and application data. Insecure cloud design — flat networks, shared credentials — means one compromised service reaches far more than it should. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-010",
@@ -1049,7 +1076,10 @@
      "code": "SC",
      "name": "System and Communications Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Missing Encryption in Transit Between Cloud Microservices” is a finding that surfaces more often than clients expect. The stake is real: an attacker who compromises any single workload, or gains any foothold inside the internal network, can read all traffic between services in cleartext. Insecure cloud design — flat networks, shared credentials — means one compromised service reaches far more than it should. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-011",
@@ -1154,7 +1184,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Overly Permissive Service Account Key Distribution” is a finding that surfaces more often than clients expect. The stake is real: a widely distributed static key only has to leak from one of its many locations — a public repository, a compromised laptop, an exposed build log. Outdated cloud components and base images carry known CVEs directly into running workloads. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-012",
@@ -1257,7 +1290,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Unencrypted Disk Snapshot Shared Publicly” is a finding that surfaces more often than clients expect. The stake is real: anyone who finds the public snapshot can copy it and attach it as a disk in their own account. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-013",
@@ -1362,7 +1398,10 @@
      "code": "SC",
      "name": "System and Communications Protection"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Exposed Terraform State File with Secrets” is a finding that surfaces more often than clients expect. The stake is real: anyone who can read the state file obtains every secret Terraform ever set on any managed resource. Insecure cloud design — flat networks, shared credentials — means one compromised service reaches far more than it should. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-014",
@@ -1467,7 +1506,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Publicly Accessible Cloud Storage Bucket” is a finding that surfaces more often than clients expect. The stake is real: the bucket's contents are readable by anyone, with no authentication, and where writes are also permitted they can be modified or replaced. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-015",
@@ -1572,7 +1614,10 @@
      "code": "SI",
      "name": "System and Information Integrity"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Cloud API Gateway Throttling Bypass” is a finding that surfaces more often than clients expect. The stake is real: an attacker spreads their requests across many source addresses using a botnet, a pool of cloud instances, or IPv6 rotation. Unhandled error conditions in cloud services leak internal details that map out the environment for an attacker. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-016",
@@ -1677,7 +1722,10 @@
      "code": "SI",
      "name": "System and Information Integrity"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Cloud Container Image Vulnerability” is a finding that surfaces more often than clients expect. The stake is real: any known flaw in the outdated base image becomes exploitable against the running container, provided the vulnerable component is actually reachable. Supply-chain weaknesses in cloud build pipelines let a poisoned dependency or image ship straight to production. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-017",
@@ -1780,7 +1828,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Exposed Cloud Database Snapshot Publicly Shared” is a finding that surfaces more often than clients expect. The stake is real: anyone with access to the shared snapshot can restore a complete, fully populated copy of the database into their own account. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-018",
@@ -1884,7 +1935,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Exposed Cloud Function Environment Variables” is a finding that surfaces more often than clients expect. The stake is real: anyone who can read the function's configuration sees the secrets in plain text, straight from the console or API. Unencrypted or weakly-encrypted cloud storage turns a single misconfiguration into a reportable data breach. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-019",
@@ -1988,7 +2042,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Exposed Cloud Monitoring/Logging Data Publicly” is a finding that surfaces more often than clients expect. The stake is real: exposed logs and metrics usually contain far more than the organisation intends to publish. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-020",
@@ -2093,7 +2150,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Exposed CloudFormation/ARM Template with Hardcoded Secrets” is a finding that surfaces more often than clients expect. The stake is real: anyone who can read the template gets the credential in plain text. Weak cloud authentication, especially long-lived keys, is repeatedly the root cause when a leaked credential becomes a full account takeover. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-021",
@@ -2197,7 +2257,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Auto-Scaling Group Launch Template with Embedded Secrets” is a finding that surfaces more often than clients expect. The stake is real: any process or user on the instance can retrieve the full startup configuration, including the embedded secret, through a simple local metadata query. Weak cloud authentication, especially long-lived keys, is repeatedly the root cause when a leaked credential becomes a full account takeover. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-022",
@@ -2300,7 +2363,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Cross-Account Role Trust Policy” is a finding that surfaces more often than clients expect. The stake is real: if the trusted external account is ever compromised, the attacker inherits the ability to assume the role and use whatever it grants. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-023",
@@ -2403,7 +2469,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Cross-Region Replication Exposing Data Residency” is a finding that surfaces more often than clients expect. The stake is real: regulated or contractually restricted data ends up stored somewhere the organisation is not permitted to store it. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-024",
@@ -2507,7 +2576,10 @@
      "code": "SA",
      "name": "System and Services Acquisition"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Lambda/Function Layer Dependency Confusion” is a finding that surfaces more often than clients expect. The stake is real: a malicious package published under a matching name, with a version that wins resolution, gets installed and its code runs. Integrity gaps in cloud automation let attacker-controlled infrastructure or code be applied without review. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-025",
@@ -2611,7 +2683,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Multi-Tenant Cloud Isolation” is a finding that surfaces more often than clients expect. The stake is real: a malicious or compromised tenant sharing the same infrastructure can reach another tenant's data, workloads or credentials. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-026",
@@ -2714,7 +2789,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Secrets Manager Access Policy” is a finding that surfaces more often than clients expect. The stake is real: any account holding the over-broad policy can read every secret it covers. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-027",
@@ -2818,7 +2896,10 @@
      "code": "SI",
      "name": "System and Information Integrity"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Serverless Function Resource Abuse” is a finding that surfaces more often than clients expect. The stake is real: sustained abuse can produce a bill many times the function's normal running cost in a short window. Unhandled error conditions in cloud services leak internal details that map out the environment for an attacker. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-028",
@@ -2923,7 +3004,10 @@
      "code": "SA",
      "name": "System and Services Acquisition"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Third-Party Cloud Marketplace AMI with Backdoor” is a finding that surfaces more often than clients expect. The stake is real: an instance launched from a backdoored image is compromised the moment it boots, potentially before the organisation's own security tooling is even installed on it. Integrity gaps in cloud automation let attacker-controlled infrastructure or code be applied without review. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-029",
@@ -3027,7 +3111,10 @@
      "code": "SC",
      "name": "System and Communications Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Missing Cloud WAF on Public-Facing Load Balancer” is a finding that surfaces more often than clients expect. The stake is real: the application is directly exposed to high-volume automated attack traffic — injection probes, known-bad bot scanning, credential-stuffing tools — with nothing filtering it first. Unencrypted or weakly-encrypted cloud storage turns a single misconfiguration into a reportable data breach. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "CLOUD-030",
@@ -3130,7 +3217,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Overly Permissive IAM Policy” is a finding that surfaces more often than clients expect. The stake is real: an account holding a wildcard policy can do far more than its actual job requires. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-031",
@@ -3251,7 +3341,10 @@
      "code": "SI",
      "name": "System and Information Integrity"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Instance Metadata Service Credential Theft via SSRF” is a finding that surfaces more often than clients expect. The stake is real: the attacker obtains the instance role's temporary credentials and can then act as that role directly against the cloud provider's API, from anywhere, with no further access to the application. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-032",
@@ -3371,7 +3464,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “IAM Privilege Escalation via Permission Chaining” is a finding that surfaces more often than clients expect. The stake is real: a compromised low-privilege credential — a leaked developer key, an over-trusted CI token, an SSRF-obtained instance role — becomes full administrative control of the cloud account. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-033",
@@ -3493,7 +3589,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Public Exposure via Resource-Based Policies on Queues, Topics and Functions” is a finding that surfaces more often than clients expect. The stake is real: an open queue or topic lets an attacker inject messages that downstream consumers process as trusted input, which frequently reaches internal systems with no further authentication. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-034",
@@ -3615,7 +3714,10 @@
      "code": "CP",
      "name": "Contingency Planning"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Backup and Snapshot Ransomware Resilience Failure” is a finding that surfaces more often than clients expect. The stake is real: ransomware against a cloud estate targets backups first precisely because this configuration is common. Insecure cloud design — flat networks, shared credentials — means one compromised service reaches far more than it should. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-035",
@@ -3737,7 +3839,10 @@
      "code": "AC",
      "name": "Access Control"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Overly Permissive Kubernetes RBAC and Cluster-Admin Binding” is a finding that surfaces more often than clients expect. The stake is real: cluster-admin is complete control of every workload, secret and node in the cluster. Cloud access-control mistakes — public buckets, over-broad IAM roles — are behind a long line of headline data exposures. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-036",
@@ -3859,7 +3964,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Insecure Kubernetes Secret Storage and Distribution” is a finding that surfaces more often than clients expect. The stake is real: anyone who can read secrets in a namespace holds the credentials for everything those workloads reach: databases, cloud accounts, third-party services. Outdated cloud components and base images carry known CVEs directly into running workloads. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-037",
@@ -3981,7 +4089,10 @@
      "code": "AU",
      "name": "Audit and Accountability"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Audit Logging Gaps and Mutable Trail Configuration” is a finding that surfaces more often than clients expect. The stake is real: without a complete, tamper-resistant trail the organisation cannot determine what an attacker did, which prevents scoping an incident and therefore prevents accurate notification. Without cloud logging and alerting, an intrusion into the environment leaves no trail for responders to follow. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-038",
@@ -4103,7 +4214,10 @@
      "code": "SI",
      "name": "System and Information Integrity"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On cloud configuration reviews, “Container Registry Exposure and Unsigned Image Deployment” is a finding that surfaces more often than clients expect. The stake is real: an exposed registry hands an attacker the application's internals and any secrets baked into its layers, which is frequently enough on its own. Integrity gaps in cloud automation let attacker-controlled infrastructure or code be applied without review. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-039",
@@ -4225,7 +4339,10 @@
      "code": "IA",
      "name": "Identification and Authentication"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On cloud configuration reviews, “Workforce Identity Federation Trust Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: an attacker who obtains any account in the external directory, or who can influence the attributes on one, obtains cloud access with whatever the mapped role permits. Weak cloud authentication, especially long-lived keys, is repeatedly the root cause when a leaked credential becomes a full account takeover. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "CLOUD-040",

@@ -146,3 +146,219 @@ body{
   --l-cyan:#0E7C9B;
   --l-cyan-rgb:14,124,155;
 }
+
+/* =========================================================
+   C. SIDEBAR FIXES  (assessment workspace)
+   Bugs addressed:
+   - Desktop: the panel/divider stopped mid-page because .sidebar had a
+     fixed height:calc(100vh-63px). Fix: the full-height divider + faint
+     surface live on the grid COLUMN (a ::before that spans the whole
+     layout), while the sidebar's content stays sticky and scrolls inside
+     one viewport. The column now always reaches the bottom of the page.
+   - Mobile: the off-canvas drawer could not animate closed because the
+     backdrop toggled display:none<->block (display is not animatable), so
+     it snapped/flickered. Fix: keep the backdrop in the layout at all
+     widths, drive it purely with opacity + visibility so open AND close
+     both animate, and give the drawer a clean slide with momentum easing.
+========================================================= */
+
+/* ---- Desktop: full-height column divider + subtle rail surface ---- */
+@media (min-width:981px){
+  .layout{ position:relative; }
+  /* divider + faint sidebar surface, full document height */
+  .layout::before{
+    content:''; position:absolute; top:0; bottom:0; left:0;
+    width:284px; pointer-events:none; z-index:0;
+    background:linear-gradient(180deg, rgba(var(--accent-rgb),.03), transparent 260px);
+    border-right:1px solid var(--border);
+    transition:width .22s var(--ease-out);
+  }
+  .layout.sidebar-rail::before{ width:88px; }
+  /* the sidebar itself no longer draws the border (the column does) and is
+     sticky content only — height auto so it never clips, capped to one
+     viewport so long lists scroll internally */
+  .sidebar{
+    border-right:none;
+    height:auto;
+    max-height:calc(100vh - 63px);
+    position:sticky; top:63px;
+    z-index:1;
+  }
+  .sidebar, .main{ position:relative; }
+}
+
+/* ---- Mobile / tablet drawer: animate open AND close cleanly ---- */
+@media (max-width:980px){
+  /* backdrop is always present; visibility+opacity animate (display can't).
+     Sits ABOVE the sticky topbar (z-index:50) so the whole page dims. */
+  .sidebar-backdrop{
+    display:block;
+    visibility:hidden; opacity:0;
+    z-index:60;
+    transition:opacity .26s var(--ease-out), visibility .26s var(--ease-out);
+  }
+  .sidebar-backdrop.open{ visibility:visible; opacity:1; }
+  /* The drawer now opens BELOW the sticky topbar rather than under it, so the
+     topbar (and its hamburger, which also toggles the drawer) stays usable and
+     the drawer's own close button no longer collides with topbar buttons — the
+     root cause of the "won't close" bug. Backdrop still dims the whole page. */
+  .sidebar{
+    top:56px; height:calc(100dvh - 56px); max-height:calc(100dvh - 56px);
+    z-index:61; overflow-y:auto;
+    -webkit-overflow-scrolling:touch;
+    padding-top:16px;
+    transition:transform .3s cubic-bezier(.22,1,.36,1);
+    will-change:transform;
+  }
+  /* close button sits in the drawer's own clear top area (below the topbar),
+     large and comfortably tappable. */
+  .sidebar-close-btn{
+    top:10px; right:12px; z-index:5;
+    width:40px; height:40px;
+    transition:background .15s ease, border-color .15s ease, transform .12s ease;
+  }
+  .sidebar-close-btn .icn{ width:18px; height:18px; }
+  .sidebar-close-btn:hover{ background:var(--surface-3); border-color:var(--border-strong); }
+  .sidebar-close-btn:active{ transform:scale(.9); }
+  .sidebar .profile-bar{ margin-top:6px; }
+  /* backdrop starts below the topbar too, so tapping the topbar still works */
+  .sidebar-backdrop{ top:56px; }
+}
+
+/* ---- Modern polish (both layouts): tidy the sidebar internals ---- */
+.summary-line{ transition:color .15s ease; }
+.sev-row, .cat-item{ transition:background .18s var(--ease-out), border-color .18s var(--ease-out), transform .18s var(--ease-out); }
+.sev-row:hover, .cat-item:hover{ transform:translateX(2px); }
+.cat-item.active{ box-shadow:inset 2px 0 0 var(--accent); }
+.cat-item .bar-fill{ transition:width .6s var(--ease-out); }
+/* the radar coverage ring gets a soft glow so the sidebar has a focal point */
+.radar-ring{ filter:drop-shadow(0 0 6px rgba(var(--accent-rgb),.35)); }
+
+/* =========================================================
+   D. REPORT OPTIONS DIALOG
+   Scopes the PDF before generation. Reuses the app's overlay/card
+   shell; these are the internals. CSP-clean (no inline styles).
+========================================================= */
+.report-opts-card{ max-width:640px; }
+.report-opts-body{ display:flex; flex-direction:column; gap:20px; }
+.report-opts-intro{ font-size:13px; color:var(--text-dim); line-height:1.55; margin:-4px 0 0; }
+
+.ro-section{ display:flex; flex-direction:column; gap:11px; }
+.ro-head{ display:flex; align-items:center; justify-content:space-between; }
+.ro-title{ font-family:var(--font-mono); font-size:10px; letter-spacing:1.5px; text-transform:uppercase; color:var(--text-faint); font-weight:600; }
+.ro-actions{ display:flex; gap:6px; }
+.ro-link{ font-size:11px; color:var(--accent); background:transparent; border:none; padding:2px 6px; border-radius:var(--r-sm); font-weight:600; }
+.ro-link:hover{ background:rgba(var(--accent-rgb),.1); }
+
+/* domain checkboxes */
+.ro-grid{ display:grid; grid-template-columns:repeat(auto-fill, minmax(160px,1fr)); gap:8px; }
+.ro-check{
+  display:flex; align-items:center; gap:9px; padding:9px 11px; cursor:pointer;
+  border:1px solid var(--border); border-radius:var(--r-sm); background:var(--surface-2);
+  transition:border-color .15s ease, background .15s ease;
+}
+.ro-check:hover{ border-color:var(--border-strong); }
+.ro-check input{ position:absolute; opacity:0; width:0; height:0; }
+.ro-check .box{
+  width:17px; height:17px; border-radius:4px; border:1.6px solid var(--border-strong);
+  flex-shrink:0; display:grid; place-items:center; transition:all .15s ease;
+}
+.ro-check .box svg{ width:11px; height:11px; opacity:0; color:var(--accent-ink); transition:opacity .12s; }
+.ro-check input:checked + .box{ background:var(--accent); border-color:var(--accent); }
+.ro-check input:checked + .box svg{ opacity:1; }
+.ro-check input:focus-visible + .box{ outline:2px solid var(--accent); outline-offset:2px; }
+.ro-check .lbl{ font-size:12.5px; color:var(--text); min-width:0; }
+.ro-check .lbl b{ color:var(--text-bright); font-weight:600; }
+.ro-check .lbl small{ display:block; font-family:var(--font-mono); font-size:9.5px; color:var(--text-dim); }
+
+/* severity chips */
+.ro-chips{ display:flex; flex-wrap:wrap; gap:8px; }
+.ro-chip{
+  display:inline-flex; align-items:center; gap:7px; padding:8px 13px; cursor:pointer;
+  border:1px solid var(--border); border-radius:var(--r-pill); background:var(--surface-2);
+  font-size:12px; color:var(--text); transition:all .15s ease; user-select:none;
+}
+.ro-chip .dot{ width:8px; height:8px; border-radius:2.5px; background:var(--text-dim); }
+.ro-chip .dot[data-sev]{ background:var(--sev-c); }
+.ro-chip input{ position:absolute; opacity:0; width:0; height:0; }
+.ro-chip:hover{ border-color:var(--border-strong); }
+.ro-chip.active{ border-color:var(--accent); background:rgba(var(--accent-rgb),.1); color:var(--text-bright); font-weight:600; }
+
+/* toggle switch */
+.ro-switch{ display:flex; align-items:flex-start; gap:12px; cursor:pointer; }
+.ro-switch input{ position:absolute; opacity:0; width:0; height:0; }
+.ro-switch-track{
+  flex-shrink:0; width:42px; height:24px; border-radius:999px; background:var(--surface-4);
+  border:1px solid var(--border); position:relative; transition:background .2s ease, border-color .2s ease; margin-top:1px;
+}
+.ro-switch-thumb{
+  position:absolute; top:2px; left:2px; width:18px; height:18px; border-radius:50%;
+  background:var(--text-dim); transition:transform .2s var(--ease-out), background .2s ease;
+}
+.ro-switch input:checked + .ro-switch-track{ background:rgba(var(--accent-rgb),.28); border-color:var(--accent); }
+.ro-switch input:checked + .ro-switch-track .ro-switch-thumb{ transform:translateX(18px); background:var(--accent); }
+.ro-switch input:focus-visible + .ro-switch-track{ outline:2px solid var(--accent); outline-offset:2px; }
+.ro-switch-text b{ font-size:13px; color:var(--text-bright); font-weight:600; }
+.ro-switch-text small{ display:block; font-size:11.5px; color:var(--text-dim); line-height:1.5; margin-top:2px; }
+
+/* radios */
+.ro-radios{ display:flex; flex-direction:column; gap:9px; }
+.ro-radio{ display:flex; align-items:flex-start; gap:11px; cursor:pointer; padding:11px 13px; border:1px solid var(--border); border-radius:var(--r-md); background:var(--surface-2); transition:border-color .15s ease; }
+.ro-radio:hover{ border-color:var(--border-strong); }
+.ro-radio input{ position:absolute; opacity:0; width:0; height:0; }
+.ro-radio-dot{ flex-shrink:0; width:18px; height:18px; border-radius:50%; border:2px solid var(--border-strong); margin-top:1px; position:relative; transition:border-color .15s; }
+.ro-radio-dot::after{ content:''; position:absolute; inset:3px; border-radius:50%; background:var(--accent); transform:scale(0); transition:transform .15s var(--ease-spring); }
+.ro-radio input:checked + .ro-radio-dot{ border-color:var(--accent); }
+.ro-radio input:checked + .ro-radio-dot::after{ transform:scale(1); }
+.ro-radio input:focus-visible + .ro-radio-dot{ outline:2px solid var(--accent); outline-offset:2px; }
+.ro-radio input:checked ~ .ro-radio-text b{ color:var(--text-bright); }
+.ro-radio-text b{ font-size:13px; color:var(--text); font-weight:600; }
+.ro-radio-text small{ display:block; font-size:11.5px; color:var(--text-dim); line-height:1.5; margin-top:2px; }
+
+/* live preview line + footer */
+.ro-preview{
+  font-size:12.5px; color:var(--text); background:var(--surface-2); border:1px solid var(--border-soft);
+  border-radius:var(--r-md); padding:12px 14px; line-height:1.5;
+}
+.ro-preview b{ color:var(--text-bright); }
+.ro-preview.empty{ color:var(--crit); border-color:rgba(var(--crit-rgb),.3); background:rgba(var(--crit-rgb),.06); }
+.ro-footer{ display:flex; justify-content:flex-end; gap:10px; padding-top:4px; }
+
+@media (max-width:600px){
+  .ro-grid{ grid-template-columns:1fr 1fr; }
+  .ro-footer{ flex-direction:column-reverse; }
+  .ro-footer .btn{ width:100%; justify-content:center; }
+}
+
+/* =========================================================
+   E. MODERN MOTION TOUCHES (workspace)
+   Small, tasteful entrance + interaction polish. All gated behind
+   prefers-reduced-motion and kept cheap (transform/opacity only,
+   which animate on the compositor without layout/paint cost).
+========================================================= */
+
+/* phase (category) sections settle in with a soft rise on first render */
+@keyframes gs-rise-in{ from{ opacity:0; transform:translateY(10px); } to{ opacity:1; transform:none; } }
+.cat-section{ animation:gs-rise-in .45s var(--ease-out) both; }
+
+/* the detail panel opens with a gentle fade+rise rather than a hard cut */
+@keyframes gs-detail-in{ from{ opacity:0; transform:translateY(-4px); } to{ opacity:1; transform:none; } }
+.test-item.expanded .detail-inner{ animation:gs-detail-in .3s var(--ease-out) both; }
+
+/* toolbar chips + primary buttons get a subtle press feedback */
+.chip, .btn, .ttab, .sev-row, .cat-item{ transition:transform .12s var(--ease-out), background .18s var(--ease-out), border-color .18s var(--ease-out), color .18s var(--ease-out); }
+.chip:active, .btn:active, .ttab:active{ transform:scale(.96); }
+
+/* the "Report" primary action gets a soft glow so it reads as the key CTA */
+#printBtn.primary{ box-shadow:0 6px 18px -8px rgba(var(--accent-rgb),.5); }
+#printBtn.primary:hover{ box-shadow:0 10px 26px -8px rgba(var(--accent-rgb),.6); }
+
+/* FAB "Next test" lifts on hover */
+.fab{ transition:transform .2s var(--ease-spring), box-shadow .2s var(--ease-out); }
+.fab:hover{ transform:translateY(-3px); }
+
+@media (prefers-reduced-motion: reduce){
+  .cat-section, .test-item.expanded .detail-inner{ animation:none !important; }
+  .chip, .btn, .ttab, .sev-row, .cat-item, .fab{ transition:none !important; }
+  .chip:active, .btn:active, .ttab:active, .fab:hover{ transform:none !important; }
+}

@@ -112,7 +112,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Direct & Indirect Prompt Injection” is a finding that surfaces more often than clients expect. The stake is real: what a successful injection achieves depends on what the model is wired up to. Prompt injection is the defining LLM vulnerability, and indirect variants hidden in retrieved content have already been demonstrated against real assistant products. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-002",
@@ -216,7 +219,10 @@
      "code": "MEASURE-2.10",
      "name": "MEASURE 2.10 — Privacy risk of the AI system evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Sensitive Information Disclosure via LLM Responses” is a finding that surfaces more often than clients expect. The stake is real: this exposes personal data, credentials, internal API keys, proprietary source code, or another customer's confidential data. Sensitive-information disclosure from an assistant repeats the classic data-leak pattern through a new, conversational channel. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-003",
@@ -321,7 +327,10 @@
      "code": "GOVERN-6.1",
      "name": "GOVERN 6.1 — Third-party and supply-chain risk policies"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “LLM Supply Chain Risks” is a finding that surfaces more often than clients expect. The stake is real: a malicious upstream component can give an attacker a targeted backdoor, where the model behaves normally except when an attacker-known trigger appears. Supply-chain weaknesses in the model and its dependencies carry the same risk as any other poisoned component, now inside the AI stack. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-004",
@@ -426,7 +435,10 @@
      "code": "MAP-5.1",
      "name": "MAP 5.1 — Likelihood and impact of identified risks"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Data and Model Poisoning” is a finding that surfaces more often than clients expect. The stake is real: a poisoned model can be made to produce a specific harmful output only when a trigger phrase appears. Data and model poisoning can implant behaviour that only triggers on an attacker's cue, invisible in normal testing. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-005",
@@ -531,7 +543,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Improper Output Handling” is a finding that surfaces more often than clients expect. The stake is real: where model output is rendered into a web page without encoding, this becomes cross-site scripting against every user who views the AI-generated content. Improper output handling — trusting model output as safe — reintroduces injection wherever that output is executed or rendered. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-006",
@@ -636,7 +651,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Excessive Agency in LLM-Integrated Agents” is a finding that surfaces more often than clients expect. The stake is real: the model can be steered by prompt injection or by a persuasive direct request. Excessive agency — an assistant wired to real tools with too much trust — turns a language bug into a real-world action. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-007",
@@ -739,7 +757,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “System Prompt Leakage” is a finding that surfaces more often than clients expect. The stake is real: a leaked system prompt exposes any secrets or internal logic embedded in it. Hidden-context and system-prompt exposure hands an attacker the exact rules and any secrets teams mistakenly embedded in them. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "LLM-008",
@@ -843,7 +864,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Vector and Embedding Weaknesses” is a finding that surfaces more often than clients expect. The stake is real: retrieval across a permission boundary lets one user's query surface document chunks they were never authorised to see. Vector and embedding weaknesses in retrieval let one tenant's query pull back another tenant's confidential documents. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-009",
@@ -947,7 +971,10 @@
      "code": "MEASURE-2.6",
      "name": "MEASURE 2.6 — AI system safety risks evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Misinformation & Hallucination Over-Reliance” is a finding that surfaces more often than clients expect. The stake is real: in high-stakes domains, confidently-stated misinformation causes real harm. Misinformation delivered with fluent confidence has already led to real consequences, including sanctioned legal filings built on invented citations. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "LLM-010",
@@ -1050,7 +1077,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Unbounded Consumption” is a finding that surfaces more often than clients expect. The stake is real: a successful attack can degrade or deny service for every user of the application. Unbounded consumption is the LLM-era denial-of-wallet, where one crafted conversation runs up real inference cost. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "LLM-011",
@@ -1155,7 +1185,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Indirect Prompt Injection via Retrieved Documents” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can place one document in the corpus gains influence over answers given to every user whose query retrieves it. Prompt injection is the defining LLM vulnerability, and indirect variants hidden in retrieved content have already been demonstrated against real assistant products. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-012",
@@ -1259,7 +1292,10 @@
      "code": "MEASURE-2.10",
      "name": "MEASURE 2.10 — Privacy risk of the AI system evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Conversation History Exfiltration via Rendered Markdown Images” is a finding that surfaces more often than clients expect. The stake is real: an attacker can extract whatever the model can see: prior conversation turns, retrieved document content, system prompt text, and any user-supplied data in context. Sensitive-information disclosure from an assistant repeats the classic data-leak pattern through a new, conversational channel. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-013",
@@ -1364,7 +1400,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Tool / Function Call Argument Injection in LLM Agents” is a finding that surfaces more often than clients expect. The stake is real: impact equals whatever the invoked tool can do, executed with the application's own credentials rather than the user's. Excessive agency — an assistant wired to real tools with too much trust — turns a language bug into a real-world action. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-014",
@@ -1468,7 +1507,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Cross-Tenant Data Leakage in Shared Vector Stores” is a finding that surfaces more often than clients expect. The stake is real: one tenant can read another tenant's confidential documents — contracts, customer records, internal strategy, credentials embedded in operational docs — through ordinary use of the product, with no exploit beyond phrasing a question. Vector and embedding weaknesses in retrieval let one tenant's query pull back another tenant's confidential documents. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-015",
@@ -1573,7 +1615,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Model Denial of Wallet via Unbounded Agent Loops and Recursive Tool Calls” is a finding that surfaces more often than clients expect. The stake is real: a single user, or a single poisoned document processed at scale, can generate spend far beyond any legitimate usage pattern — organisations have reported five-figure charges from short unattended runs. Unbounded consumption is the LLM-era denial-of-wallet, where one crafted conversation runs up real inference cost. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-016",
@@ -1677,7 +1722,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Guardrail Bypass via Encoding, Translation and Role-Play Framing” is a finding that surfaces more often than clients expect. The stake is real: impact depends entirely on what the guardrail was protecting. Prompt injection is the defining LLM vulnerability, and indirect variants hidden in retrieved content have already been demonstrated against real assistant products. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "LLM-017",
@@ -1782,7 +1830,10 @@
      "code": "GOVERN-6.1",
      "name": "GOVERN 6.1 — Third-party and supply-chain risk policies"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Malicious or Compromised MCP Server” is a finding that surfaces more often than clients expect. The stake is real: a poisoned description can redirect the model's use of other, legitimate tools. Supply-chain weaknesses in the model and its dependencies carry the same risk as any other poisoned component, now inside the AI stack. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-018",
@@ -1887,7 +1938,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Multimodal Prompt Injection via Images and Documents” is a finding that surfaces more often than clients expect. The stake is real: an attacker who controls an image controls part of the model's instruction set. Prompt injection is the defining LLM vulnerability, and indirect variants hidden in retrieved content have already been demonstrated against real assistant products. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-019",
@@ -1992,7 +2046,10 @@
      "code": "MEASURE-2.7",
      "name": "MEASURE 2.7 — AI system security and resilience evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Persistent Memory Poisoning in Long-Lived Assistants” is a finding that surfaces more often than clients expect. The stake is real: a single poisoned entry persists across sessions and topics, surviving conversation deletion and often account-level clearing. Prompt injection is the defining LLM vulnerability, and indirect variants hidden in retrieved content have already been demonstrated against real assistant products. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-020",
@@ -2097,7 +2154,10 @@
      "code": "MEASURE-2.10",
      "name": "MEASURE 2.10 — Privacy risk of the AI system evaluated"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Training Data Extraction and Memorised Secret Regurgitation” is a finding that surfaces more often than clients expect. The stake is real: extraction of credentials or keys from a fine-tuned model provides direct access to the systems they protect, and rotation is the only remedy because the model cannot be made to forget selectively. Sensitive-information disclosure from an assistant repeats the classic data-leak pattern through a new, conversational channel. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-021",
@@ -2202,7 +2262,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Confused Deputy in Agent Tool Authorisation” is a finding that surfaces more often than clients expect. The stake is real: any user who can steer the model can reach anything the service credential can reach, which is usually all tenants and all records. Excessive agency — an assistant wired to real tools with too much trust — turns a language bug into a real-world action. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-022",
@@ -2307,7 +2370,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Server-Side Request Forgery via Agent Fetch Tools” is a finding that surfaces more often than clients expect. The stake is real: an attacker gains request capability inside the perimeter, which typically means access to cloud instance metadata, internal administrative interfaces and services that rely on network position instead of authentication. Excessive agency — an assistant wired to real tools with too much trust — turns a language bug into a real-world action. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "LLM-023",
@@ -2412,7 +2478,10 @@
      "code": "MANAGE-2.1",
      "name": "MANAGE 2.1 — Resources to manage AI risks accounted for"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Model Extraction and Distillation via API Abuse” is a finding that surfaces more often than clients expect. The stake is real: the organisation loses the differentiation its training investment bought, and the extracted substitute can be run without cost, logging or rate limits. Unbounded consumption is the LLM-era denial-of-wallet, where one crafted conversation runs up real inference cost. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "LLM-024",
@@ -2517,7 +2586,10 @@
      "code": "MANAGE-4.1",
      "name": "MANAGE 4.1 — Post-deployment monitoring in place"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On assessments of LLM-backed features, “Insufficient Logging and Traceability of Model and Agent Decisions” is a finding that surfaces more often than clients expect. The stake is real: an injection delivered through a retrieved document leaves no trace, because the document text was never logged. Excessive agency — an assistant wired to real tools with too much trust — turns a language bug into a real-world action. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "LLM-025",

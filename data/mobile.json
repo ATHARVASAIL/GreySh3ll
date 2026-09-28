@@ -101,7 +101,10 @@
      "code": "MASVS-RESILIENCE",
      "name": "Resilience Against Reverse Engineering"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Debuggable/Test Build in Production” is a finding that surfaces more often than clients expect. The stake is real: anyone who can plug into the device — or the user themselves — can attach a debugger and watch or change how the app behaves while it runs. Poor binary protections make it straightforward to decompile the app and recover hardcoded secrets or bypass client-side checks. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-002",
@@ -196,7 +199,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure WebView Configuration” is a finding that surfaces more often than clients expect. The stake is real: if an attacker can get the WebView to load content they control, they can call the app's exposed native functions directly from that page. Insufficient input/output validation is the mobile equivalent of the injection classes that dominate web breaches. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-003",
@@ -291,7 +297,10 @@
      "code": "MASVS-AUTH",
      "name": "Authentication and Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Weak Local Authentication / Biometric Bypass” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can run code on the device — through a rooted or jailbroken phone, or malware with enough privilege — can force the app's 'authentication succeeded' result to fire whether or not any real check happened. Insecure authentication/authorization on mobile lets a tampered client bypass checks the server should have enforced. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-004",
@@ -386,7 +395,10 @@
      "code": "MASVS-AUTH",
      "name": "Authentication and Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Improper Session Handling” is a finding that surfaces more often than clients expect. The stake is real: a stolen token stays usable indefinitely, or at least far longer than a properly-bounded session should allow. Insecure authentication/authorization on mobile lets a tampered client bypass checks the server should have enforced. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-005",
@@ -481,7 +493,10 @@
      "code": "MASVS-NETWORK",
      "name": "Network Communication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Certificate Pinning Bypass” is a finding that surfaces more often than clients expect. The stake is real: an attacker who neutralises the pinning check ends up with exactly the same full interception capability as if pinning had never been implemented at all. Insecure communication — cleartext or unpinned TLS — lets anyone on the same network read or alter the app's traffic. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-006",
@@ -575,7 +590,10 @@
      "code": "MASVS-NETWORK",
      "name": "Network Communication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Network Communication” is a finding that surfaces more often than clients expect. The stake is real: anyone watching the network path can read the traffic directly — a malicious or compromised Wi-Fi access point, or an attacker positioned on a shared network. Insecure communication — cleartext or unpinned TLS — lets anyone on the same network read or alter the app's traffic. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-007",
@@ -669,7 +687,10 @@
      "code": "MASVS-CRYPTO",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Random Number Generation” is a finding that surfaces more often than clients expect. The stake is real: where the predictable value protects something important — a password-reset token, a session ID, or an encryption starting value — an attacker who works out the generator's pattern can predict values it has produced or will produce next. Weak cryptography on mobile turns encrypted-at-rest data back into plaintext for anyone who extracts it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-008",
@@ -763,7 +784,10 @@
      "code": "MASVS-CRYPTO",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Reuse of Cryptographic Key Across App Instances” is a finding that surfaces more often than clients expect. The stake is real: an attacker only has to extract the key once, from any copy of the app they download themselves. Improper credential and platform usage is a routine mobile finding, where secrets or permissions handled wrongly expose the user. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-009",
@@ -856,7 +880,10 @@
      "code": "MASVS-NETWORK",
      "name": "Network Communication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Missing Certificate Pinning” is a finding that surfaces more often than clients expect. The stake is real: an attacker on the network path can silently read and modify everything between the app and its backend, including login credentials, session tokens and business data. Insecure communication — cleartext or unpinned TLS — lets anyone on the same network read or alter the app's traffic. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-010",
@@ -951,7 +978,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Local Data Storage” is a finding that surfaces more often than clients expect. The stake is real: anyone with root or jailbreak access, an unencrypted device backup, or physical access plus forensic tools can read the data directly. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-011",
@@ -1044,7 +1074,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Use of External Storage for Sensitive Cache Files” is a finding that surfaces more often than clients expect. The stake is real: any other app on the device with basic storage permission can read these files. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-012",
@@ -1138,7 +1171,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Broken Universal Links / App Links Verification” is a finding that surfaces more often than clients expect. The stake is real: a malicious app on the same device can register for the same link pattern and catch links meant for the real app. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-013",
@@ -1232,7 +1268,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Exported Component Exposure” is a finding that surfaces more often than clients expect. The stake is real: a malicious app on the same device can call the exported component directly, supplying its own values. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-014",
@@ -1327,7 +1366,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Hardcoded Secrets in App” is a finding that surfaces more often than clients expect. The stake is real: an extracted credential gives the attacker whatever that credential unlocks. Improper credential and platform usage is a routine mobile finding, where secrets or permissions handled wrongly expose the user. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-015",
@@ -1420,7 +1462,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Improper Input Validation” is a finding that surfaces more often than clients expect. The stake is real: how bad this gets depends on where the unchecked input ends up. Insufficient input/output validation is the mobile equivalent of the injection classes that dominate web breaches. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-016",
@@ -1514,7 +1559,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Improper Platform Permission Usage” is a finding that surfaces more often than clients expect. The stake is real: extra permissions raise the cost of any future compromise, whether that comes from a separate vulnerability, a malicious update, or a compromised third-party SDK bundled inside the app. Security misconfiguration such as a debuggable release build hands an attacker with the device far more than intended. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-017",
@@ -1608,7 +1656,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Improper Validation of Push Notification Payload” is a finding that surfaces more often than clients expect. The stake is real: a spoofed or malicious push message can make the app act with no user involvement beyond receiving the notification. Insufficient input/output validation is the mobile equivalent of the injection classes that dominate web breaches. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-018",
@@ -1702,7 +1753,10 @@
      "code": "MASVS-CODE",
      "name": "Code Quality"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Improper Validation of Server Response in Custom Update Check” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can intercept or fake the update-check response gets two options. Poor binary protections make it straightforward to decompile the app and recover hardcoded secrets or bypass client-side checks. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-019",
@@ -1796,7 +1850,10 @@
      "code": "MASVS-AUTH",
      "name": "Authentication and Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Biometric Fallback to Weak PIN” is a finding that surfaces more often than clients expect. The stake is real: someone with physical access to an idle unlocked device can brute-force a 4-digit PIN in a short, bounded time — at most 10,000 combinations, and usually far fewer given how predictably people choose PINs. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-020",
@@ -1889,7 +1946,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Handling of App Widget Data Exposure” is a finding that surfaces more often than clients expect. The stake is real: anyone near the device can read the information straight from the lock screen. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-021",
@@ -1983,7 +2043,10 @@
      "code": "MASVS-CODE",
      "name": "Code Quality"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure In-App Update Mechanism Bypassing Official Store” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can intercept the update download, or who has compromised the distribution server, can deliver any app package they choose. Inadequate supply-chain security in bundled SDKs has repeatedly shipped malicious or leaky third-party code inside otherwise trusted apps. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-022",
@@ -2077,7 +2140,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Inter-App Data Sharing” is a finding that surfaces more often than clients expect. The stake is real: any app on the device can reach the shared data, not only the companion app the feature was built for. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-023",
@@ -2172,7 +2238,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Keychain/Keystore Usage” is a finding that surfaces more often than clients expect. The stake is real: depending on the exact gap, an attacker with a rooted or jailbroken device, or one who pulls a backup or device image, may retrieve the stored secret without unlocking the phone or passing biometrics at all. Improper credential and platform usage is a routine mobile finding, where secrets or permissions handled wrongly expose the user. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-024",
@@ -2266,7 +2335,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure URL Scheme / Deep Link Handling” is a finding that surfaces more often than clients expect. The stake is real: any malicious app, or any web page the victim visits, can trigger the sensitive action the custom link exposes. Insufficient input/output validation is the mobile equivalent of the injection classes that dominate web breaches. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-025",
@@ -2360,7 +2432,10 @@
      "code": "MASVS-RESILIENCE",
      "name": "Resilience Against Reverse Engineering"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insufficient Anti-Tampering Against Repackaging” is a finding that surfaces more often than clients expect. The stake is real: an attacker can repackage the app with security checks stripped out, malicious code added, or licence and purchase validation removed, then distribute it through a third-party store or direct download. Poor binary protections make it straightforward to decompile the app and recover hardcoded secrets or bypass client-side checks. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-026",
@@ -2455,7 +2530,10 @@
      "code": "MASVS-RESILIENCE",
      "name": "Resilience Against Reverse Engineering"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insufficient Binary Protection” is a finding that surfaces more often than clients expect. The stake is real: the absence of binary protection lowers the effort for nearly every other client-side attack on this list — tampering with business logic, extracting hardcoded secrets, bypassing pinning, defeating the biometric gate, repackaging the app. Poor binary protections make it straightforward to decompile the app and recover hardcoded secrets or bypass client-side checks. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-027",
@@ -2549,7 +2627,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Pasteboard/Clipboard Leakage” is a finding that surfaces more often than clients expect. The stake is real: any other app on the device can silently read the value while it sits on the clipboard, including malware or an over-permissioned app that monitors clipboard activity. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-028",
@@ -2644,7 +2725,10 @@
      "code": "MASVS-RESILIENCE",
      "name": "Resilience Against Reverse Engineering"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Root/Jailbreak Detection Bypass” is a finding that surfaces more often than clients expect. The stake is real: an attacker on a rooted or jailbroken device can defeat the app's attempt to restrict itself on exactly that kind of device. Poor binary protections make it straightforward to decompile the app and recover hardcoded secrets or bypass client-side checks. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-029",
@@ -2737,7 +2821,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Screen Caching / Sensitive UI Exposure” is a finding that surfaces more often than clients expect. The stake is real: anyone who can see the app-switcher view can read whatever was on screen when the app was backgrounded. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-030",
@@ -2831,7 +2918,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Sensitive Data in App Backups” is a finding that surfaces more often than clients expect. The stake is real: anyone with access to a device backup can extract the app's data without ever touching the original phone or getting past its lock screen. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-031",
@@ -2925,7 +3015,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Sensitive Data in Logs” is a finding that surfaces more often than clients expect. The stake is real: any app able to read the system log can read the logged data directly, on the Android versions and configurations where that remains possible. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-032",
@@ -3019,7 +3112,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Tapjacking / Overlay Attacks” is a finding that surfaces more often than clients expect. The stake is real: an attacker first gets the user to install a harmless-looking app that asks for the overlay permission — something users are well conditioned to grant for screen dimmers and floating widgets. Security misconfiguration such as a debuggable release build hands an attacker with the device far more than intended. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-033",
@@ -3113,7 +3209,10 @@
      "code": "MASVS-CODE",
      "name": "Code Quality"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Third-Party SDK / Library Vulnerabilities” is a finding that surfaces more often than clients expect. The stake is real: any known flaw in the outdated library becomes exploitable against the app, provided the app's own use of that library actually reaches the vulnerable code. Inadequate supply-chain security in bundled SDKs has repeatedly shipped malicious or leaky third-party code inside otherwise trusted apps. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-034",
@@ -3224,7 +3323,10 @@
      "code": "MASVS-AUTH",
      "name": "Authentication and Authorization"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure Backend-as-a-Service Security Rules” is a finding that surfaces more often than clients expect. The stake is real: anyone who extracts the project identifier from the application — which requires only unzipping it — can query the backend directly, bypassing the app entirely. Improper credential and platform usage is a routine mobile finding, where secrets or permissions handled wrongly expose the user. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-035",
@@ -3336,7 +3438,10 @@
      "code": "MASVS-RESILIENCE",
      "name": "Resilience Against Reverse Engineering"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Absent Device and App Attestation Allowing Modified Clients” is a finding that surfaces more often than clients expect. The stake is real: anything the backend delegates to the client stops being enforced: rate limits, eligibility rules, in-app purchase validation, promotional constraints. Poor binary protections make it straightforward to decompile the app and recover hardcoded secrets or bypass client-side checks. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-036",
@@ -3448,7 +3553,10 @@
      "code": "MASVS-AUTH",
      "name": "Authentication and Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Insecure OAuth Redirect Handling in Mobile Applications” is a finding that surfaces more often than clients expect. The stake is real: an attacker's application installed on the same device intercepts the authorisation code and exchanges it for the victim's tokens, yielding full account access without ever seeing a password. Insecure authentication/authorization on mobile lets a tampered client bypass checks the server should have enforced. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-037",
@@ -3560,7 +3668,10 @@
      "code": "MASVS-PLATFORM",
      "name": "Platform Interaction"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Content Provider Injection and Path Traversal” is a finding that surfaces more often than clients expect. The stake is real: a malicious application installed on the device reads the target application's private database, which commonly holds session tokens, personal data and cached records. Insufficient input/output validation is the mobile equivalent of the injection classes that dominate web breaches. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "MOBILE-038",
@@ -3672,7 +3783,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Sensitive Data Retained in Application Memory” is a finding that surfaces more often than clients expect. The stake is real: on a rooted or compromised device, or via a crash dump collected by a diagnostics service, credentials and tokens are recoverable long after the user believed the session ended. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-039",
@@ -3783,7 +3897,10 @@
      "code": "MASVS-STORAGE",
      "name": "Data Storage"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On mobile application assessments, “Sensitive Input Cached by Keyboards, Autofill and Predictive Text” is a finding that surfaces more often than clients expect. The stake is real: sensitive values persist in a store the application cannot reach and does not clear, surviving application uninstall and appearing as suggestions in unrelated applications — which is also how the exposure is typically discovered. Insecure local data storage is the most consistent mobile finding — sensitive data left readable on a lost or compromised device. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "MOBILE-040",

@@ -104,7 +104,10 @@
      "code": "V11",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On API assessments, “API Response Timing Side-Channel for User Enumeration” is a finding that surfaces more often than clients expect. The stake is real: an attacker can quietly confirm which usernames and email addresses are real, at scale, without tripping any account lockout. Broken authentication on APIs is regularly abused through token and credential attacks that the API never rate-limits or logs. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-002",
@@ -204,7 +207,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Improper Assets/Version Exposure” is a finding that surfaces more often than clients expect. The stake is real: how serious this is depends entirely on which endpoint is exposed. Undocumented or deprecated API versions (\"shadow\" and \"zombie\" APIs) routinely expose endpoints the security team forgot existed. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-003",
@@ -252,7 +258,7 @@
    ],
    "variants": [
     "CORS misconfiguration on an internal API that's also inadvertently internet-facing, removing the VPN/internal-network precondition entirely and making it exploitable from any internet-connected victim.",
-    "Origin validation that checks only a substring/suffix of the Origin header (e.g. accepting anything ending in `.target.com`), bypassable by registering a subdomain-lookalike or using a crafted origin that satisfies the substring check.",
+    "Origin validation that checks only a substring/suffix of the Origin header (e.g. accepting anything ending in `.example.test`), bypassable by registering a subdomain-lookalike or using a crafted origin that satisfies the substring check.",
     "A policy that reflects any origin while also allowing credentials, which is the specific combination that exposes authenticated data cross-site."
    ],
    "mitigation": [
@@ -303,7 +309,10 @@
      "code": "V4",
      "name": "API and Web Service"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insecure CORS on Internal Microservice API Reachable from Browser” is a finding that surfaces more often than clients expect. The stake is real: a malicious web page can make authenticated requests to the internal API using the victim's own session, then read the responses. Security misconfiguration on APIs — verbose errors, permissive CORS, default settings — is a reliable foothold on real engagements. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-004",
@@ -403,7 +412,10 @@
      "code": "V9",
      "name": "Self-contained Tokens"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “JWT Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can forge a token the server accepts can impersonate any user, including an administrator, by simply setting the identity they want in the token. Broken authentication on APIs is regularly abused through token and credential attacks that the API never rate-limits or logs. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-005",
@@ -503,7 +515,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Security Misconfiguration” is a finding that surfaces more often than clients expect. The stake is real: taken one at a time these are usually minor — a verbose error helping reconnaissance, a missing header slightly weakening browser protections. Security misconfiguration on APIs — verbose errors, permissive CORS, default settings — is a reliable foothold on real engagements. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-006",
@@ -602,7 +617,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Broken Authentication” is a finding that surfaces more often than clients expect. The stake is real: an attacker reaches protected data or functionality without ever holding valid credentials. Broken authentication on APIs is regularly abused through token and credential attacks that the API never rate-limits or logs. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-007",
@@ -637,11 +655,11 @@
     },
     {
      "label": "Send a forged JWT directly to a discovered backend service, bypassing the gateway",
-     "command": "curl -s -H \"Authorization: Bearer $(python3 forge_jwt.py --role admin)\" https://backend-internal.target.com/admin/users"
+     "command": "curl -s -H \"Authorization: Bearer $(python3 forge_jwt.py --role admin)\" https://backend-internal.example.test/admin/users"
     },
     {
      "label": "Test whether the gateway performs full signature verification",
-     "command": "curl -s -H \"Authorization: Bearer <tampered-signature-jwt>\" https://api-gateway.target.com/user/profile"
+     "command": "curl -s -H \"Authorization: Bearer <tampered-signature-jwt>\" https://api-gateway.example.test/user/profile"
     },
     {
      "label": "Confirm whether the backend accepts a request bypassing the gateway's validation",
@@ -702,7 +720,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Broken Authentication via API Gateway JWT Passthrough Without Re-validation” is a finding that surfaces more often than clients expect. The stake is real: an attacker who reaches the backend service directly, bypassing the gateway, or who crafts a token that satisfies whatever limited checking the gateway does, can present forged claims straight to the backend. Broken authentication on APIs is regularly abused through token and credential attacks that the API never rate-limits or logs. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-008",
@@ -801,7 +822,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Lack of Rate Limiting on Authentication” is a finding that surfaces more often than clients expect. The stake is real: an attacker can run credential stuffing at high speed, testing large lists of username and password pairs leaked from other breaches, or brute-force a specific account. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-009",
@@ -900,7 +924,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Broken Function Level Authorization” is a finding that surfaces more often than clients expect. The stake is real: an ordinary low-privilege user can call administrative functions directly — creating or deleting other people's accounts, changing system-wide configuration, or reaching an admin-only reporting endpoint. Broken function-level authorization lets a low-privilege caller invoke admin operations the UI never exposes. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-010",
@@ -1000,7 +1027,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Broken Object Level Authorization” is a finding that surfaces more often than clients expect. The stake is real: any logged-in user can read or change any other user's data by swapping one identifier in an otherwise normal API call. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-011",
@@ -1099,7 +1129,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Broken Object Property Level Authorization” is a finding that surfaces more often than clients expect. The stake is real: on reads, the response exposes fields the caller was never meant to see — another user's private data carried inside a shared object, or internal system flags. Excessive data exposure happens when an API returns more than the UI shows, and attackers simply read the raw response. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-012",
@@ -1198,7 +1231,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Improper Handling of Null/Undefined in API Authorization Checks” is a finding that surfaces more often than clients expect. The stake is real: an attacker who works out which parameter causes this — by omitting it or setting it to null — bypasses the authorisation check entirely for that code path. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-013",
@@ -1297,7 +1333,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Injection via API Parameters” is a finding that surfaces more often than clients expect. The stake is real: how far this goes depends on the injection point and the engine behind it. Excessive data exposure happens when an API returns more than the UI shows, and attackers simply read the raw response. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-014",
@@ -1396,7 +1435,10 @@
      "code": "V4",
      "name": "API and Web Service"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “SSRF via GraphQL File Upload Resolver” is a finding that surfaces more often than clients expect. The stake is real: an attacker makes the server issue requests on their behalf, reaching internal admin panels and APIs that are not otherwise reachable from the internet. Server-side request forgery through an API can pivot into internal services and cloud metadata endpoints. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-015",
@@ -1431,7 +1473,7 @@
     },
     {
      "label": "Extract API keys embedded in a public JavaScript bundle",
-     "command": "curl -s https://app.target.com/static/js/main.bundle.js | grep -oE '(api[_-]?key|apikey)[\"'\\'':= ]{1,3}[A-Za-z0-9_-]{20,}'"
+     "command": "curl -s https://app.example.test/static/js/main.bundle.js | grep -oE '(api[_-]?key|apikey)[\"'\\'':= ]{1,3}[A-Za-z0-9_-]{20,}'"
     },
     {
      "label": "Validate a discovered key's scope with a minimal, read-only call",
@@ -1496,7 +1538,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “API Key Leakage / Weak API Key Management” is a finding that surfaces more often than clients expect. The stake is real: anyone who finds the exposed key can authenticate as the legitimate integration and use whatever that key allows. Broken authentication on APIs is regularly abused through token and credential attacks that the API never rate-limits or logs. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-016",
@@ -1595,7 +1640,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insufficient Validation of Multipart Boundary in API File Upload” is a finding that surfaces more often than clients expect. The stake is real: what this yields depends on the specific parser weakness. Excessive data exposure happens when an API returns more than the UI shows, and attackers simply read the raw response. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-017",
@@ -1694,7 +1742,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “API Denial of Service via Unbounded Regex in Input Validation Middleware” is a finding that surfaces more often than clients expect. The stake is real: one crafted request, often only a few hundred characters, can pin a server process at full CPU for seconds or minutes depending on the input length. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-018",
@@ -1793,7 +1844,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “API Versioning Downgrade Attack” is a finding that surfaces more often than clients expect. The stake is real: an attacker deliberately asks for the older API version by changing a version parameter, header or path segment. Undocumented or deprecated API versions (\"shadow\" and \"zombie\" APIs) routinely expose endpoints the security team forgot existed. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-019",
@@ -1893,7 +1947,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Excessive Data Exposure” is a finding that surfaces more often than clients expect. The stake is real: any caller can pull sensitive internal fields straight out of the response, whatever the official app chooses to display. Excessive data exposure happens when an API returns more than the UI shows, and attackers simply read the raw response. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-020",
@@ -1992,7 +2049,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Excessive Trust in Client-Supplied Content-Length for Streaming API” is a finding that surfaces more often than clients expect. The stake is real: an attacker gets the server to allocate resources based on a size the client claims but nothing verifies. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-021",
@@ -2092,7 +2152,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “GraphQL-Specific API Abuse” is a finding that surfaces more often than clients expect. The stake is real: a single request of ordinary size can trigger a hugely disproportionate amount of backend and database work. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-022",
@@ -2123,15 +2186,15 @@
    "examplePayloads": [
     {
      "label": "Fuzz the gateway for common internal/admin route naming patterns",
-     "command": "ffuf -w internal_route_wordlist.txt -u https://api-gateway.target.com/FUZZ -mc 200,401,403"
+     "command": "ffuf -w internal_route_wordlist.txt -u https://api-gateway.example.test/FUZZ -mc 200,401,403"
     },
     {
      "label": "Search client-side JavaScript for undocumented API path references",
-     "command": "curl -s https://app.target.com/static/js/main.bundle.js | grep -oE '/(api|internal|admin)/[a-zA-Z0-9/_-]+'"
+     "command": "curl -s https://app.example.test/static/js/main.bundle.js | grep -oE '/(api|internal|admin)/[a-zA-Z0-9/_-]+'"
     },
     {
      "label": "Test reachability of a discovered undocumented route",
-     "command": "curl -s -o /dev/null -w '%{http_code}\\n' https://api-gateway.target.com/internal/admin/reports"
+     "command": "curl -s -o /dev/null -w '%{http_code}\\n' https://api-gateway.example.test/internal/admin/reports"
     },
     {
      "label": "Compare the documented endpoint list against paths observed in client traffic",
@@ -2191,7 +2254,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Improper Assets Management via Undocumented Internal API Gateway Route” is a finding that surfaces more often than clients expect. The stake is real: any outside caller who discovers the undocumented path can call it directly. Undocumented or deprecated API versions (\"shadow\" and \"zombie\" APIs) routinely expose endpoints the security team forgot existed. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-023",
@@ -2290,7 +2356,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Improper Handling of Duplicate Keys in JSON Request Body” is a finding that surfaces more often than clients expect. The stake is real: an attacker sends the same field twice. Excessive data exposure happens when an API returns more than the UI shows, and attackers simply read the raw response. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-024",
@@ -2321,15 +2390,15 @@
    "examplePayloads": [
     {
      "label": "Enumerate subdomains as an independent API-surface discovery method",
-     "command": "subfinder -d target.com | grep -E 'api|gateway|staging|dev'"
+     "command": "subfinder -d example.test | grep -E 'api|gateway|staging|dev'"
     },
     {
      "label": "Review certificate-transparency logs for API-shaped hostnames not in the documented inventory",
-     "command": "curl -s \"https://crt.sh/?q=%25.target.com&output=json\" | jq -r '.[].name_value' | sort -u | grep -iE 'api|staging'"
+     "command": "curl -s \"https://crt.sh/?q=%25.example.test&output=json\" | jq -r '.[].name_value' | sort -u | grep -iE 'api|staging'"
     },
     {
      "label": "Content-discovery scan against a discovered, undocumented candidate host",
-     "command": "ffuf -w common_api_paths.txt -u https://staging-api.target.com/FUZZ -mc 200,401,403"
+     "command": "ffuf -w common_api_paths.txt -u https://staging-api.example.test/FUZZ -mc 200,401,403"
     },
     {
      "label": "Probe for non-production API hostnames",
@@ -2389,7 +2458,10 @@
      "code": "V13",
      "name": "Configuration"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Improper Inventory Management” is a finding that surfaces more often than clients expect. The stake is real: aPIs missing from the inventory receive no routine security attention at all — no patching, no access-control review, no deprecation — because the process that governs everything else simply does not know they exist. Undocumented or deprecated API versions (\"shadow\" and \"zombie\" APIs) routinely expose endpoints the security team forgot existed. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-025",
@@ -2488,7 +2560,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insecure API Response Caching Exposing Per-User Data” is a finding that surfaces more often than clients expect. The stake is real: a second user requesting the same URL receives the first user's cached response, complete with their account data and session-specific content. Security misconfiguration on APIs — verbose errors, permissive CORS, default settings — is a reliable foothold on real engagements. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-026",
@@ -2586,7 +2661,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insecure Direct Object Reference via Sequential Webhook IDs” is a finding that surfaces more often than clients expect. The stake is real: an attacker walks through sequential webhook IDs to reach other customers' configurations. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-027",
@@ -2685,7 +2763,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insecure Handling of Idempotency Keys” is a finding that surfaces more often than clients expect. The stake is real: there are two ways this fails, depending on the implementation. Mass-assignment flaws let a client set fields — like an is_admin flag — the developer never intended to be writable. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-028",
@@ -2783,7 +2864,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insecure Handling of Nested Resource Ownership in Compound API Path” is a finding that surfaces more often than clients expect. The stake is real: a logged-in user keeps their own valid account ID in the path but swaps the nested resource ID — a project, a document — for someone else's. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-029",
@@ -2881,7 +2965,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Insufficient Logging & Monitoring” is a finding that surfaces more often than clients expect. The stake is real: an attacker's activity leaves no usable trace, whether they succeeded or failed. Security misconfiguration on APIs — verbose errors, permissive CORS, default settings — is a reliable foothold on real engagements. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-030",
@@ -2980,7 +3067,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Mass Assignment” is a finding that surfaces more often than clients expect. The stake is real: a caller can raise their own privileges by setting a role or permission field directly. Excessive data exposure happens when an API returns more than the UI shows, and attackers simply read the raw response. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-031",
@@ -3079,7 +3169,10 @@
      "code": "V4",
      "name": "API and Web Service"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Server-Side Request Forgery” is a finding that surfaces more often than clients expect. The stake is real: an attacker makes the server issue requests on their behalf, reaching internal admin panels, databases and APIs not otherwise reachable from outside. Server-side request forgery through an API can pivot into internal services and cloud metadata endpoints. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-032",
@@ -3177,7 +3270,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Unrestricted Access to Sensitive Business Flows” is a finding that surfaces more often than clients expect. The stake is real: an attacker automates the specific business flow at a scale that causes real financial harm out of all proportion to how simple the flow looks. Mass-assignment flaws let a client set fields — like an is_admin flag — the developer never intended to be writable. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-033",
@@ -3276,7 +3372,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Unrestricted Resource Consumption” is a finding that surfaces more often than clients expect. The stake is real: one request, or a small number that are trivial to automate, consumes far more CPU, memory, database load or bandwidth than its apparent simplicity suggests. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-034",
@@ -3375,7 +3474,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Unsafe Consumption of APIs” is a finding that surfaces more often than clients expect. The stake is real: an upstream API that is compromised, buggy or spoofed can push the target application into several different failures, depending on how the response is handled. Unsafe consumption of third-party APIs lets a compromised or malicious upstream service poison the calling application. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-035",
@@ -3474,7 +3576,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “API Rate Limiting Bypass via Header Spoofing & Distributed Requests” is a finding that surfaces more often than clients expect. The stake is real: brute-force, credential stuffing, scraping and resource-exhaustion attacks all run at full volume against an API everyone believes is protected. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-036",
@@ -3590,7 +3695,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “gRPC Service Exposure and Per-Method Authorization Gaps” is a finding that surfaces more often than clients expect. The stake is real: an attacker obtains a complete map of the internal service surface, including administrative and internal-only methods that were never exposed through the public API. Broken function-level authorization lets a low-privilege caller invoke admin operations the UI never exposes. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-037",
@@ -3705,7 +3813,10 @@
      "code": "V9",
      "name": "Self-contained Tokens"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Missing or Weak Inbound Webhook Signature Verification” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can forge a webhook can drive whatever business process it triggers. Unsafe consumption of third-party APIs lets a compromised or malicious upstream service poison the calling application. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-038",
@@ -3821,7 +3932,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Improper Token Audience and Scope Validation at the Resource Server” is a finding that surfaces more often than clients expect. The stake is real: a token obtained legitimately for a low-value application grants access to a high-value one, which crosses a trust boundary the architecture assumed was enforced. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-039",
@@ -3937,7 +4051,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Unbounded Pagination and Bulk Export Abuse” is a finding that surfaces more often than clients expect. The stake is real: the entire dataset a caller is nominally entitled to leaves the system, which is a materially different exposure from the one-record-at-a-time access the design assumed. Missing rate limiting turns an API into an engine for enumeration, credential stuffing, and denial-of-wallet abuse. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "API-040",
@@ -4053,7 +4170,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On API assessments, “Batch and Bulk Endpoint Authorization Bypass” is a finding that surfaces more often than clients expect. The stake is real: a caller reads or modifies objects belonging to other accounts through an endpoint that is otherwise correctly protected, which is a direct authorisation bypass with no unusual technique required. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-041",
@@ -4169,7 +4289,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On API assessments, “Missing Authorization on WebSocket and Server-Sent Event Channels” is a finding that surfaces more often than clients expect. The stake is real: subscribing to another tenant's channel produces a live feed of their events, which is a continuous disclosure rather than a single unauthorised read. Broken object-level authorization (BOLA) is the number-one API risk precisely because these IDOR-style flaws are trivial to exploit and expose other tenants' data. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "API-042",

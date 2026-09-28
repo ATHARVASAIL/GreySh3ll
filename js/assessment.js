@@ -67,19 +67,31 @@ document.getElementById('exportCsvBtn').addEventListener('click', async ()=>{
   downloadFile(`greysh3ll-findings-${Date.now()}.csv`, header+rows, 'text/csv');
   showToast('CSV exported.');
 });
-document.getElementById('printBtn').addEventListener('click', async ()=>{
-  /* The report prints descriptions, impact and mitigations for every failed
-     or flagged case, so all detail must be resident before it is built. */
+/* generateReport(opts) — builds and prints the report scoped to the options
+   chosen in the Report Options dialog (js/report-options.js). Called by that
+   dialog's "Generate PDF" button. The topbar "Report" button opens the dialog
+   rather than printing directly, so the assessor always scopes the PDF first.
+   opts = { domains:[...], severities:[...], failedOnly:bool, detail:'full'|'summary' }.
+   With no opts (fallback), the full unfiltered report is produced. */
+async function generateReport(opts){
+  /* The report prints descriptions, impact, steps and mitigations for every
+     included case, so all detail must be resident before it is built. */
   showToast('Building report…');
   try{ await ensureAllDetail(); }
   catch(err){ showToast('Could not load all test case detail — report cancelled.'); return; }
-  document.getElementById('reportRoot').innerHTML = buildReportHTML();
+  document.getElementById('reportRoot').innerHTML = buildReportHTML(opts);
   const originalTitle = document.title;
   const dateForFilename = new Date().toISOString().slice(0,10);
   document.title = `GreySh3ll-Security-Assessment-Report-${dateForFilename}`;
   window.print();
   setTimeout(()=>{ document.title = originalTitle; }, 500);
-});
+}
+/* Kept for any code path that still expects the old direct-print button; the
+   dialog in report-options.js normally replaces this handler at load. */
+(function(){
+  const btn = document.getElementById('printBtn');
+  if(btn) btn.addEventListener('click', ()=> generateReport(null));
+})();
 
 /* =========================================================
    REPORT GENERATION
@@ -95,30 +107,53 @@ document.getElementById('printBtn').addEventListener('click', async ()=>{
    critical #B91C1C · high #C2410C · medium #A16207 · low #15803D · info #0369A1 */
 const REPORT_STATUS_LABEL = { 'not-tested':'Not Tested', 'in-progress':'In Progress', 'tested-pass':'Pass', 'tested-fail':'Fail', 'not-applicable':'N/A' };
 
-function buildReportHTML(){
+function buildReportHTML(opts){
+  /* Normalise options. Null/undefined => the full, unfiltered report. */
+  const allDomains = CATEGORIES.map(c => c.code);
+  const allSevs = SEVERITIES.map(s => s.key);
+  const O = {
+    domains:    (opts && opts.domains && opts.domains.length)       ? opts.domains    : allDomains,
+    severities: (opts && opts.severities && opts.severities.length) ? opts.severities : allSevs,
+    failedOnly: !!(opts && opts.failedOnly),
+    detail:     (opts && opts.detail === 'summary') ? 'summary' : 'full'
+  };
+  const inScope = d => O.domains.indexOf(d.domain) !== -1 && O.severities.indexOf(d.severity) !== -1;
+  /* scopeData = every case the report is allowed to talk about (domain+severity).
+     reportData additionally honours "confirmed findings only". */
+  const scopeData  = allData.filter(inScope);
+  const reportData = O.failedOnly ? scopeData.filter(d => d.status==='tested-fail' || d.flagged) : scopeData;
+  /* The categories/coverage sections only show the selected domains. */
+  const scopeCats  = CATEGORIES.filter(c => O.domains.indexOf(c.code) !== -1);
+
   const tester = (document.getElementById('testerName').value || '').trim() || 'Unspecified';
   const now = new Date();
   const dateStr = now.toLocaleDateString(undefined, { year:'numeric', month:'long', day:'numeric' });
 
-  const total = allData.length;
+  /* Stats are computed over the scoped data so the numbers match what's in
+     the report, not the whole 817-case corpus. */
+  const total = scopeData.length;
   const byStatus = { 'tested-pass':0, 'tested-fail':0, 'not-applicable':0, 'in-progress':0, 'not-tested':0 };
-  allData.forEach(d => { byStatus[d.status] = (byStatus[d.status]||0) + 1; });
+  scopeData.forEach(d => { byStatus[d.status] = (byStatus[d.status]||0) + 1; });
   const pct = total ? Math.round(byStatus['tested-pass']/total*100) : 0;
-  const flaggedItems = allData.filter(d => d.flagged);
-  const findings = allData
+  const findings = scopeData
     .filter(d => d.status === 'tested-fail' || d.flagged)
     .sort((a,b) => (SEV_ORDER[a.severity]-SEV_ORDER[b.severity]) || (a.sequence-b.sequence));
 
   const domainContext = loadDomainContext();
-  const domainsWithContext = CATEGORIES.filter(c => {
+  const domainsWithContext = scopeCats.filter(c => {
     const ctx = domainContext[c.code];
     return ctx && (ctx.scopeNotes || ctx.targetDetails || ctx.engagementDates || ctx.authorizationRef);
   });
 
-  const sevCounts = SEVERITIES.map(s => ({
-    ...s, total: allData.filter(d=>d.severity===s.key).length,
-    open: allData.filter(d=>d.severity===s.key && d.status==='tested-fail').length
+  const sevCounts = SEVERITIES.filter(s => O.severities.indexOf(s.key) !== -1).map(s => ({
+    ...s, total: scopeData.filter(d=>d.severity===s.key).length,
+    open: scopeData.filter(d=>d.severity===s.key && d.status==='tested-fail').length
   }));
+
+  /* A human label for the scope line on the cover. */
+  const scopeLabel = O.domains.length === allDomains.length
+    ? `${scopeCats.length} domains · ${total} test cases`
+    : `${scopeCats.map(c=>c.code).join(', ')} · ${total} test cases`;
 
   return `
     <section class="report-page report-cover">
@@ -129,7 +164,7 @@ function buildReportHTML(){
         <table class="report-cover-meta">
           <tr><td>Prepared by</td><td>${escapeHtml(tester)}</td></tr>
           <tr><td>Report date</td><td>${escapeHtml(dateStr)}</td></tr>
-          <tr><td>Scope</td><td>${CATEGORIES.length} domains · ${total} test cases</td></tr>
+          <tr><td>Scope</td><td>${escapeHtml(scopeLabel)}</td></tr>
           <tr><td>Overall completion</td><td>${pct}% (${byStatus['tested-pass']}/${total} passed)</td></tr>
           <tr><td>Open findings</td><td>${findings.length}</td></tr>
         </table>
@@ -146,13 +181,12 @@ function buildReportHTML(){
       <h2 class="report-h2">Executive Summary</h2>
       <p class="report-body">
         This report documents the results of a security assessment covering
-        <strong>${CATEGORIES.length} testing domains</strong> —
-        ${CATEGORIES.map(c=>escapeHtml(c.name)).join(', ')} — comprising
-        <strong>${total} individual test cases</strong>, executed and tracked
+        <strong>${scopeCats.length} testing domain${scopeCats.length===1?'':'s'}</strong> —
+        ${scopeCats.map(c=>escapeHtml(c.name)).join(', ')} — comprising
+        <strong>${total} individual test case${total===1?'':'s'}</strong>, executed and tracked
         by ${escapeHtml(tester)} using the GreySh3ll assessment methodology.
-        Testing followed the engagement order network reconnaissance,
-        application-layer testing, and human-layer/physical testing last,
-        with each test case identified, exploited where applicable, and
+        ${O.failedOnly ? `This report is scoped to <strong>confirmed findings only</strong>; test cases that passed or were not applicable are summarised in the coverage table but not detailed individually. ` : ''}Each
+        test case was identified, exploited where applicable, and
         assessed against its corresponding CWE, OWASP, and/or MITRE ATT&amp;CK
         reference.
       </p>
@@ -199,12 +233,12 @@ function buildReportHTML(){
 
     <section class="report-page">
       <h2 class="report-h2">Testing Coverage</h2>
-      <p class="report-body">The table below summarizes coverage across all ${CATEGORIES.length} domains in engagement order.</p>
+      <p class="report-body">The table below summarizes coverage across ${scopeCats.length===1?'the':'the'} ${scopeCats.length} domain${scopeCats.length===1?'':'s'} in scope, in engagement order.</p>
       <table class="report-table">
         <thead><tr><th>#</th><th>Domain</th><th>Total</th><th>Pass</th><th>Fail</th><th>N/A</th><th>Not tested</th></tr></thead>
         <tbody>
-          ${CATEGORIES.map((c,i) => {
-            const items = allData.filter(d=>d.domain===c.code);
+          ${scopeCats.map((c,i) => {
+            const items = scopeData.filter(d=>d.domain===c.code);
             const t = items.length;
             const p = items.filter(d=>d.status==='tested-pass').length;
             const f = items.filter(d=>d.status==='tested-fail').length;
@@ -216,37 +250,75 @@ function buildReportHTML(){
       </table>
     </section>
 
-    ${findings.length ? `
+    ${findings.length ? (O.detail === 'summary' ? `
+    <section class="report-page">
+      <h2 class="report-h2">Findings Summary</h2>
+      <p class="report-body">
+        The following ${findings.length} finding${findings.length===1?' was':'s were'} identified during testing or flagged
+        by the assessor for follow-up, ordered by severity. See the interactive workspace for full technical detail on each.
+      </p>
+      <table class="report-table">
+        <thead><tr><th>Severity</th><th>ID</th><th>Finding</th><th>Domain</th><th>CWE</th><th>Status</th></tr></thead>
+        <tbody>
+          ${findings.map(item => {
+            const catMeta = DOMAIN_META.find(c=>c.code===item.domain);
+            return `<tr>
+              <td><span class="report-sev-chip rsev-${item.severity}">${escapeHtml(item.severityLabel||item.severity)}</span></td>
+              <td>${escapeHtml(item.id)}</td>
+              <td>${escapeHtml(item.title)}</td>
+              <td>${escapeHtml(catMeta ? catMeta.code : item.domain)}</td>
+              <td>${escapeHtml(item.cwe||'—')}</td>
+              <td>${item.flagged ? 'Flagged' : escapeHtml(REPORT_STATUS_LABEL[item.status]||item.status)}</td>
+            </tr>`;
+          }).join('')}
+        </tbody>
+      </table>
+    </section>` : `
     <section class="report-page">
       <h2 class="report-h2">Detailed Findings</h2>
       <p class="report-body">
-        The following ${findings.length} finding(s) were identified during testing or flagged
-        by the assessor for follow-up, ordered by severity.
+        The following ${findings.length} finding${findings.length===1?' was':'s were'} identified during testing or flagged
+        by the assessor for follow-up, ordered by severity. Each is documented with its description,
+        business impact, how to reproduce it, the evidence recorded, and recommended remediation.
       </p>
-      ${findings.map(item => {
+      ${findings.map((item, fi) => {
         const catMeta = DOMAIN_META.find(c=>c.code===item.domain);
         const notes = item.assessorNotes || {};
+        /* Steps to reproduce: prefer the assessor's own PoC; always include the
+           methodology's identification + exploitation steps as the reproduction path. */
+        const idSteps  = (item.stepsToIdentify||[]);
+        const expSteps = (item.exploitationSteps||[]);
+        const payloads = (item.examplePayloads||[]);
         return `
         <div class="report-finding">
           <div class="report-finding-head">
+            <span class="report-finding-num">Finding ${fi+1}</span>
             <span class="report-sev-chip rsev-${item.severity}">${escapeHtml(item.severityLabel||item.severity)}</span>
             <span class="report-finding-id">${escapeHtml(item.id)}</span>
             <span class="report-finding-status">${item.flagged ? 'FLAGGED' : REPORT_STATUS_LABEL[item.status]}</span>
           </div>
           <h3 class="report-finding-title">${escapeHtml(item.title)}</h3>
-          <div class="report-finding-meta">${escapeHtml(catMeta ? catMeta.name : item.domain)} &middot; ${escapeHtml(item.cwe||'')} ${item.reference?.standard ? '&middot; '+escapeHtml(item.reference.standard) : ''}</div>
+          <div class="report-finding-meta">${escapeHtml(catMeta ? catMeta.name : item.domain)} &middot; ${escapeHtml(item.cwe||'')} ${item.reference?.standard ? '&middot; '+escapeHtml(item.reference.standard) : ''}${item.difficulty ? ' &middot; '+escapeHtml(item.difficulty) : ''}</div>
 
           <div class="report-field"><div class="report-field-label">Description</div><p>${escapeHtml(item.whatItIs||'')}</p></div>
-          <div class="report-field"><div class="report-field-label">Impact</div><p>${escapeHtml(item.impact||'')}</p></div>
-          ${notes.findings ? `<div class="report-field"><div class="report-field-label">Assessor Findings</div><p>${escapeHtml(notes.findings)}</p></div>` : ''}
+          ${item.rootCause ? `<div class="report-field"><div class="report-field-label">Root Cause</div><p>${escapeHtml(item.rootCause)}</p></div>` : ''}
+          <div class="report-field"><div class="report-field-label">Business Impact</div><p>${escapeHtml(item.impact||'')}</p></div>
+          ${notes.findings ? `<div class="report-field"><div class="report-field-label">Assessor Findings (this engagement)</div><p>${escapeHtml(notes.findings)}</p></div>` : ''}
           ${notes.pocDetails ? `<div class="report-field"><div class="report-field-label">Proof of Concept</div><p>${escapeHtml(notes.pocDetails)}</p></div>` : ''}
-          ${(notes.affectedEndpoints && notes.affectedEndpoints.length) ? `<div class="report-field"><div class="report-field-label">Affected Endpoints</div><ul>${notes.affectedEndpoints.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul></div>` : ''}
+          ${(notes.affectedEndpoints && notes.affectedEndpoints.length) ? `<div class="report-field"><div class="report-field-label">Affected Endpoints / Assets</div><ul>${notes.affectedEndpoints.map(e=>`<li>${escapeHtml(e)}</li>`).join('')}</ul></div>` : ''}
+
+          ${(idSteps.length || expSteps.length) ? `<div class="report-field"><div class="report-field-label">Steps to Reproduce</div>
+            <ol class="report-steps">${idSteps.concat(expSteps).map(s=>`<li>${escapeHtml(s)}</li>`).join('')}</ol></div>` : ''}
+          ${payloads.length ? `<div class="report-field"><div class="report-field-label">Example Payloads / Commands</div>
+            ${payloads.map(p=>{const lab=(p&&p.label)||''; const cmd=(p&&p.command)||(typeof p==='string'?p:''); return `<div class="report-payload"><div class="report-payload-label">${escapeHtml(lab)}</div><pre class="report-payload-cmd">${escapeHtml(cmd)}</pre></div>`;}).join('')}</div>` : ''}
+
           ${item.mitigationClientFacing ? `<div class="report-field"><div class="report-field-label">What This Means &amp; What To Do</div><p>${escapeHtml(item.mitigationClientFacing)}</p></div>` : ''}
-          <div class="report-field"><div class="report-field-label">Recommended Mitigation (Technical)</div>
-            <ul>${(item.mitigation||[]).slice(0,4).map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul>
+          <div class="report-field"><div class="report-field-label">Recommended Remediation (Technical)</div>
+            <ul>${(item.mitigation||[]).map(m=>`<li>${escapeHtml(m)}</li>`).join('')}</ul>
           </div>
-          <div class="report-field"><div class="report-field-label">Industry Mapping</div>
+          <div class="report-field"><div class="report-field-label">Risk Rating &amp; Industry Mapping</div>
             <ul>
+              <li>Severity: <strong class="rsev-text-${item.severity}">${escapeHtml(item.severityLabel||item.severity)}</strong></li>
               ${item.cwe ? `<li>${escapeHtml(item.cwe)}</li>` : ''}
               ${item.categoryCode ? `<li>${escapeHtml(item.categoryStandard||'')}: ${escapeHtml(item.categoryCode)} ${escapeHtml(item.categoryName||'')}</li>` : ''}
               ${(item.attack||[]).map(a=>`<li>MITRE ATT&amp;CK ${escapeHtml(a.id)} ${escapeHtml(a.name)}</li>`).join('')}
@@ -260,10 +332,10 @@ function buildReportHTML(){
           </div>` : ''}
         </div>`;
       }).join('')}
-    </section>` : `
+    </section>`) : `
     <section class="report-page">
       <h2 class="report-h2">Detailed Findings</h2>
-      <p class="report-body">No failed or flagged test cases were recorded at the time this report was generated.</p>
+      <p class="report-body">No failed or flagged test cases were recorded within the selected scope at the time this report was generated.</p>
     </section>`}
 
     ${(typeof buildChainSequences === 'function' && buildChainSequences().length) ? `
@@ -285,13 +357,14 @@ function buildReportHTML(){
       `).join('')}
     </section>` : ''}
 
+    ${O.detail === 'full' ? `
     <section class="report-page">
-      <h2 class="report-h2">Appendix — Full Test Log</h2>
-      <p class="report-body">Complete record of every test case executed as part of this engagement, in testing order.</p>
+      <h2 class="report-h2">Appendix — Test Log</h2>
+      <p class="report-body">Record of every test case ${O.domains.length===allDomains.length?'':'within the selected scope '}executed as part of this engagement, in testing order.</p>
       <table class="report-table report-table-compact">
         <thead><tr><th>ID</th><th>Domain</th><th>Test Case</th><th>Severity</th><th>Status</th></tr></thead>
         <tbody>
-          ${allData.slice().sort((a,b)=>a.sequence-b.sequence).map(d => `<tr>
+          ${scopeData.slice().sort((a,b)=>a.sequence-b.sequence).map(d => `<tr>
             <td>${escapeHtml(d.id)}</td>
             <td>${escapeHtml(d.domain)}</td>
             <td>${escapeHtml(d.title)}</td>
@@ -301,7 +374,10 @@ function buildReportHTML(){
         </tbody>
       </table>
       <p class="report-footnote">Report generated by GreySh3ll on ${escapeHtml(dateStr)}. This document reflects the assessment state at the time of generation and does not update automatically.</p>
-    </section>
+    </section>` : `
+    <section class="report-page">
+      <p class="report-footnote">Report generated by GreySh3ll on ${escapeHtml(dateStr)}. This document reflects the assessment state at the time of generation and does not update automatically.</p>
+    </section>`}
   `;
 }
 document.getElementById('importBtn').addEventListener('click', ()=>{

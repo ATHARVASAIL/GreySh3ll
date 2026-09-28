@@ -52,7 +52,7 @@
     }
    ],
    "variants": [
-    "Origin matched via a substring/suffix check (e.g. `origin.endsWith('.target.com')`) bypassable by registering a lookalike subdomain, versus a full wildcard/unconditional-reflection pattern.",
+    "Origin matched via a substring/suffix check (e.g. `origin.endsWith('.example.test')`) bypassable by registering a lookalike subdomain, versus a full wildcard/unconditional-reflection pattern.",
     "Permissive CORS present only on a specific subset of routes (added by a different developer at a different time) rather than applied uniformly across the whole API.",
     "A regex-based origin allowlist with an unanchored pattern, so an attacker-controlled domain containing the allowed string as a substring is accepted."
    ],
@@ -105,7 +105,10 @@
      "code": "V4",
      "name": "API and Web Service"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Insecure CORS Configuration” is a finding that surfaces more often than clients expect. The stake is real: a malicious web page loaded in a victim's browser can make authenticated requests to the API using that victim's existing session, then read the responses back. Hardcoded keys and weak crypto in a repository — often still live — are among the most common and highest-impact code-review findings. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-002",
@@ -205,7 +208,10 @@
      "code": "V5",
      "name": "File Handling"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Insecure Trust of Client-Supplied Content-Type Header in Code” is a finding that surfaces more often than clients expect. The stake is real: an attacker uploads a file whose real content is dangerous — a web shell, or HTML carrying a script — while its declared type and extension claim it is something harmless like an image. A lockfile full of outdated components is a code-review finding that maps directly to public CVEs. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SRC-003",
@@ -305,7 +311,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Hardcoded Credentials” is a finding that surfaces more often than clients expect. The stake is real: anyone who can read the repository gets the credential directly. Authentication logic reviewed in source reveals the short-circuits and weak hashing that black-box testing can only infer. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-004",
@@ -405,7 +414,10 @@
      "code": "V7",
      "name": "Session Management"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Insufficient Entropy in Session Token Generation” is a finding that surfaces more often than clients expect. The stake is real: an attacker who works out the generator's pattern and its starting value can predict other users' session tokens. Design flaws visible in code — missing threat modelling, trust placed in the client — are the ones dynamic testing often misses. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-005",
@@ -505,7 +517,10 @@
      "code": "V6",
      "name": "Authentication"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Server-Side Authentication Bypass Logic” is a finding that surfaces more often than clients expect. The stake is real: an attacker who finds and triggers the flawed condition achieves a complete authentication bypass, logging in as any user including an administrator, with no valid credential at all. Authentication logic reviewed in source reveals the short-circuits and weak hashing that black-box testing can only infer. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-006",
@@ -604,7 +619,10 @@
      "code": "V7",
      "name": "Session Management"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Improper Session Management” is a finding that surfaces more often than clients expect. The stake is real: an attacker first gets the victim to use a session identifier they already know. Authentication logic reviewed in source reveals the short-circuits and weak hashing that black-box testing can only infer. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-007",
@@ -704,7 +722,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Improper Privilege Management in Code” is a finding that surfaces more often than clients expect. The stake is real: a user ends up with more privilege than intended, or can grant it to themselves or another account. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-008",
@@ -804,7 +825,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Missing/Improper Authorization Check” is a finding that surfaces more often than clients expect. The stake is real: any authenticated caller — or in the worst cases an unauthenticated one — can invoke the affected function and perform whatever it does, with no ownership or role requirement standing in the way. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-009",
@@ -902,7 +926,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Time-of-Check Authorization Drift” is a finding that surfaces more often than clients expect. The stake is real: an attacker whose permission is revoked during the gap between the check and the action still gets that action performed, using permission they no longer hold. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-010",
@@ -1002,7 +1029,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Command Injection” is a finding that surfaces more often than clients expect. The stake is real: this is full arbitrary command execution on the server, running with whatever privileges the application process holds. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-011",
@@ -1106,7 +1136,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Insecure Deserialization” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can supply or tamper with the serialised data achieves arbitrary code execution inside the process doing the loading. Integrity gaps in the build and deploy code are where supply-chain compromises are introduced. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-012",
@@ -1204,7 +1237,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “SQL Injection” is a finding that surfaces more often than clients expect. The stake is real: an attacker extracts arbitrary data from the database, bypassing every access control the application enforces above it. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-013",
@@ -1303,7 +1339,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Server-Side Template Injection” is a finding that surfaces more often than clients expect. The stake is real: how far this goes depends on the template engine and whether it sandboxes anything, and many do not by default. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-014",
@@ -1402,7 +1441,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Business Logic Flaw in Discount Calculation Function” is a finding that surfaces more often than clients expect. The stake is real: a customer, or an attacker posing as one, obtains a product or service far below the intended price. A lockfile full of outdated components is a code-review finding that maps directly to public CVEs. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SRC-015",
@@ -1501,7 +1543,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Race Condition / TOCTOU” is a finding that surfaces more often than clients expect. The stake is real: an attacker fires several requests at the endpoint simultaneously, so the check-then-act sequence succeeds more times than the real state should permit. Error handling that leaks internals is visible in source long before an attacker triggers it in production. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-016",
@@ -1600,7 +1645,10 @@
      "code": "V11",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Hardcoded Encryption IV / Static Nonce Reuse” is a finding that surfaces more often than clients expect. The stake is real: what this costs depends on the cipher mode, and the range is wide. Design flaws visible in code — missing threat modelling, trust placed in the client — are the ones dynamic testing often misses. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-017",
@@ -1699,7 +1747,10 @@
      "code": "V11",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Insecure Randomness” is a finding that surfaces more often than clients expect. The stake is real: an attacker who works out the generator's algorithm and its starting value can predict other values it produces. Design flaws visible in code — missing threat modelling, trust placed in the client — are the ones dynamic testing often misses. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-018",
@@ -1799,7 +1850,10 @@
      "code": "V11",
      "name": "Cryptography"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Weak Cryptography” is a finding that surfaces more often than clients expect. The stake is real: the consequence depends on which weak algorithm or mode is in use. Design flaws visible in code — missing threat modelling, trust placed in the client — are the ones dynamic testing often misses. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-019",
@@ -1898,7 +1952,10 @@
      "code": "V5",
      "name": "File Handling"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Insecure File Upload Handling” is a finding that surfaces more often than clients expect. The stake is real: which control is missing decides the outcome. A lockfile full of outdated components is a code-review finding that maps directly to public CVEs. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-020",
@@ -1997,7 +2054,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Cleartext Storage of Sensitive Data” is a finding that surfaces more often than clients expect. The stake is real: anyone who gains read access to the data store obtains the sensitive data directly, in plain text or a form trivially reversed. Design flaws visible in code — missing threat modelling, trust placed in the client — are the ones dynamic testing often misses. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-021",
@@ -2096,7 +2156,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Missing Server-Side Validation Duplicated from Client-Side Only” is a finding that surfaces more often than clients expect. The stake is real: an attacker bypasses the client entirely — disabling JavaScript, editing the request through a proxy, or calling the API directly — and submits whatever value the client-side check would have refused. A lockfile full of outdated components is a code-review finding that maps directly to public CVEs. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-022",
@@ -2195,7 +2258,10 @@
      "code": "V1",
      "name": "Encoding and Sanitization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Cross-Site Scripting” is a finding that surfaces more often than clients expect. The stake is real: an attacker who controls the unescaped value can inject HTML or JavaScript that runs for anyone viewing the page. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-023",
@@ -2294,7 +2360,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Dangerous Function / API Usage” is a finding that surfaces more often than clients expect. The stake is real: the consequence depends on the specific function and how it is used, ranging from a buffer overflow with unbounded native string functions to arbitrary code execution where a dynamic evaluation function receives attacker-influenced input. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-024",
@@ -2393,7 +2462,10 @@
      "code": "V16",
      "name": "Security Logging and Error Handling"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Improper Error/Exception Handling” is a finding that surfaces more often than clients expect. The stake is real: verbose errors hand an attacker the internal detail they need to plan the next step. Error handling that leaks internals is visible in source long before an attacker triggers it in production. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SRC-025",
@@ -2492,7 +2564,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Improper Input Validation” is a finding that surfaces more often than clients expect. The stake is real: where the unchecked input ends up decides the outcome, which ranges from crashes and instability to specific, more serious classes such as path traversal, injection, or a business-logic bypass. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-026",
@@ -2592,7 +2667,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Insecure Direct Object Reference” is a finding that surfaces more often than clients expect. The stake is real: any logged-in user can read or change another user's data by swapping one object identifier in an otherwise ordinary request. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-027",
@@ -2690,7 +2768,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Mass Assignment / Auto-Binding” is a finding that surfaces more often than clients expect. The stake is real: a caller can raise their own privileges by setting a role or permission field. Integrity gaps in the build and deploy code are where supply-chain compromises are introduced. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-028",
@@ -2789,7 +2870,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Missing Integrity Verification” is a finding that surfaces more often than clients expect. The stake is real: an attacker who can intercept or redirect the download delivers a malicious artefact instead of the genuine one. Reviewing the dependency manifest surfaces the known-vulnerable components behind incidents like Log4Shell before they are exploited. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-029",
@@ -2888,7 +2972,10 @@
      "code": "V1",
      "name": "Encoding and Sanitization"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Missing Output Encoding” is a finding that surfaces more often than clients expect. The stake is real: the output context decides what happens. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-030",
@@ -2906,7 +2993,7 @@
     "Locate every code path implementing a redirect based on a caller-supplied URL parameter.",
     "Confirm whether any validation exists restricting the destination to an internal, expected path/domain, versus accepting any URL value supplied.",
     "Build and run the application, then submit the identified redirect parameter with an external test URL and observe whether the application redirects to it.",
-    "Assess whether validation, if present, is genuinely robust (an exact-match internal-path allowlist) versus bypassable (a substring/prefix check defeated by a crafted URL like `https://trusted.com.evil-test.com`).",
+    "Assess whether validation, if present, is genuinely robust (an exact-match internal-path allowlist) versus bypassable (a substring/prefix check defeated by a crafted URL like `https://trusted.com.evil-example.test`).",
     "Build the application and supply an external destination to the identified redirect to confirm the server redirects off-site without validating the target."
    ],
    "exploitationSteps": [
@@ -2986,7 +3073,10 @@
      "code": "V10",
      "name": "OAuth and OIDC"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Open Redirect” is a finding that surfaces more often than clients expect. The stake is real: an attacker builds a link pointing at the application's own trusted domain that silently forwards the victim to a malicious destination. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SRC-031",
@@ -3084,7 +3174,10 @@
      "code": "V5",
      "name": "File Handling"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Path Traversal” is a finding that surfaces more often than clients expect. The stake is real: an attacker can read any file the application process has permission to access, exposing configuration files, source code or credentials. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-032",
@@ -3183,7 +3276,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Sensitive Data Logging” is a finding that surfaces more often than clients expect. The stake is real: anyone with access to the logs or the log aggregation system can read the sensitive data recorded there. Code that logs secrets, or fails to log security events at all, is a recurring review finding with direct breach-response impact. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SRC-033",
@@ -3281,7 +3377,10 @@
      "code": "V4",
      "name": "API and Web Service"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Server-Side Request Forgery” is a finding that surfaces more often than clients expect. The stake is real: an attacker makes the server issue requests on their behalf to internal-only resources, or to the cloud provider's metadata service. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-034",
@@ -3381,7 +3480,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Use of Vulnerable Dependency” is a finding that surfaces more often than clients expect. The stake is real: any known flaw in the outdated dependency becomes exploitable against the application, provided the application's own use of that library actually reaches the vulnerable code. Reviewing the dependency manifest surfaces the known-vulnerable components behind incidents like Log4Shell before they are exploited. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-035",
@@ -3480,7 +3582,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “XML External Entity” is a finding that surfaces more often than clients expect. The stake is real: an attacker supplies XML containing a malicious external reference. Hardcoded keys and weak crypto in a repository — often still live — are among the most common and highest-impact code-review findings. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-036",
@@ -3596,7 +3701,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “CI/CD Workflow Injection and Untrusted Pipeline Triggers” is a finding that surfaces more often than clients expect. The stake is real: command execution on the build runner with whatever the pipeline holds: repository secrets, registry push credentials, cloud deployment roles, signing keys. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-037",
@@ -3712,7 +3820,10 @@
      "code": "V15",
      "name": "Secure Coding and Architecture"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Dependency Confusion and Lockfile Integrity Gaps” is a finding that surfaces more often than clients expect. The stake is real: a malicious package executes at install time, frequently with the privileges of the build process, which puts it inside CI with access to source and secrets. Reviewing the dependency manifest surfaces the known-vulnerable components behind incidents like Log4Shell before they are exploited. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-038",
@@ -3829,7 +3940,10 @@
      "code": "V14",
      "name": "Data Protection"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Secrets Exposed in Version Control History” is a finding that surfaces more often than clients expect. The stake is real: a live credential in history is exposed to everyone who can clone the repository, which for a public repository means everyone. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-039",
@@ -3946,7 +4060,10 @@
      "code": "V2",
      "name": "Validation and Business Logic"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "During white-box source-code review, “Prototype Pollution in JavaScript Object Handling” is a finding that surfaces more often than clients expect. The stake is real: effects range from denial of service to remote code execution depending on what consumes the polluted property. Injection sinks are traceable in source from the tainted input to the dangerous call, proving exploitability rather than guessing it. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-040",
@@ -4063,7 +4180,10 @@
      "code": "V12",
      "name": "Secure Communication"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Disabled TLS Certificate Validation in Source” is a finding that surfaces more often than clients expect. The stake is real: tLS without certificate validation provides encryption but no authentication, so any adversary positioned on the path can present their own certificate and read or modify the traffic. Design flaws visible in code — missing threat modelling, trust placed in the client — are the ones dynamic testing often misses. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-041",
@@ -4179,7 +4299,10 @@
      "code": "V8",
      "name": "Authorization"
     }
-   ]
+   ],
+   "difficulty": "Expert",
+   "timeEstimate": "2-4 hours",
+   "realWorldContext": "During white-box source-code review, “Missing Tenant Predicate in Multi-Tenant Query Construction” is a finding that surfaces more often than clients expect. The stake is real: complete cross-tenant data disclosure through a legitimate, authenticated endpoint. Access-control flaws are easiest to confirm in source, where the missing check is visible on the line it should have been. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SRC-042",

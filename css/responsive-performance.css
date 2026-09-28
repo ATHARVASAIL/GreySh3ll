@@ -157,6 +157,15 @@ body.sidebar-locked{ overflow:hidden; }
 
 @media print{
   @page{ margin:16mm 14mm; }
+  /* Force a clean white document. The app's dark body/grid/atmosphere
+     backgrounds must not print behind the report — since #reportRoot is
+     absolutely positioned it only covers the first page, so the dark
+     html/body background used to bleed through every page after it. Paint
+     the page white at the root and hide the decorative background layers
+     outright, then give every report page its own white background too. */
+  html, body{ background:#fff !important; }
+  .bg-grid, #particleCanvas, #confettiCanvas, .l-atmos, .topbar, .fab-stack,
+  .sidebar, .sidebar-backdrop, .toolbar, .stats-overlay{ display:none !important; }
   body *{ visibility:hidden; }
   #reportRoot, #reportRoot *{ visibility:visible; }
   /* Calibri for the whole printed report (was Georgia/Arial/Courier). Calibri
@@ -172,7 +181,7 @@ body.sidebar-locked{ overflow:hidden; }
     font-size:11pt; line-height:1.55;
   }
 
-  .report-page{ page-break-after:always; padding:0 2mm; }
+  .report-page{ page-break-after:always; padding:0 2mm; background:#fff; color:#1a1a1a; }
   .report-page:last-child{ page-break-after:auto; }
 
   /* ---- cover page ---- */
@@ -256,11 +265,24 @@ body.sidebar-locked{ overflow:hidden; }
   .report-finding-status{ margin-left:auto; font-family:var(--report-font); font-size:8pt; font-weight:700; color:#B91C1C; text-transform:uppercase; }
   .report-finding-title{ font-family:var(--report-font); font-size:13pt; font-weight:700; color:#111; margin:0 0 1.5mm; }
   .report-finding-meta{ font-family:var(--report-font); font-size:8.5pt; color:#888; margin-bottom:4mm; }
+  .report-finding-num{ font-family:var(--report-font); font-size:8pt; font-weight:700; letter-spacing:.4px; text-transform:uppercase; color:#2F5CA6; }
   .report-field{ margin-bottom:3.5mm; }
   .report-field-label{ font-family:var(--report-font); font-size:8pt; font-weight:700; text-transform:uppercase; letter-spacing:.4px; color:#2F5CA6; margin-bottom:1mm; }
   .report-field p{ margin:0; font-size:10pt; color:#333; }
-  .report-field ul{ margin:0; padding-left:5mm; font-size:10pt; color:#333; }
+  .report-field ul, .report-field ol{ margin:0; padding-left:5mm; font-size:10pt; color:#333; }
   .report-field li{ margin-bottom:1mm; }
+  /* steps to reproduce — numbered, tight */
+  .report-steps{ counter-reset:none; }
+  .report-steps li{ margin-bottom:1.4mm; line-height:1.4; }
+  /* example payloads / commands — monospace-feel code blocks that print cleanly */
+  .report-payload{ margin-bottom:2.5mm; page-break-inside:avoid; }
+  .report-payload-label{ font-family:var(--report-font); font-size:8.5pt; color:#555; margin-bottom:.8mm; }
+  .report-payload-cmd{
+    font-family:var(--report-font); font-size:8.5pt; color:#111;
+    background:#f4f6f8; border:1px solid #dde3ea; border-radius:1.2mm;
+    padding:2mm 2.5mm; margin:0; white-space:pre-wrap; word-break:break-word;
+    line-height:1.45;
+  }
 
   /* ---- evidence attachments ---- */
   .report-attachments{ display:flex; flex-wrap:wrap; gap:3mm; }

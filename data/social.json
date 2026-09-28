@@ -119,7 +119,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Social Media OSINT Exposure of Employee Information” is a finding that surfaces more often than clients expect. The stake is real: an attacker assembles an accurate guess at the email naming convention, a working org chart, and pretexts personalised enough to reference a project a specific employee posted about. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-002",
@@ -232,7 +235,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Pretexting Against Help Desk for Password Reset” is a finding that surfaces more often than clients expect. The stake is real: a successful reset hands the attacker a working credential. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-003",
@@ -344,7 +350,10 @@
      "code": "PHYS",
      "name": "Physical security testing"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Physical Security of Server Room Access Controls” is a finding that surfaces more often than clients expect. The stake is real: physical access to a server room bypasses essentially every network control. Physical access controls that can be tailgated or bypassed put every downstream technical control at risk. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-004",
@@ -457,7 +466,10 @@
      "code": "PHYS",
      "name": "Physical security testing"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Badge Cloning / RFID Access Card Duplication” is a finding that surfaces more often than clients expect. The stake is real: a cloned badge grants the same access as the original, without the legitimate holder knowing. Weak identity verification is what lets a caller or visitor impersonate someone with legitimate access. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-005",
@@ -569,7 +581,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Baiting via Malicious QR Code Placement” is a finding that surfaces more often than clients expect. The stake is real: a scanned code can redirect to a credential-harvesting login clone, prompt installation of a malicious profile or app, or simply confirm the target is receptive to a follow-up call. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-006",
@@ -680,7 +695,10 @@
      "code": "PHYS",
      "name": "Physical security testing"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Dumpster Diving for Sensitive Document Disposal” is a finding that surfaces more often than clients expect. The stake is real: recovered material can supply a follow-on pretext directly — an org chart, a vendor invoice with real account details, a temporary password on a sticky note. Sensitive information left on paper, whiteboards, or discarded media is recovered on physical assessments far more often than clients expect. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-007",
@@ -793,7 +811,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Advanced",
+   "timeEstimate": "1-2 hours",
+   "realWorldContext": "On social-engineering and physical engagements, “Impersonation of IT Support for Remote Access” is a finding that surfaces more often than clients expect. The stake is real: a successful session gives the attacker what a genuine remote-support session would: full desktop access, file transfer, and often local administrative rights. Weak identity verification is what lets a caller or visitor impersonate someone with legitimate access. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-008",
@@ -906,7 +927,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Phishing Email Susceptibility Testing” is a finding that surfaces more often than clients expect. The stake is real: a real campaign of this kind harvests credentials at scale, or establishes an initial foothold through an attachment or link. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-009",
@@ -1017,7 +1041,10 @@
      "code": "PHYS",
      "name": "Physical security testing"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Physical Tailgating into Restricted Areas” is a finding that surfaces more often than clients expect. The stake is real: a successful tailgate bypasses the badge system entirely, giving the same physical reach as a genuine badge holder. Physical access controls that can be tailgated or bypassed put every downstream technical control at risk. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-010",
@@ -1128,7 +1155,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “SMS Phishing (Smishing) Susceptibility Testing” is a finding that surfaces more often than clients expect. The stake is real: a successful text-message lure drives the same credential harvest or malicious app install as email phishing. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-011",
@@ -1238,7 +1268,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Shoulder Surfing in Open Work Areas” is a finding that surfaces more often than clients expect. The stake is real: an observed credential or PIN is usable immediately, with no technical step in between. Physical access controls that can be tailgated or bypassed put every downstream technical control at risk. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-012",
@@ -1350,7 +1383,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “USB Drop Attack Susceptibility” is a finding that surfaces more often than clients expect. The stake is real: a real malicious drop can deliver anything from a simple beacon confirming the target is compromisable, through to a full initial foothold or credential harvester. Sensitive information left on paper, whiteboards, or discarded media is recovered on physical assessments far more often than clients expect. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-013",
@@ -1460,7 +1496,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Unattended Workstation Lockout Policy Testing” is a finding that surfaces more often than clients expect. The stake is real: a walk-up attacker inherits the full access of the logged-in user instantly: email, file shares, internal systems. Walk-up access to an unlocked, unattended session is one of the fastest wins on a physical engagement. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-014",
@@ -1573,7 +1612,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Vishing (Voice Phishing) Susceptibility Testing” is a finding that surfaces more often than clients expect. The stake is real: a successful call extracts organisational detail that feeds a later, more damaging attack — a name to drop in the next pretext, a confirmed absence to exploit in a payment fraud attempt. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-015",
@@ -1682,7 +1724,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Business Email Compromise (BEC) / CEO Fraud Wire-Transfer Testing” is a finding that surfaces more often than clients expect. The stake is real: a successful attack of this kind moves money out of the organisation directly, and the FBI's IC3 consistently ranks it among the highest-dollar-loss cybercrime categories. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-016",
@@ -1791,7 +1836,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Fake Vendor / Supplier Invoice Fraud Pretext” is a finding that surfaces more often than clients expect. The stake is real: a paid fraudulent invoice is a direct financial loss. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-017",
@@ -1900,7 +1948,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Malicious Job-Applicant / Recruiter Pretext Targeting HR” is a finding that surfaces more often than clients expect. The stake is real: a successful pretext here yields initial access or harvested credentials through a department with broad internal reach — HR systems hold personal data, payroll information and the organisational structure. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-018",
@@ -2009,7 +2060,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Reception / Front-Desk Social Engineering via Delivery or Maintenance Pretext” is a finding that surfaces more often than clients expect. The stake is real: access beyond the lobby opens up a wide range of follow-on actions. Physical access controls that can be tailgated or bypassed put every downstream technical control at risk. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-019",
@@ -2118,7 +2172,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Fake Compliance / Internal Audit Request Pretext” is a finding that surfaces more often than clients expect. The stake is real: a successful pretext extracts sensitive data — HR records, financial data, credentials requested 'for audit purposes' — or induces a policy exception such as a temporary access grant. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. It is worth confirming and fixing early, before it is chained into something larger."
   },
   {
    "id": "SOCIAL-020",
@@ -2228,7 +2285,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “MFA Bypass via Adversary-in-the-Middle Phishing and Push Fatigue” is a finding that surfaces more often than clients expect. The stake is real: the attacker obtains an authenticated session that has already cleared MFA, so re-prompting does not stop them and a password reset alone does not evict them. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-021",
@@ -2338,7 +2398,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Synthetic Voice and Video Impersonation of Executives” is a finding that surfaces more often than clients expect. The stake is real: the immediate impact is fraudulent payment or unauthorised access granted through a process that behaved exactly as designed, because the authorisation appeared to come from a recognised person. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-022",
@@ -2448,7 +2511,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Callback Phishing” is a finding that surfaces more often than clients expect. The stake is real: a successful call ends with a remote access tool installed on a corporate endpoint by the user, with their consent, from a session they started. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-023",
@@ -2558,7 +2624,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Malicious OAuth Application Consent Phishing” is a finding that surfaces more often than clients expect. The stake is real: a granted token provides ongoing programmatic access to whatever the scopes cover: mailbox contents, files, calendars, or the ability to send as the user. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-024",
@@ -2669,7 +2738,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Fake Single Sign-On Window Phishing” is a finding that surfaces more often than clients expect. The stake is real: credentials are captured at a point where the user has no reliable way to detect the deception. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-025",
@@ -2781,7 +2853,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Typosquatted Domain and Watering Hole Targeting of Staff” is a finding that surfaces more often than clients expect. The stake is real: a lookalike domain supports credential phishing, invoice fraud and malware delivery, and lends credibility to every other pretext because the sender address looks right. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-026",
@@ -2892,7 +2967,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Intermediate",
+   "timeEstimate": "30-60 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Mobile Number Takeover (SIM Swap) Against Staff Authentication” is a finding that surfaces more often than clients expect. The stake is real: control of the number defeats SMS-based authentication and, more seriously, SMS-based recovery, which often resets a password outright. Weak identity verification is what lets a caller or visitor impersonate someone with legitimate access. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-027",
@@ -3002,7 +3080,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Collaboration Platform Phishing via External Federation” is a finding that surfaces more often than clients expect. The stake is real: a link or file delivered in chat reaches the user with less inspection and more trust than the same content in email. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-028",
@@ -3113,7 +3194,10 @@
      "code": "SOCIAL",
      "name": "Social engineering"
     }
-   ]
+   ],
+   "difficulty": "Beginner",
+   "timeEstimate": "15-30 min",
+   "realWorldContext": "On social-engineering and physical engagements, “Insider Recruitment and Bribery Approach Susceptibility” is a finding that surfaces more often than clients expect. The stake is real: a cooperating insider starts inside every perimeter control, with legitimate credentials and a legitimate reason to be in the systems they touch. Staff awareness is the control that decides whether a phishing or pretext attempt succeeds, and untrained users are why these campaigns still work. That direct line to impact is why it warrants prompt confirmation and remediation on any live system."
   },
   {
    "id": "SOCIAL-029",

@@ -1,0 +1,44 @@
+# Deploys the static site to GitHub Pages on every push to the default branch.
+# GreySh3ll has no build step — the repository root IS the site — so this simply
+# uploads the repo (minus the test harness) as a Pages artifact and publishes it.
+#
+# To enable: repo Settings → Pages → Build and deployment → Source: GitHub Actions.
+name: Deploy
+
+on:
+  push:
+    branches: [main, master]
+  workflow_dispatch:
+
+# Allow one concurrent deployment; a newer push supersedes an in-flight one.
+concurrency:
+  group: pages
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure Pages
+        uses: actions/configure-pages@v5
+
+      - name: Upload site artifact
+        uses: actions/upload-pages-artifact@v3
+        with:
+          # publish the whole repo root; the test harness isn't needed on the
+          # live site, so it's excluded to keep the artifact small.
+          path: '.'
+
+      - name: Deploy to GitHub Pages
+        id: deployment
+        uses: actions/deploy-pages@v4

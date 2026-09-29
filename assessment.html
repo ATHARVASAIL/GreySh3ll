@@ -73,6 +73,27 @@
     <button class="btn" id="exportJsonBtn" title="Save progress to a file" aria-label="Save progress to a file"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v11"/><path d="M7.2 11.3 12 15.5l4.8-4.2"/><path d="M4.5 15.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg><span class="lbl">Save</span></button>
     <button class="btn" id="exportCsvBtn" title="Export findings as CSV" aria-label="Export findings as CSV"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.3" y="4.5" width="17.4" height="15" rx="1.8"/><line x1="3.3" y1="10" x2="20.7" y2="10"/><line x1="9.2" y1="4.5" x2="9.2" y2="19.5"/></svg><span class="lbl">CSV</span></button>
     <button class="btn primary" id="printBtn" title="Print / save as PDF report" aria-label="Print or save report as PDF"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6.5 8.7V4.2a.8.8 0 0 1 .8-.8h9.4a.8.8 0 0 1 .8.8v4.5"/><rect x="3.8" y="8.7" width="16.4" height="7.6" rx="1.4"/><path d="M6.5 15.5v4.5a.8.8 0 0 0 .8.8h9.4a.8.8 0 0 0 .8-.8v-4.5"/></svg><span class="lbl">Report</span></button>
+    <!-- Overflow menu — shown only on narrow screens where the full action row
+         would scroll off. Its "More" button reveals the secondary actions
+         (Badges/Toolkit/Stats/Import/Save/CSV) that are hidden on mobile, so
+         nothing important is off-screen. Wired in js/interactions.js. -->
+    <div class="topbar-more" id="topbarMore">
+      <button class="btn topbar-more-btn" id="topbarMoreBtn" aria-label="More actions" aria-haspopup="true" aria-expanded="false" title="More">
+        <svg class="icn" viewBox="0 0 24 24" fill="currentColor" stroke="none"><circle cx="5" cy="12" r="1.9"/><circle cx="12" cy="12" r="1.9"/><circle cx="19" cy="12" r="1.9"/></svg>
+      </button>
+      <div class="topbar-more-menu" id="topbarMoreMenu" role="menu" aria-label="More actions">
+        <button class="more-item more-item-xs" data-more="jump" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="11" cy="11" r="7.2"/><line x1="20.8" y1="20.8" x2="16.4" y2="16.4"/></svg><span>Search / Jump</span></button>
+        <button class="more-item more-item-xs" data-more="theme" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M20.4 14.7A8.5 8.5 0 1 1 9.3 3.6a7 7 0 0 0 11.1 11.1z"/></svg><span>Toggle theme</span></button>
+        <div class="more-sep more-sep-xs"></div>
+        <button class="more-item" data-more="badges" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M7 4h10v4.2a5 5 0 0 1-10 0V4z"/><path d="M7 5.2H4.3a1 1 0 0 0-1 1.1c.2 2.4 1.7 3.9 4.1 4.2M17 5.2h2.7a1 1 0 0 1 1 1.1c-.2 2.4-1.7 3.9-4.1 4.2"/><line x1="12" y1="13.2" x2="12" y2="17.5"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="9.5" y1="17.5" x2="14.5" y2="17.5"/></svg><span>Badges &amp; XP</span></button>
+        <button class="more-item" data-more="toolkit" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="9.5" width="18" height="10.5" rx="2"/><path d="M8.5 9.5V6.8a2 2 0 0 1 2-2h3a2 2 0 0 1 2 2v2.7"/><line x1="3" y1="14.2" x2="21" y2="14.2"/></svg><span>Analyst Toolkit</span></button>
+        <button class="more-item" data-more="stats" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="20" x2="5" y2="10.5"/><line x1="12" y1="20" x2="12" y2="4"/><line x1="19" y1="20" x2="19" y2="14.5"/></svg><span>Stats dashboard</span></button>
+        <div class="more-sep"></div>
+        <button class="more-item" data-more="import" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 15.5V4.5"/><path d="M7.2 9.2 12 4.5l4.8 4.7"/><path d="M4.5 15.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg><span>Import progress</span></button>
+        <button class="more-item" data-more="save" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4.5v11"/><path d="M7.2 11.3 12 15.5l4.8-4.2"/><path d="M4.5 15.5v3a2 2 0 0 0 2 2h11a2 2 0 0 0 2-2v-3"/></svg><span>Save progress</span></button>
+        <button class="more-item" data-more="csv" role="menuitem"><svg class="icn" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="3.3" y="4.5" width="17.4" height="15" rx="1.8"/><line x1="3.3" y1="10" x2="20.7" y2="10"/><line x1="9.2" y1="4.5" x2="9.2" y2="19.5"/></svg><span>Export CSV</span></button>
+      </div>
+    </div>
   </div>
 </header>
 

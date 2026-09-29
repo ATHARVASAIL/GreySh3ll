@@ -227,8 +227,14 @@ body{ letter-spacing:.1px; }
   background:var(--l-grad-accent); border-color:transparent; color:#04101F;
   box-shadow:0 14px 34px -12px var(--l-glow-blue);
 }
-.l-btn-primary:hover{ box-shadow:0 20px 50px -12px var(--l-glow-blue); }
-.l-btn:hover{ border-color:var(--l-line-strong); background:rgba(var(--l-blue-rgb),.08); }
+/* Primary keeps its gradient on hover (only the glow grows). Explicitly
+   re-declaring the gradient here stops the secondary hover rule below from
+   overriding it — on touch devices :hover sticks after a tap, which was
+   turning the primary CTA into a near-transparent (black-looking) button. */
+.l-btn-primary:hover{ background:var(--l-grad-accent); box-shadow:0 20px 50px -12px var(--l-glow-blue); }
+/* Secondary (outline) buttons only — :not(.l-btn-primary) so the primary is
+   never touched by this translucent hover fill. */
+.l-btn:not(.l-btn-primary):hover{ border-color:var(--l-line-strong); background:rgba(var(--l-blue-rgb),.08); }
 .l-btn:hover .icn{ transform:translateX(4px); }
 .l-btn-primary:hover .icn{ transform:translateX(4px); }
 

@@ -760,6 +760,48 @@ window.addEventListener('resize', ()=>{
 document.getElementById('testerName').addEventListener('input', ()=> saveProgress());
 
 /* =========================================================
+   TOPBAR OVERFLOW MENU (mobile)
+   On narrow screens the full action row would scroll off, hiding
+   Badges/Toolkit/Stats/Import/Save/CSV. The "More" (⋯) button reveals
+   them in a dropdown; each item simply forwards to the real action
+   button so there is one source of truth for behaviour.
+========================================================= */
+(function initTopbarMore(){
+  const wrap = document.getElementById('topbarMore');
+  const btn  = document.getElementById('topbarMoreBtn');
+  const menu = document.getElementById('topbarMoreMenu');
+  if(!wrap || !btn || !menu) return;
+
+  // each menu item maps to the id of the real topbar button it triggers
+  const MAP = {
+    jump:    'paletteBtn',
+    theme:   'themeToggle',
+    badges:  'badgesBtn',
+    toolkit: 'toolkitBtn',
+    stats:   'statsBtn',
+    import:  'importBtn',
+    save:    'exportJsonBtn',
+    csv:     'exportCsvBtn',
+  };
+
+  function open(){ wrap.classList.add('open'); btn.setAttribute('aria-expanded','true'); }
+  function close(){ wrap.classList.remove('open'); btn.setAttribute('aria-expanded','false'); }
+  function toggle(){ wrap.classList.contains('open') ? close() : open(); }
+
+  btn.addEventListener('click', (e)=>{ e.stopPropagation(); toggle(); });
+  menu.addEventListener('click', (e)=>{
+    const item = e.target.closest('.more-item');
+    if(!item) return;
+    const target = document.getElementById(MAP[item.dataset.more]);
+    close();
+    if(target) target.click();
+  });
+  // dismiss on outside click or Escape
+  document.addEventListener('click', (e)=>{ if(!wrap.contains(e.target)) close(); });
+  document.addEventListener('keydown', (e)=>{ if(e.key === 'Escape') close(); });
+})();
+
+/* =========================================================
    SIDEBAR RAIL COLLAPSE (desktop) — the "three dots" collapsed view
 ========================================================= */
 const SIDEBAR_RAIL_KEY = 'vapt_console_sidebar_rail';

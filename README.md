@@ -11,8 +11,8 @@ client-ready PDF report — entirely in the browser. **No backend. No build. No 
 
 [![Live Demo](https://img.shields.io/badge/%F0%9F%94%97_Live_Demo-atharvasail.github.io%2FGreySh3ll-2f8cff?style=for-the-badge)](https://atharvasail.github.io/GreySh3ll/)
 
-[![Deploy](https://img.shields.io/github/actions/workflow/status/ATHARVASAIL/GreySh3ll/deploy.yml?branch=main&label=deploy&logo=githubactions&logoColor=white&style=flat-square)](../../actions)
-[![Verify](https://img.shields.io/github/actions/workflow/status/ATHARVASAIL/GreySh3ll/verify.yml?branch=main&label=tests&logo=jest&logoColor=white&style=flat-square)](../../actions)
+[![Deploy](https://img.shields.io/github/actions/workflow/status/ATHARVASAIL/GreySh3ll/deploy.yml?branch=main&label=deploy&logo=githubactions&logoColor=white&style=flat-square)](../../actions/workflows/deploy.yml)
+[![CI](https://img.shields.io/github/actions/workflow/status/ATHARVASAIL/GreySh3ll/ci.yml?branch=main&label=tests&logo=jest&logoColor=white&style=flat-square)](../../actions/workflows/ci.yml)
 [![License: MIT](https://img.shields.io/badge/license-MIT-2f8cff.svg?style=flat-square)](LICENSE)
 [![Version](https://img.shields.io/badge/version-1.16-blueviolet?style=flat-square)](#-changelog)
 [![Backend](https://img.shields.io/badge/backend-none-informational?style=flat-square)](#)
@@ -147,7 +147,7 @@ tests/              →  152 unit tests + 18-viewport sweep + contrast & data ga
 
 ## ✅ Tests & quality gates
 
-All gates run in CI on every push (`.github/workflows/verify.yml`).
+All gates run in CI on every push (`.github/workflows/ci.yml`).
 
 ```bash
 cd tests

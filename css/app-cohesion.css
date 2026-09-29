@@ -174,17 +174,24 @@ body{
     transition:width .22s var(--ease-out);
   }
   .layout.sidebar-rail::before{ width:88px; }
-  /* the sidebar itself no longer draws the border (the column does) and is
-     sticky content only — height auto so it never clips, capped to one
-     viewport so long lists scroll internally */
+  /* Modern app-sidebar behaviour: ONE page scrollbar, no nested scroll region.
+     The sidebar is sticky and sized to its own content (align-self:start), so:
+       • when it's shorter than the viewport it stays pinned as you scroll;
+       • when it's taller, it simply scrolls up with the page (revealing its
+         bottom) instead of trapping a separate inner scrollbar.
+     This is the behaviour the dated max-height + overflow-y:auto was replaced
+     to get. The column ::before still draws the divider the full page height. */
+  .layout{ align-items:start; }
   .sidebar{
     border-right:none;
-    height:auto;
-    max-height:calc(100vh - 63px);
-    position:sticky; top:63px;
+    height:auto; max-height:none; overflow:visible;
+    position:sticky; top:63px; align-self:start;
     z-index:1;
+    padding-bottom:28px;
   }
-  .sidebar, .main{ position:relative; }
+  /* .main needs its own stacking context for z-index layering; the sidebar
+     must stay sticky (do NOT reset it to relative here). */
+  .main{ position:relative; }
 }
 
 /* ---- Mobile / tablet drawer: animate open AND close cleanly ---- */
@@ -206,21 +213,32 @@ body{
     top:56px; height:calc(100dvh - 56px); max-height:calc(100dvh - 56px);
     z-index:61; overflow-y:auto;
     -webkit-overflow-scrolling:touch;
-    padding-top:16px;
+    /* reserve a clear header band at the top of the drawer for the close
+       button; all drawer content (profile bar, ring, filters) starts well below
+       it, so nothing overlaps the close control. */
+    padding-top:68px;
     transition:transform .3s cubic-bezier(.22,1,.36,1);
     will-change:transform;
   }
-  /* close button sits in the drawer's own clear top area (below the topbar),
-     large and comfortably tappable. */
+  /* Close button: a clearly-visible pill pinned to the drawer's top-right,
+     ABOVE the drawer content (higher z-index than the profile bar). The old
+     near-black surface-2 fill on a dark drawer read as an invisible/black box —
+     give it an explicit accent-tinted fill and border so it always reads as a
+     real, tappable button. It stays put while the drawer scrolls. */
   .sidebar-close-btn{
-    top:10px; right:12px; z-index:5;
-    width:40px; height:40px;
+    display:flex; position:absolute; top:12px; right:14px; z-index:10;
+    width:42px; height:42px; border-radius:var(--r-md);
+    background:rgba(var(--accent-rgb),.12);
+    border:1px solid rgba(var(--accent-rgb),.35);
+    color:var(--text-bright);
+    box-shadow:var(--shadow-md);
     transition:background .15s ease, border-color .15s ease, transform .12s ease;
   }
-  .sidebar-close-btn .icn{ width:18px; height:18px; }
-  .sidebar-close-btn:hover{ background:var(--surface-3); border-color:var(--border-strong); }
+  .sidebar-close-btn .icn{ width:20px; height:20px; }
+  .sidebar-close-btn:hover{ background:rgba(var(--accent-rgb),.2); border-color:var(--accent); }
   .sidebar-close-btn:active{ transform:scale(.9); }
-  .sidebar .profile-bar{ margin-top:6px; }
+  /* profile bar now sits comfortably below the header band */
+  .sidebar .profile-bar{ margin-top:0; }
   /* backdrop starts below the topbar too, so tapping the topbar still works */
   .sidebar-backdrop{ top:56px; }
 }
@@ -350,6 +368,10 @@ body{
 .chip:active, .btn:active, .ttab:active{ transform:scale(.96); }
 
 /* the "Report" primary action gets a soft glow so it reads as the key CTA */
+/* The base .btn.primary:hover turned the button bright green (#33FF7A) — an
+   off-brand legacy value that also sticks after a tap on touch devices. Keep
+   every primary button on-brand blue on hover; only the glow grows. */
+.btn.primary:hover{ background:var(--accent); border-color:var(--accent); color:var(--accent-ink); }
 #printBtn.primary{ box-shadow:0 6px 18px -8px rgba(var(--accent-rgb),.5); }
 #printBtn.primary:hover{ box-shadow:0 10px 26px -8px rgba(var(--accent-rgb),.6); }
 
@@ -361,4 +383,58 @@ body{
   .cat-section, .test-item.expanded .detail-inner{ animation:none !important; }
   .chip, .btn, .ttab, .sev-row, .cat-item, .fab{ transition:none !important; }
   .chip:active, .btn:active, .ttab:active, .fab:hover{ transform:none !important; }
+}
+
+/* =========================================================
+   F. TOPBAR OVERFLOW MENU (mobile)
+   Desktop: the "More" button is hidden and every action shows inline.
+   Mobile (<=640px): secondary actions collapse into the More dropdown so
+   nothing scrolls off-screen and every feature stays one tap away.
+========================================================= */
+.topbar-more{ position:relative; display:none; }
+.topbar-more-btn{ display:inline-flex; align-items:center; justify-content:center; }
+.topbar-more-menu{
+  position:absolute; top:calc(100% + 8px); right:0; z-index:70;
+  min-width:210px; padding:6px;
+  background:var(--surface-1); border:1px solid var(--border-strong);
+  border-radius:var(--r-lg); box-shadow:var(--shadow-lg);
+  opacity:0; visibility:hidden; transform:translateY(-6px) scale(.98);
+  transform-origin:top right;
+  transition:opacity .16s var(--ease-out), transform .16s var(--ease-out), visibility .16s;
+}
+.topbar-more.open .topbar-more-menu{ opacity:1; visibility:visible; transform:none; }
+.more-item{
+  display:flex; align-items:center; gap:11px; width:100%;
+  padding:11px 12px; border-radius:var(--r-sm);
+  background:transparent; border:none; color:var(--text); font-size:14px; text-align:left;
+  transition:background .14s ease, color .14s ease;
+}
+.more-item .icn{ width:18px; height:18px; color:var(--text-dim); flex-shrink:0; }
+.more-item:hover, .more-item:focus-visible{ background:var(--surface-2); color:var(--text-bright); }
+.more-item:hover .icn, .more-item:focus-visible .icn{ color:var(--accent); }
+.more-sep{ height:1px; background:var(--border-soft); margin:5px 4px; }
+
+@media (max-width:640px){
+  /* collapse the secondary actions into the More menu */
+  #badgesBtn, #toolkitBtn, #statsBtn, #importBtn, #exportJsonBtn, #exportCsvBtn,
+  .topbar-actions .btn-divider{ display:none !important; }
+  .topbar-more{ display:inline-flex; }
+  /* keep the essential controls comfortably tappable — 44px is the
+     accessibility minimum touch target. */
+  .topbar-actions{ gap:5px; overflow:visible; }
+  .theme-toggle, #paletteBtn, #printBtn, .topbar-more-btn{ min-width:44px; min-height:44px; }
+  .menu-btn{ min-width:44px; min-height:44px; }
+  /* the Search/Jump and Toggle-theme entries in the More menu are only needed
+     at the very smallest widths (below), where those two topbar buttons hide. */
+  .more-item-xs, .more-sep-xs{ display:none; }
+}
+
+/* Very small screens (<=380px): the topbar can't fit four 44px buttons plus the
+   brand, so Search/Jump and the theme toggle move into the More menu (kept
+   reachable), leaving just Report + More in the bar. No control ever shrinks
+   below the 44px touch target, and nothing scrolls off. */
+@media (max-width:380px){
+  #paletteBtn, .theme-toggle{ display:none !important; }
+  .topbar-more-menu .more-item-xs{ display:flex; }
+  .topbar-more-menu .more-sep-xs{ display:block; }
 }

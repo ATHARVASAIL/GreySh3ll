@@ -357,21 +357,27 @@ function renderSeverityChart(){
   const total = slices.reduce((sum, s) => sum + s.n, 0);
   if(!total){ host.innerHTML = '<p class="chart-empty">No cases loaded.</p>'; return; }
 
-  /* r=42 gives a circumference of ~263.9. Each slice is drawn as a dashed
-     stroke on the same circle and rotated into place, which avoids the arc
-     path arithmetic entirely and degrades gracefully at any size. */
+  /* r=42 gives a circumference of ~263.9. Each slice is a dashed stroke on the
+     same circle, rotated into place — no arc-path maths, scales cleanly.
+     A small consistent GAP is inserted between segments (modern segmented-donut
+     style): it makes the boundaries crisp even when two severities share a
+     similar hue (High #FFB000 vs Medium #FFD866), which previously blended into
+     one lopsided blob. The gap is taken off the end of each visible segment so
+     the geometry still sums to the full circle. */
   const R = 42;
   const CIRC = 2 * Math.PI * R;
+  const GAP = slices.length > 1 ? 3 : 0;   // px of blank between segments
   let offset = 0;
   const arcs = slices.map(s => {
-    const len = (s.n / total) * CIRC;
+    const full = (s.n / total) * CIRC;      // this slice's full share
+    const seg = Math.max(full - GAP, 0.5);  // visible dash, minus the trailing gap
     const arc = `<circle class="chart-arc" data-sev="${s.key}"
-        cx="60" cy="60" r="${R}" fill="none" stroke-width="15"
-        stroke-dasharray="${len.toFixed(2)} ${(CIRC - len).toFixed(2)}"
+        cx="60" cy="60" r="${R}" fill="none" stroke-width="15" stroke-linecap="round"
+        stroke-dasharray="${seg.toFixed(2)} ${(CIRC - seg).toFixed(2)}"
         stroke-dashoffset="${(-offset).toFixed(2)}"
         transform="rotate(-90 60 60)"
       ><title>${escapeHtml(s.label)}: ${s.n} (${Math.round(pctOf(s.n, total))}%)</title></circle>`;
-    offset += len;
+    offset += full;                         // advance by the full share (keeps the ring closed)
     return arc;
   }).join('');
 
